@@ -18,6 +18,8 @@ wget --no-check-certificate -P fineract-provider/gradle/wrapper https://github.c
 
 curl --insecure -L https://github.com/apache/fineract/raw/develop/fineract-provider/gradle/wrapper/gradle-wrapper.jar > fineract-provider/gradle/wrapper/gradle-wrapper.jar
 
+* NB: With this installation, you would want to download gradle-wrapper.jar from release 1.3, tested with 1.4 it fails. (Already present in path)
+
 Instructions to run Apache RAT (Release Audit Tool)
 ============
 1. Extract the archive file to your local directory.
