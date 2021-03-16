@@ -312,7 +312,7 @@ public class ReadWriteNonCoreDataServiceImpl implements ReadWriteNonCoreDataServ
         final String deletePermission = "'DELETE_" + dataTableName + "'";
         final String deletePermissionChecker = "'DELETE_" + dataTableName + "_CHECKER'";
 
-        return "insert into m_permission (grouping, code, action_name, entity_name, can_maker_checker) values " + "('datatable', "
+        return "insert into m_permission (`grouping`, code, action_name, entity_name, can_maker_checker) values " + "('datatable', "
                 + createPermission + ", 'CREATE', '" + dataTableName + "', true)," + "('datatable', " + createPermissionChecker
                 + ", 'CREATE', '" + dataTableName + "', false)," + "('datatable', " + readPermission + ", 'READ', '" + dataTableName
                 + "', false)," + "('datatable', " + updatePermission + ", 'UPDATE', '" + dataTableName + "', true)," + "('datatable', "
