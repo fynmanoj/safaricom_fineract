@@ -160,7 +160,12 @@ rat {
 	//BSD License
 	'**/assets/uglify.js',
          //Ignore out folder
-         '**/out/**'
+         '**/out/**',
+    
+    //4C files
+	'**/4c/**',
+	'**/4c/lms/*',
+	'**/4c/od/*',
 	]
 }
 

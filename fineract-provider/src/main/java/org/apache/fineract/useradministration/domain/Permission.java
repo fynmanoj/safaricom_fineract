@@ -28,7 +28,7 @@ import org.apache.fineract.infrastructure.core.domain.AbstractPersistableCustom;
 @Table(name = "m_permission")
 public class Permission extends AbstractPersistableCustom<Long> {
 
-    @Column(name = "grouping", nullable = false, length = 45)
+    @Column(name = "`grouping`", nullable = false, length = 45)
     private String grouping;
 
     @Column(name = "code", nullable = false, length = 100)
