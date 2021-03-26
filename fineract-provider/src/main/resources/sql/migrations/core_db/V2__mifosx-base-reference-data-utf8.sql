@@ -204,7 +204,7 @@ VALUES
 (99,'MWK',2,NULL,'Malawi Kwacha','currency.MWK'),
 (100,'MXN',2,'$','Mexican Peso','currency.MXN'),
 (101,'MYR',2,NULL,'Malaysian Ringgit','currency.MYR'),
-(102,'MZM',2,NULL,'Mozambique Metical','currency.MZM'),
+(102,'MZN',2,NULL,'Mozambique Metical','currency.MZN'),
 (103,'NAD',2,NULL,'Namibia Dollar','currency.NAD'),
 (104,'NGN',2,NULL,'Nigerian Naira','currency.NGN'),
 (105,'NIO',2,'C$','Nicaragua Cordoba Oro','currency.NIO'),
