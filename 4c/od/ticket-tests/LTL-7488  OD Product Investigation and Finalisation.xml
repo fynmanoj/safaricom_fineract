@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<con:soapui-project id="6eb76151-8327-4420-9b54-a83974f5fe52" activeEnvironment="Default" name="LTL-7488  OD Product Investigation and Finalisation" soapui-version="5.6.0" abortOnError="false" runType="SEQUENTIAL" resourceRoot="" xmlns:con="http://eviware.com/soapui/config"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.actions.iface.tools.soapui.TestRunnerAction@values-local"><![CDATA[<xml-fragment xmlns:con="http://eviware.com/soapui/config">
+  <con:entry key="Report Format(s)" value=""/>
+  <con:entry key="Host:Port" value=""/>
+  <con:entry key="Export JUnit Results" value="false"/>
+  <con:entry key="Export All" value="false"/>
+  <con:entry key="Save After" value="false"/>
+  <con:entry key="Add Settings" value="false"/>
+  <con:entry key="WSS Password Type" value=""/>
+  <con:entry key="TestSuite" value="LMS POC"/>
+  <con:entry key="Endpoint" value=""/>
+  <con:entry key="Select Report Type" value=""/>
+  <con:entry key="System Properties" value=""/>
+  <con:entry key="Password" value=""/>
+  <con:entry key="Print Report" value="false"/>
+  <con:entry key="Open Report" value="false"/>
+  <con:entry key="Export JUnit Results with test properties" value="false"/>
+  <con:entry key="Global Properties" value=""/>
+  <con:entry key="Project Properties" value=""/>
+  <con:entry key="Project Password" value=""/>
+  <con:entry key="TestCase" value="Client Loan Creation"/>
+  <con:entry key="Username" value=""/>
+  <con:entry key="user-settings.xml Password" value=""/>
+  <con:entry key="TestRunner Path" value=""/>
+  <con:entry key="Environment" value="Default"/>
+  <con:entry key="Coverage Report" value="false"/>
+  <con:entry key="Enable UI" value="false"/>
+  <con:entry key="Root Folder" value=""/>
+  <con:entry key="Ignore Errors" value="false"/>
+  <con:entry key="Domain" value=""/>
+  <con:entry key="Tool Args" value=""/>
+  <con:entry key="Save Project" value="false"/>
+</xml-fragment>]]></con:setting></con:settings><con:interface xsi:type="con:RestService" id="4db977cf-d075-43bb-acf4-6e55aa437433" wadlVersion="http://wadl.dev.java.net/2009/02" name="https://uat.lmp.core.vodafone.com:8482" type="rest" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><con:settings/><con:definitionCache type="TEXT" rootPart=""/><con:endpoints><con:endpoint>https://demo.mifos.io/fineract-provider</con:endpoint><con:endpoint>https://uat.lmp.core.vodafone.com:8482/fineract-provider</con:endpoint></con:endpoints><con:resource name="products" path="/api/v1/savingsproducts" id="6357ecb5-7065-437d-8008-f4678e2c5c66"><con:settings/><con:parameters/><con:method name="List Products" id="d2ab77db-c015-48bb-a6ef-c5d1212ce765" method="GET"><con:settings/><con:parameters/><con:representation type="FAULT"><con:mediaType>text/html</con:mediaType><con:status>502</con:status><con:params/><con:element>html</con:element></con:representation><con:representation type="FAULT"><con:mediaType>application/json;charset=UTF-8</con:mediaType><con:status>400</con:status><con:params/><con:element xmlns:glac="https://demo.mifos.io/fineract-provider/api/v1/glaccounts">glac:Fault</con:element></con:representation><con:representation type="RESPONSE"><con:mediaType>application/json;charset=UTF-8</con:mediaType><con:status>200</con:status><con:params/><con:element>Response</con:element></con:representation><con:request name="Request 1" id="1a909669-aeff-4d68-a754-afa35c2d39cc" mediaType="application/json"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;entry key="Fineract-Platform-TenantId" value="vodafoneMzm" xmlns="http://eviware.com/soapui/config"/></con:setting></con:settings><con:endpoint>https://uat.lmp.core.vodafone.com:8482/fineract-provider</con:endpoint><con:request/><con:originalUri>https://demo.mifos.io/fineract-provider/api/v1/glaccounts</con:originalUri><con:credentials><con:username>mifos</con:username><con:password>insight@1</con:password><con:selectedAuthProfile>Basic</con:selectedAuthProfile><con:addedBasicAuthenticationTypes>Basic</con:addedBasicAuthenticationTypes><con:authType>Global HTTP Settings</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:parameters/></con:request></con:method></con:resource><con:resource name="product" path="/api/v1/savingsproducts/{savingsProductId}" id="6357ecb5-7065-437d-8008-f4678e2c5c66"><con:settings/><con:parameters><con:parameter><con:name>savingsProductId</con:name><con:value>1</con:value><con:style>TEMPLATE</con:style><con:default>1</con:default></con:parameter></con:parameters><con:method name="Get Product" id="d2ab77db-c015-48bb-a6ef-c5d1212ce765" method="GET"><con:settings/><con:parameters/><con:representation type="FAULT"><con:mediaType>text/html</con:mediaType><con:status>502</con:status><con:params/><con:element>html</con:element></con:representation><con:representation type="FAULT"><con:mediaType>application/json;charset=UTF-8</con:mediaType><con:status>400</con:status><con:params/><con:element xmlns:glac="https://demo.mifos.io/fineract-provider/api/v1/glaccounts">glac:Fault</con:element></con:representation><con:representation type="RESPONSE"><con:mediaType>application/json;charset=UTF-8</con:mediaType><con:status>200</con:status><con:params/><con:element>Response</con:element></con:representation><con:request name="Request 1" id="1a909669-aeff-4d68-a754-afa35c2d39cc" mediaType="application/json"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;entry key="Fineract-Platform-TenantId" value="vodafoneMzm" xmlns="http://eviware.com/soapui/config"/></con:setting></con:settings><con:endpoint>https://uat.lmp.core.vodafone.com:8482/fineract-provider</con:endpoint><con:request/><con:originalUri>https://demo.mifos.io/fineract-provider/api/v1/glaccounts</con:originalUri><con:credentials><con:username>mifos</con:username><con:password>insight@1</con:password><con:selectedAuthProfile>Basic</con:selectedAuthProfile><con:addedBasicAuthenticationTypes>Basic</con:addedBasicAuthenticationTypes><con:authType>Global HTTP Settings</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:parameters><entry key="savingsProductId" value="1" xmlns="http://eviware.com/soapui/config"/></con:parameters><con:parameterOrder><con:entry>savingsProductId</con:entry></con:parameterOrder></con:request></con:method></con:resource></con:interface><con:properties/><con:wssContainer/><con:oAuth2ProfileContainer/><con:oAuth1ProfileContainer/><con:sensitiveInformation/></con:soapui-project>
