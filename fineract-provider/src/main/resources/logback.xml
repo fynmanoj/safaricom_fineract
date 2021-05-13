@@ -21,34 +21,43 @@
 -->
 
 <configuration>
-	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-		<layout class="ch.qos.logback.classic.PatternLayout">
-			<Pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</Pattern>
-		</layout>
-	</appender>
+        <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+                <layout class="ch.qos.logback.classic.PatternLayout">
+                        <Pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</Pattern>
+                </layout>
+        </appender>
 
-	<appender name="FILE" class="ch.qos.logback.core.FileAppender">
-		<file>${catalina.base}/logs/fineract-platform.log</file>
-		<append>true</append>
-		<!-- encoders are assigned the type ch.qos.logback.classic.encoder.PatternLayoutEncoder 
-			by default -->
-		<encoder>
-			<pattern>%-4relative [%thread] %-5level %logger{35} - %msg%n</pattern>
-		</encoder>
-	</appender>
+        <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+                <file>${catalina.base}/logs/fineract-platform.log</file>
+                <append>true</append>
+                <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                    <!-- daily rollover -->
+                    <fileNamePattern>${catalina.base}/logs/fineract-platform.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+                    <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                        <!-- or whenever the file size reaches 500MB -->
+                        <maxFileSize>500MB</maxFileSize>
+                    </timeBasedFileNamingAndTriggeringPolicy>
+                    <!-- keep 5 days' worth of history -->
+                    <maxHistory>5</maxHistory>
+                </rollingPolicy>
+                <!-- encoders are assigned the type ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
+                <encoder>
+                        <pattern>%-4relative [%thread] %-5level %logger{35} - %msg%n</pattern>
+                </encoder>
+        </appender>
 
 
-	<logger name="org.fineract.platform" level="debug" />
-	<logger name="org.apache.fineract.infrastructure.security.filter"
-		level="info" />
-	<logger name="org.apache.fineract" level="debug" />
-	<logger name="org.springframework.web" level="info" />
-	<logger name="org.springframework.beans" level="info" />
-	<logger name="net.sf.ehcache" level="error" />
-	<logger name="org.hibernate.cache" level="error" />
+        <logger name="org.fineract.platform" level="warn" />
+        <logger name="org.apache.fineract.infrastructure.security.filter"
+                level="warn" />
+        <logger name="org.apache.fineract" level="warn" />
+        <logger name="org.springframework.web" level="warn" />
+        <logger name="org.springframework.beans" level="warn" />
+        <logger name="net.sf.ehcache" level="error" />
+        <logger name="org.hibernate.cache" level="error" />
 
-	<root level="info">
-		<appender-ref ref="STDOUT" />
-		<appender-ref ref="FILE" />
-	</root>
+        <root level="warn">
+                <appender-ref ref="STDOUT" />
+                <appender-ref ref="FILE" />
+        </root>
 </configuration>
