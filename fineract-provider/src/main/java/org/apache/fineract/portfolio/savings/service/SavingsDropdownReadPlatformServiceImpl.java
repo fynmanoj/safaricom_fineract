@@ -80,6 +80,7 @@ public class SavingsDropdownReadPlatformServiceImpl implements SavingsDropdownRe
     @Override
     public Collection<EnumOptionData> retrieveInterestPostingPeriodTypeOptions() {
         final List<EnumOptionData> allowedOptions = Arrays.asList( //
+                SavingsEnumerations.interestPostingPeriodType(SavingsPostingInterestPeriodType.DAILY), //
                 SavingsEnumerations.interestPostingPeriodType(SavingsPostingInterestPeriodType.MONTHLY), //
                 SavingsEnumerations.interestPostingPeriodType(SavingsPostingInterestPeriodType.QUATERLY), //
                 SavingsEnumerations.interestPostingPeriodType(SavingsPostingInterestPeriodType.BIANNUAL), //

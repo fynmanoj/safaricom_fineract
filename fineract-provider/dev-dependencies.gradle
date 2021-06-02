@@ -18,8 +18,9 @@
  */
 dependencies {
         def tomcatVersion = '9.0.26'
+        def tomcatLog4jVersion = '9.0.0.M6'
         tomcat "org.apache.tomcat.embed:tomcat-embed-core:${tomcatVersion}",
-               "org.apache.tomcat.embed:tomcat-embed-logging-log4j:${tomcatVersion}" // NOT tomcat-embed-logging-juli (http://stackoverflow.com/questions/23963049/classcircularityerror-java-util-logging-logrecord-running-gradle-webapp-with-ja)
+               "org.apache.tomcat.embed:tomcat-embed-logging-log4j:${tomcatLog4jVersion}" // NOT tomcat-embed-logging-juli (http://stackoverflow.com/questions/23963049/classcircularityerror-java-util-logging-logrecord-running-gradle-webapp-with-ja)
         tomcat("org.apache.tomcat.embed:tomcat-embed-jasper:${tomcatVersion}") {
             exclude group: 'org.eclipse.jdt.core.compiler', module: 'ecj'
         }

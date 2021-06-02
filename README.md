@@ -8,6 +8,12 @@ Requirements
 * gradle-wrapper.jar version 2.10
 * MySQL 5.5
 
+
+Eclipse setup
+=============
+In root dir of project run the following command:
+`./gradlew -Penv=dev clean cleanEclipse eclipse`
+
 Instructions to download gradle wrapper
 ============
 If the file fineract-provider/gradle/wrapper/gradle-wrapper.jar doesn't already exist in your copy of the Fineract codebase, the same needs to be downloaded using the commands below
