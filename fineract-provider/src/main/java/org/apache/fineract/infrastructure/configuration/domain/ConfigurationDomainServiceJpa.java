@@ -324,6 +324,18 @@ public class ConfigurationDomainServiceJpa implements ConfigurationDomainService
         return value;
     }
 
+    @Override
+    public Integer retrieveScheduledJobNumberOfThreads() {
+        final String propertyName = "scheduled-job-number-of-threads";
+        final GlobalConfigurationPropertyData property = getGlobalConfigurationPropertyData(propertyName);
+        int defaultValue = 10;
+        int value = property.getValue().intValue();
+        if(value < 1) {
+            return defaultValue;
+        }
+        return value;
+    }
+
     private GlobalConfigurationPropertyData getGlobalConfigurationPropertyData(final String propertyName) {
         String identifier = ThreadLocalContextUtil.getTenant().getTenantIdentifier();
         String key = identifier + "_" + propertyName;
