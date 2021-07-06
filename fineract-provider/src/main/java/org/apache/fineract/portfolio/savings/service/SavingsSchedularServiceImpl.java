@@ -19,13 +19,14 @@
 package org.apache.fineract.portfolio.savings.service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.RejectedExecutionHandler;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.fineract.infrastructure.configuration.domain.ConfigurationDomainService;
 import org.apache.fineract.infrastructure.core.domain.FineractPlatformTenant;
@@ -75,12 +76,19 @@ public class SavingsSchedularServiceImpl implements SavingsSchedularService {
         int page = 0;
         Integer initialSize = 500;
         Integer totalPageSize = 0;
-        StringBuffer sb = new StringBuffer();
+        final StringBuffer sb = new StringBuffer();
         
-        Integer scheduledJobNumberOfThreads = this.configurationDomainService.retrieveScheduledJobNumberOfThreads();
+        Integer nThreads = this.configurationDomainService.retrieveScheduledJobNumberOfThreads();
         
-        ExecutorService executor = Executors.newFixedThreadPool(scheduledJobNumberOfThreads);
-        List<Future<StringBuffer>> futureList = new ArrayList<Future<StringBuffer>>();
+        
+        
+        CallerBlocksPolicy policy = new CallerBlocksPolicy(23); // 23 hours max wait time
+        ExecutorService executor = new ThreadPoolExecutor(nThreads,
+											                nThreads,
+											                0L,
+											                TimeUnit.MILLISECONDS,
+											                new LinkedBlockingQueue<>(nThreads), policy);
+        
         final FineractPlatformTenant tenant = ThreadLocalContextUtil.getTenant();
         do {
             PageRequest pageRequest = new PageRequest(page, initialSize);
@@ -89,23 +97,15 @@ public class SavingsSchedularServiceImpl implements SavingsSchedularService {
 
             totalPageSize = savingsAccounts.getTotalPages();
             
-            Callable<StringBuffer> callableTask = () -> {
-            	return postInterestForAccountsPage(tenant, this.savingAccountAssembler, this.savingsAccountWritePlatformService, savingsAccounts);
+            Runnable piTask = () -> {
+            	sb.append(postInterestForAccountsPage(tenant, this.savingAccountAssembler, this.savingsAccountWritePlatformService, savingsAccounts));
             };
 
-            Future<StringBuffer> future = executor.submit(callableTask);
-            futureList.add(future);
+            executor.execute(piTask);
             
             page++;
+            
         } while (page < totalPageSize);
-
-        for (Future<StringBuffer> feature : futureList) {
-        	try {
-        		sb.append(feature.get());
-        	} catch (InterruptedException | ExecutionException e) {
-        		sb.append(e.getMessage());
-        	}
-		}
         
         executor.shutdown();
         
@@ -173,4 +173,45 @@ public class SavingsSchedularServiceImpl implements SavingsSchedularService {
 			}
 		}
     }
+    
+    
+}
+
+class CallerBlocksPolicy implements RejectedExecutionHandler {
+
+	private final Logger LOGGER = LoggerFactory.getLogger(CallerBlocksPolicy.class);
+
+	private final long maxWait;
+
+	/**
+	 * Construct instance based on the provided maximum wait time.
+	 * @param maxWait The maximum time to wait for a queue slot to be available, in milliseconds.
+	 */
+	public CallerBlocksPolicy(long maxWait) {
+		this.maxWait = maxWait;
+	}
+
+	@Override
+	public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
+		if (!executor.isShutdown()) {
+			try {
+				BlockingQueue<Runnable> queue = executor.getQueue();
+				if (LOGGER.isDebugEnabled()) {
+					LOGGER.debug("Attempting to queue task execution for " + this.maxWait + " milliseconds");
+				}
+				if (!queue.offer(r, this.maxWait, TimeUnit.HOURS)) {
+					throw new RejectedExecutionException("Max wait time expired to queue task");
+				}
+				LOGGER.debug("Task execution queued");
+			}
+			catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				throw new RejectedExecutionException("Interrupted", e);
+			}
+		}
+		else {
+			throw new RejectedExecutionException("Executor has been shut down");
+		}
+	}
+
 }
