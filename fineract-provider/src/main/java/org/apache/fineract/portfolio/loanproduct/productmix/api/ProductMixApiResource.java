@@ -18,11 +18,11 @@
  */
 package org.apache.fineract.portfolio.loanproduct.productmix.api;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
-
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -34,7 +34,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
-
 import org.apache.fineract.commands.domain.CommandWrapper;
 import org.apache.fineract.commands.service.CommandWrapperBuilder;
 import org.apache.fineract.commands.service.PortfolioCommandSourceWritePlatformService;
@@ -54,12 +53,13 @@ import org.springframework.stereotype.Component;
 @Path("/loanproducts/{productId}/productmix")
 @Component
 @Scope("singleton")
+@Tag(name = "Product Mix", description = "")
 public class ProductMixApiResource {
 
     private final String resourceNameForPermissions = "PRODUCTMIX";
 
-    private final Set<String> PRODUCT_MIX_DATA_PARAMETERS = new HashSet<>(Arrays.asList("productId", "productName",
-            "restrictedProducts", "allowedProducts", "productOptions"));
+    private final Set<String> productMixDataParameters = new HashSet<>(
+            Arrays.asList("productId", "productName", "restrictedProducts", "allowedProducts", "productOptions"));
 
     private final PlatformSecurityContext context;
     private final PortfolioCommandSourceWritePlatformService commandsSourceWritePlatformService;
@@ -72,8 +72,7 @@ public class ProductMixApiResource {
     @Autowired
     public ProductMixApiResource(final PlatformSecurityContext context,
             final PortfolioCommandSourceWritePlatformService commandsSourceWritePlatformService,
-            final ApiRequestParameterHelper apiRequestParameterHelper,
-            final DefaultToApiJsonSerializer<ProductMixData> toApiJsonSerializer,
+            final ApiRequestParameterHelper apiRequestParameterHelper, final DefaultToApiJsonSerializer<ProductMixData> toApiJsonSerializer,
             final ProductMixReadPlatformService productMixReadPlatformService,
             final LoanProductReadPlatformService loanProductReadPlatformService) {
         this.context = context;
@@ -98,7 +97,7 @@ public class ProductMixApiResource {
             final Collection<LoanProductData> productOptions = this.loanProductReadPlatformService.retrieveAvailableLoanProductsForMix();
             productMixData = ProductMixData.withTemplateOptions(productMixData, productOptions);
         }
-        return this.toApiJsonSerializer.serialize(settings, productMixData, this.PRODUCT_MIX_DATA_PARAMETERS);
+        return this.toApiJsonSerializer.serialize(settings, productMixData, this.productMixDataParameters);
     }
 
     @POST

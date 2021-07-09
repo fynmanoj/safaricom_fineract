@@ -18,11 +18,11 @@
  */
 package org.apache.fineract.portfolio.interestratechart;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+public final class InterestRateChartSlabApiConstants {
 
-public class InterestRateChartSlabApiConstants {
+    private InterestRateChartSlabApiConstants() {
+
+    }
 
     public static final String INTERESTRATE_CHART_SLAB_RESOURCE_NAME = "chartslab";
 

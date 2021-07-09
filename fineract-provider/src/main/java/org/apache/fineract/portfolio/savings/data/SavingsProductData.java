@@ -18,11 +18,11 @@
  */
 package org.apache.fineract.portfolio.savings.data;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-
 import org.apache.fineract.accounting.common.AccountingRuleType;
 import org.apache.fineract.accounting.glaccount.data.GLAccountData;
 import org.apache.fineract.accounting.producttoaccountmapping.data.ChargeToGLAccountMapper;
@@ -36,7 +36,7 @@ import org.apache.fineract.portfolio.tax.data.TaxGroupData;
 /**
  * Immutable data object represent a savings product.
  */
-public class SavingsProductData {
+public final class SavingsProductData implements Serializable {
 
     private final Long id;
     private final String name;
@@ -87,10 +87,10 @@ public class SavingsProductData {
     private final Collection<ChargeData> chargeOptions;
     private final Collection<ChargeData> penaltyOptions;
     private final Collection<TaxGroupData> taxGroupOptions;
-	private final Boolean isDormancyTrackingActive;
-	private final Long daysToInactive;
-	private final Long daysToDormancy;
-	private final Long daysToEscheat;
+    private final Boolean isDormancyTrackingActive;
+    private final Long daysToInactive;
+    private final Long daysToDormancy;
+    private final Long daysToEscheat;
 
     public static SavingsProductData template(final CurrencyData currency, final EnumOptionData interestCompoundingPeriodType,
             final EnumOptionData interestPostingPeriodType, final EnumOptionData interestCalculationType,
@@ -135,21 +135,21 @@ public class SavingsProductData {
         return new SavingsProductData(id, name, shortName, description, currency, nominalAnnualInterestRate, interestCompoundingPeriodType,
                 interestPostingPeriodType, interestCalculationType, interestCalculationDaysInYearType, minRequiredOpeningBalance,
                 lockinPeriodFrequency, lockinPeriodFrequencyType, withdrawalFeeForTransfers, accountingRule, accountingMappings,
-                paymentChannelToFundSourceMappings, currencyOptions, interestCompoundingPeriodTypeOptions,
-                interestPostingPeriodTypeOptions, interestCalculationTypeOptions, interestCalculationDaysInYearTypeOptions,
-                lockinPeriodFrequencyTypeOptions, withdrawalFeeTypeOptions, paymentTypeOptions, accountingRuleOptions,
-                accountingMappingOptions, charges, chargeOptions, penaltyOptions, feeToIncomeAccountMappings,
-                penaltyToIncomeAccountMappings, allowOverdraft, overdraftLimit, minRequiredBalance, enforceMinRequiredBalance,
-                minBalanceForInterestCalculation, nominalAnnualInterestRateOverdraft, minOverdraftForInterestCalculation, withHoldTax,
-                taxGroup, taxGroupOptions, isDormancyTrackingActive, daysToInactive, daysToDormancy, daysToEscheat);
+                paymentChannelToFundSourceMappings, currencyOptions, interestCompoundingPeriodTypeOptions, interestPostingPeriodTypeOptions,
+                interestCalculationTypeOptions, interestCalculationDaysInYearTypeOptions, lockinPeriodFrequencyTypeOptions,
+                withdrawalFeeTypeOptions, paymentTypeOptions, accountingRuleOptions, accountingMappingOptions, charges, chargeOptions,
+                penaltyOptions, feeToIncomeAccountMappings, penaltyToIncomeAccountMappings, allowOverdraft, overdraftLimit,
+                minRequiredBalance, enforceMinRequiredBalance, minBalanceForInterestCalculation, nominalAnnualInterestRateOverdraft,
+                minOverdraftForInterestCalculation, withHoldTax, taxGroup, taxGroupOptions, isDormancyTrackingActive, daysToInactive,
+                daysToDormancy, daysToEscheat);
     }
 
     public static SavingsProductData withCharges(final SavingsProductData product, final Collection<ChargeData> charges) {
         return new SavingsProductData(product.id, product.name, product.shortName, product.description, product.currency,
                 product.nominalAnnualInterestRate, product.interestCompoundingPeriodType, product.interestPostingPeriodType,
                 product.interestCalculationType, product.interestCalculationDaysInYearType, product.minRequiredOpeningBalance,
-                product.lockinPeriodFrequency, product.lockinPeriodFrequencyType, product.withdrawalFeeForTransfers,
-                product.accountingRule, product.accountingMappings, product.paymentChannelToFundSourceMappings, product.currencyOptions,
+                product.lockinPeriodFrequency, product.lockinPeriodFrequencyType, product.withdrawalFeeForTransfers, product.accountingRule,
+                product.accountingMappings, product.paymentChannelToFundSourceMappings, product.currencyOptions,
                 product.interestCompoundingPeriodTypeOptions, product.interestPostingPeriodTypeOptions,
                 product.interestCalculationTypeOptions, product.interestCalculationDaysInYearTypeOptions,
                 product.lockinPeriodFrequencyTypeOptions, product.withdrawalFeeTypeOptions, product.paymentTypeOptions,
@@ -157,14 +157,14 @@ public class SavingsProductData {
                 product.feeToIncomeAccountMappings, product.penaltyToIncomeAccountMappings, product.allowOverdraft, product.overdraftLimit,
                 product.minRequiredBalance, product.enforceMinRequiredBalance, product.minBalanceForInterestCalculation,
                 product.nominalAnnualInterestRateOverdraft, product.minOverdraftForInterestCalculation, product.withHoldTax,
-                product.taxGroup, product.taxGroupOptions, product.isDormancyTrackingActive, product.daysToInactive, 
-                product.daysToDormancy, product.daysToEscheat);
+                product.taxGroup, product.taxGroupOptions, product.isDormancyTrackingActive, product.daysToInactive, product.daysToDormancy,
+                product.daysToEscheat);
     }
 
     /**
-     * Returns a {@link SavingsProductData} that contains and exist
-     * {@link SavingsProductData} data with further template data for dropdowns.
-     * 
+     * Returns a {@link SavingsProductData} that contains and exist {@link SavingsProductData} data with further
+     * template data for dropdowns.
+     *
      * @param taxGroupOptions
      *            TODO
      */
@@ -182,22 +182,21 @@ public class SavingsProductData {
                 existingProduct.currency, existingProduct.nominalAnnualInterestRate, existingProduct.interestCompoundingPeriodType,
                 existingProduct.interestPostingPeriodType, existingProduct.interestCalculationType,
                 existingProduct.interestCalculationDaysInYearType, existingProduct.minRequiredOpeningBalance,
-                existingProduct.lockinPeriodFrequency, existingProduct.lockinPeriodFrequencyType,
-                existingProduct.withdrawalFeeForTransfers, existingProduct.accountingRule, existingProduct.accountingMappings,
-                existingProduct.paymentChannelToFundSourceMappings, currencyOptions, interestCompoundingPeriodTypeOptions,
-                interestPostingPeriodTypeOptions, interestCalculationTypeOptions, interestCalculationDaysInYearTypeOptions,
-                lockinPeriodFrequencyTypeOptions, withdrawalFeeTypeOptions, paymentTypeOptions, accountingRuleOptions,
-                accountingMappingOptions, existingProduct.charges, chargeOptions, penaltyOptions,
+                existingProduct.lockinPeriodFrequency, existingProduct.lockinPeriodFrequencyType, existingProduct.withdrawalFeeForTransfers,
+                existingProduct.accountingRule, existingProduct.accountingMappings, existingProduct.paymentChannelToFundSourceMappings,
+                currencyOptions, interestCompoundingPeriodTypeOptions, interestPostingPeriodTypeOptions, interestCalculationTypeOptions,
+                interestCalculationDaysInYearTypeOptions, lockinPeriodFrequencyTypeOptions, withdrawalFeeTypeOptions, paymentTypeOptions,
+                accountingRuleOptions, accountingMappingOptions, existingProduct.charges, chargeOptions, penaltyOptions,
                 existingProduct.feeToIncomeAccountMappings, existingProduct.penaltyToIncomeAccountMappings, existingProduct.allowOverdraft,
                 existingProduct.overdraftLimit, existingProduct.minRequiredBalance, existingProduct.enforceMinRequiredBalance,
                 existingProduct.minBalanceForInterestCalculation, existingProduct.nominalAnnualInterestRateOverdraft,
-                existingProduct.minOverdraftForInterestCalculation, existingProduct.withHoldTax, existingProduct.taxGroup, taxGroupOptions, 
-                existingProduct.isDormancyTrackingActive, existingProduct.daysToInactive, existingProduct.daysToDormancy, existingProduct.daysToEscheat);
+                existingProduct.minOverdraftForInterestCalculation, existingProduct.withHoldTax, existingProduct.taxGroup, taxGroupOptions,
+                existingProduct.isDormancyTrackingActive, existingProduct.daysToInactive, existingProduct.daysToDormancy,
+                existingProduct.daysToEscheat);
     }
 
     public static SavingsProductData withAccountingDetails(final SavingsProductData existingProduct,
-            final Map<String, Object> accountingMappings,
-            final Collection<PaymentTypeToGLAccountMapper> paymentChannelToFundSourceMappings,
+            final Map<String, Object> accountingMappings, final Collection<PaymentTypeToGLAccountMapper> paymentChannelToFundSourceMappings,
             final Collection<ChargeToGLAccountMapper> feeToIncomeAccountMappings,
             final Collection<ChargeToGLAccountMapper> penaltyToIncomeAccountMappings) {
 
@@ -218,17 +217,16 @@ public class SavingsProductData {
                 existingProduct.currency, existingProduct.nominalAnnualInterestRate, existingProduct.interestCompoundingPeriodType,
                 existingProduct.interestPostingPeriodType, existingProduct.interestCalculationType,
                 existingProduct.interestCalculationDaysInYearType, existingProduct.minRequiredOpeningBalance,
-                existingProduct.lockinPeriodFrequency, existingProduct.lockinPeriodFrequencyType,
-                existingProduct.withdrawalFeeForTransfers, existingProduct.accountingRule, accountingMappings,
-                paymentChannelToFundSourceMappings, currencyOptions, interestCompoundingPeriodTypeOptions,
-                interestPostingPeriodTypeOptions, interestCalculationTypeOptions, interestCalculationDaysInYearTypeOptions,
-                lockinPeriodFrequencyTypeOptions, withdrawalFeeTypeOptions, paymentTypeOptions, accountingRuleOptions,
-                accountingMappingOptions, existingProduct.charges, chargeOptions, penaltyOptions, feeToIncomeAccountMappings,
-                penaltyToIncomeAccountMappings, existingProduct.allowOverdraft, existingProduct.overdraftLimit,
+                existingProduct.lockinPeriodFrequency, existingProduct.lockinPeriodFrequencyType, existingProduct.withdrawalFeeForTransfers,
+                existingProduct.accountingRule, accountingMappings, paymentChannelToFundSourceMappings, currencyOptions,
+                interestCompoundingPeriodTypeOptions, interestPostingPeriodTypeOptions, interestCalculationTypeOptions,
+                interestCalculationDaysInYearTypeOptions, lockinPeriodFrequencyTypeOptions, withdrawalFeeTypeOptions, paymentTypeOptions,
+                accountingRuleOptions, accountingMappingOptions, existingProduct.charges, chargeOptions, penaltyOptions,
+                feeToIncomeAccountMappings, penaltyToIncomeAccountMappings, existingProduct.allowOverdraft, existingProduct.overdraftLimit,
                 existingProduct.minRequiredBalance, existingProduct.enforceMinRequiredBalance,
                 existingProduct.minBalanceForInterestCalculation, existingProduct.nominalAnnualInterestRateOverdraft,
                 existingProduct.minOverdraftForInterestCalculation, existingProduct.withHoldTax, existingProduct.taxGroup,
-                existingProduct.taxGroupOptions, existingProduct.isDormancyTrackingActive, existingProduct.daysToInactive, 
+                existingProduct.taxGroupOptions, existingProduct.isDormancyTrackingActive, existingProduct.daysToInactive,
                 existingProduct.daysToDormancy, existingProduct.daysToEscheat);
     }
 
@@ -238,10 +236,10 @@ public class SavingsProductData {
             final EnumOptionData interestCalculationDaysInYearType, final BigDecimal minRequiredOpeningBalance,
             final Integer lockinPeriodFrequency, final EnumOptionData lockinPeriodFrequencyType, final boolean withdrawalFeeForTransfers,
             final EnumOptionData accountingType, final boolean allowOverdraft, final BigDecimal overdraftLimit,
-            final BigDecimal minRequiredBalance, final boolean enforceMinRequiredBalance,
-            final BigDecimal minBalanceForInterestCalculation, final BigDecimal nominalAnnualInterestRateOverdraft,
-            final BigDecimal minOverdraftForInterestCalculation, final boolean withHoldTax, final TaxGroupData taxGroup, 
-            final Boolean isDormancyTrackingActive, final Long daysToInactive, final Long daysToDormancy, final Long daysToEscheat) {
+            final BigDecimal minRequiredBalance, final boolean enforceMinRequiredBalance, final BigDecimal minBalanceForInterestCalculation,
+            final BigDecimal nominalAnnualInterestRateOverdraft, final BigDecimal minOverdraftForInterestCalculation,
+            final boolean withHoldTax, final TaxGroupData taxGroup, final Boolean isDormancyTrackingActive, final Long daysToInactive,
+            final Long daysToDormancy, final Long daysToEscheat) {
 
         final Map<String, Object> accountingMappings = null;
         final Collection<PaymentTypeToGLAccountMapper> paymentChannelToFundSourceMappings = null;
@@ -266,13 +264,13 @@ public class SavingsProductData {
         return new SavingsProductData(id, name, shortName, description, currency, nominalAnnualInterestRate, interestCompoundingPeriodType,
                 interestPostingPeriodType, interestCalculationType, interestCalculationDaysInYearType, minRequiredOpeningBalance,
                 lockinPeriodFrequency, lockinPeriodFrequencyType, withdrawalFeeForTransfers, accountingType, accountingMappings,
-                paymentChannelToFundSourceMappings, currencyOptions, interestCompoundingPeriodTypeOptions,
-                interestPostingPeriodTypeOptions, interestCalculationTypeOptions, interestCalculationDaysInYearTypeOptions,
-                lockinPeriodFrequencyTypeOptions, withdrawalFeeTypeOptions, paymentTypeOptions, accountingRuleOptions,
-                accountingMappingOptions, charges, chargeOptions, penaltyOptions, feeToIncomeAccountMappings,
-                penaltyToIncomeAccountMappings, allowOverdraft, overdraftLimit, minRequiredBalance, enforceMinRequiredBalance,
-                minBalanceForInterestCalculation, nominalAnnualInterestRateOverdraft, minOverdraftForInterestCalculation, withHoldTax,
-                taxGroup, taxGroupOptions, isDormancyTrackingActive, daysToInactive, daysToDormancy, daysToEscheat);
+                paymentChannelToFundSourceMappings, currencyOptions, interestCompoundingPeriodTypeOptions, interestPostingPeriodTypeOptions,
+                interestCalculationTypeOptions, interestCalculationDaysInYearTypeOptions, lockinPeriodFrequencyTypeOptions,
+                withdrawalFeeTypeOptions, paymentTypeOptions, accountingRuleOptions, accountingMappingOptions, charges, chargeOptions,
+                penaltyOptions, feeToIncomeAccountMappings, penaltyToIncomeAccountMappings, allowOverdraft, overdraftLimit,
+                minRequiredBalance, enforceMinRequiredBalance, minBalanceForInterestCalculation, nominalAnnualInterestRateOverdraft,
+                minOverdraftForInterestCalculation, withHoldTax, taxGroup, taxGroupOptions, isDormancyTrackingActive, daysToInactive,
+                daysToDormancy, daysToEscheat);
     }
 
     public static SavingsProductData lookup(final Long id, final String name) {
@@ -326,13 +324,13 @@ public class SavingsProductData {
         return new SavingsProductData(id, name, shortName, description, currency, nominalAnnualInterestRate, interestCompoundingPeriodType,
                 interestPostingPeriodType, interestCalculationType, interestCalculationDaysInYearType, minRequiredOpeningBalance,
                 lockinPeriodFrequency, lockinPeriodFrequencyType, withdrawalFeeForTransfers, accountingType, accountingMappings,
-                paymentChannelToFundSourceMappings, currencyOptions, interestCompoundingPeriodTypeOptions,
-                interestPostingPeriodTypeOptions, interestCalculationTypeOptions, interestCalculationDaysInYearTypeOptions,
-                lockinPeriodFrequencyTypeOptions, withdrawalFeeTypeOptions, paymentTypeOptions, accountingRuleOptions,
-                accountingMappingOptions, charges, chargeOptions, penaltyOptions, feeToIncomeAccountMappings,
-                penaltyToIncomeAccountMappings, allowOverdraft, overdraftLimit, minRequiredBalance, enforceMinRequiredBalance,
-                minBalanceForInterestCalculation, nominalAnnualInterestRateOverdraft, minOverdraftForInterestCalculation, withHoldTax,
-                taxGroup, taxGroupOptions, isDormancyTrackingActive, daysToInactive, daysToDormancy, daysToEscheat);
+                paymentChannelToFundSourceMappings, currencyOptions, interestCompoundingPeriodTypeOptions, interestPostingPeriodTypeOptions,
+                interestCalculationTypeOptions, interestCalculationDaysInYearTypeOptions, lockinPeriodFrequencyTypeOptions,
+                withdrawalFeeTypeOptions, paymentTypeOptions, accountingRuleOptions, accountingMappingOptions, charges, chargeOptions,
+                penaltyOptions, feeToIncomeAccountMappings, penaltyToIncomeAccountMappings, allowOverdraft, overdraftLimit,
+                minRequiredBalance, enforceMinRequiredBalance, minBalanceForInterestCalculation, nominalAnnualInterestRateOverdraft,
+                minOverdraftForInterestCalculation, withHoldTax, taxGroup, taxGroupOptions, isDormancyTrackingActive, daysToInactive,
+                daysToDormancy, daysToEscheat);
     }
 
     private SavingsProductData(final Long id, final String name, final String shortName, final String description,
@@ -355,7 +353,7 @@ public class SavingsProductData {
             final BigDecimal overdraftLimit, final BigDecimal minRequiredBalance, final boolean enforceMinRequiredBalance,
             final BigDecimal minBalanceForInterestCalculation, final BigDecimal nominalAnnualInterestRateOverdraft,
             final BigDecimal minOverdraftForInterestCalculation, final boolean withHoldTax, final TaxGroupData taxGroup,
-            final Collection<TaxGroupData> taxGroupOptions, final Boolean isDormancyTrackingActive, final Long daysToInactive, 
+            final Collection<TaxGroupData> taxGroupOptions, final Boolean isDormancyTrackingActive, final Long daysToInactive,
             final Long daysToDormancy, final Long daysToEscheat) {
         this.id = id;
         this.name = name;
@@ -425,6 +423,9 @@ public class SavingsProductData {
 
     @Override
     public boolean equals(final Object obj) {
+        if (!(obj instanceof SavingsProductData)) {
+            return false;
+        }
         final SavingsProductData productData = (SavingsProductData) obj;
         return productData.id.compareTo(this.id) == 0;
     }
@@ -438,13 +439,13 @@ public class SavingsProductData {
         return this.name;
     }
 
-	public String getDepositAccountType() {
-		return depositAccountType;
-	}
+    public String getDepositAccountType() {
+        return depositAccountType;
+    }
 
-	public void setDepositAccountType(String depositAccountType) {
-		this.depositAccountType = depositAccountType;
-	}
+    public void setDepositAccountType(String depositAccountType) {
+        this.depositAccountType = depositAccountType;
+    }
 
     public BigDecimal getNominalAnnualInterestRate() {
         return nominalAnnualInterestRate;

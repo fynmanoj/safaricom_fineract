@@ -18,11 +18,12 @@
  */
 package org.apache.fineract.infrastructure.dataqueries.service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoField;
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.sql.DataSource;
-
 import org.apache.fineract.infrastructure.core.exception.PlatformDataIntegrityException;
 import org.apache.fineract.infrastructure.core.service.RoutingDataSource;
 import org.apache.fineract.infrastructure.dataqueries.data.GenericResultsetData;
@@ -30,8 +31,6 @@ import org.apache.fineract.infrastructure.dataqueries.data.ResultsetColumnHeader
 import org.apache.fineract.infrastructure.dataqueries.data.ResultsetColumnValueData;
 import org.apache.fineract.infrastructure.dataqueries.data.ResultsetRowData;
 import org.apache.fineract.infrastructure.dataqueries.exception.DatatableNotFoundException;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +45,7 @@ public class GenericDataServiceImpl implements GenericDataService {
 
     private final JdbcTemplate jdbcTemplate;
     private final DataSource dataSource;
-    private final static Logger logger = LoggerFactory.getLogger(GenericDataServiceImpl.class);
+    private static final Logger LOG = LoggerFactory.getLogger(GenericDataServiceImpl.class);
 
     @Autowired
     public GenericDataServiceImpl(final RoutingDataSource dataSource) {
@@ -57,40 +56,40 @@ public class GenericDataServiceImpl implements GenericDataService {
 
     @Override
     public GenericResultsetData fillGenericResultSet(final String sql) {
-    	try{
-    		 final SqlRowSet rs = this.jdbcTemplate.queryForRowSet(sql);
+        try {
+            final SqlRowSet rs = this.jdbcTemplate.queryForRowSet(sql);
 
-    	        final List<ResultsetColumnHeaderData> columnHeaders = new ArrayList<>();
-    	        final List<ResultsetRowData> resultsetDataRows = new ArrayList<>();
+            final List<ResultsetColumnHeaderData> columnHeaders = new ArrayList<>();
+            final List<ResultsetRowData> resultsetDataRows = new ArrayList<>();
 
-    	        final SqlRowSetMetaData rsmd = rs.getMetaData();
+            final SqlRowSetMetaData rsmd = rs.getMetaData();
 
-    	        for (int i = 0; i < rsmd.getColumnCount(); i++) {
+            for (int i = 0; i < rsmd.getColumnCount(); i++) {
 
-    	            final String columnName = rsmd.getColumnName(i + 1);
-    	            final String columnType = rsmd.getColumnTypeName(i + 1);
+                final String columnName = rsmd.getColumnName(i + 1);
+                final String columnType = rsmd.getColumnTypeName(i + 1);
 
-    	            final ResultsetColumnHeaderData columnHeader = ResultsetColumnHeaderData.basic(columnName, columnType);
-    	            columnHeaders.add(columnHeader);
-    	        }
+                final ResultsetColumnHeaderData columnHeader = ResultsetColumnHeaderData.basic(columnName, columnType);
+                columnHeaders.add(columnHeader);
+            }
 
-    	        while (rs.next()) {
-    	            final List<String> columnValues = new ArrayList<>();
-    	            for (int i = 0; i < rsmd.getColumnCount(); i++) {
-    	                final String columnName = rsmd.getColumnName(i + 1);
-    	                final String columnValue = rs.getString(columnName);
-    	                columnValues.add(columnValue);
-    	            }
+            while (rs.next()) {
+                final List<String> columnValues = new ArrayList<>();
+                for (int i = 0; i < rsmd.getColumnCount(); i++) {
+                    final String columnName = rsmd.getColumnName(i + 1);
+                    final String columnValue = rs.getString(columnName);
+                    columnValues.add(columnValue);
+                }
 
-    	            final ResultsetRowData resultsetDataRow = ResultsetRowData.create(columnValues);
-    	            resultsetDataRows.add(resultsetDataRow);
-    	        }
+                final ResultsetRowData resultsetDataRow = ResultsetRowData.create(columnValues);
+                resultsetDataRows.add(resultsetDataRow);
+            }
 
-			return new GenericResultsetData(columnHeaders, resultsetDataRows);
-		} catch (DataAccessException e) {
-			throw new PlatformDataIntegrityException("error.msg.report.unknown.data.integrity.issue", e.getClass().getName());
-		}
-	}
+            return new GenericResultsetData(columnHeaders, resultsetDataRows);
+        } catch (DataAccessException e) {
+            throw new PlatformDataIntegrityException("error.msg.report.unknown.data.integrity.issue", e.getClass().getName(), e);
+        }
+    }
 
     @Override
     public String replace(final String str, final String pattern, final String replace) {
@@ -99,7 +98,7 @@ public class GenericDataServiceImpl implements GenericDataService {
         // apache one to be about the same then this can be removed.
         int s = 0;
         int e = 0;
-        final StringBuffer result = new StringBuffer();
+        final StringBuilder result = new StringBuilder();
 
         while ((e = str.indexOf(pattern, s)) >= 0) {
             result.append(str.substring(s, e));
@@ -124,7 +123,7 @@ public class GenericDataServiceImpl implements GenericDataService {
     @Override
     public String generateJsonFromGenericResultsetData(final GenericResultsetData grs) {
 
-        final StringBuffer writer = new StringBuffer();
+        final StringBuilder writer = new StringBuilder();
 
         writer.append("[");
 
@@ -163,15 +162,14 @@ public class GenericDataServiceImpl implements GenericDataService {
                         writer.append(currVal);
                     } else {
                         if (currColType.equals("DATE")) {
-                            final LocalDate localDate = new LocalDate(currVal);
-                            writer.append("[" + localDate.getYear() + ", " + localDate.getMonthOfYear() + ", " + localDate.getDayOfMonth()
-                                    + "]");
+                            final LocalDate localDate = LocalDate.parse(currVal);
+                            writer.append(
+                                    "[" + localDate.getYear() + ", " + localDate.getMonthValue() + ", " + localDate.getDayOfMonth() + "]");
                         } else if (currColType.equals("DATETIME")) {
-                            final LocalDateTime localDateTime = new LocalDateTime(currVal);
-                            writer.append("[" + localDateTime.getYear() + ", " + localDateTime.getMonthOfYear() + ", "
-                                    + localDateTime.getDayOfMonth() + " " + localDateTime.getHourOfDay() + ", "
-                                    + localDateTime.getMinuteOfHour() + ", " + localDateTime.getSecondOfMinute() + ", "
-                                    + localDateTime.getMillisOfSecond() + "]");
+                            final LocalDateTime localDateTime = LocalDateTime.parse(currVal);
+                            writer.append("[" + localDateTime.getYear() + ", " + localDateTime.getMonthValue() + ", "
+                                    + localDateTime.getDayOfMonth() + " " + localDateTime.getHour() + ", " + localDateTime.getMinute()
+                                    + ", " + localDateTime.getSecond() + ", " + localDateTime.get(ChronoField.MILLI_OF_SECOND) + "]");
                         } else {
                             writer.append(doubleQuote + replace(currVal, doubleQuote, slashDoubleQuote) + doubleQuote);
                         }
@@ -199,7 +197,7 @@ public class GenericDataServiceImpl implements GenericDataService {
     @Override
     public List<ResultsetColumnHeaderData> fillResultsetColumnHeaders(final String datatable) {
 
-        logger.debug("::3 Was inside the fill ResultSetColumnHeader");
+        LOG.debug("::3 Was inside the fill ResultSetColumnHeader");
 
         final SqlRowSet columnDefinitions = getDatatableMetaData(datatable);
 
@@ -256,8 +254,7 @@ public class GenericDataServiceImpl implements GenericDataService {
     }
 
     /*
-     * Candidate for using caching there to get allowed 'column values' from
-     * code/codevalue tables
+     * Candidate for using caching there to get allowed 'column values' from code/codevalue tables
      */
     private List<ResultsetColumnValueData> retreiveColumnValues(final String codeName) {
 
@@ -305,7 +302,9 @@ public class GenericDataServiceImpl implements GenericDataService {
                 + "'order by ORDINAL_POSITION";
 
         final SqlRowSet columnDefinitions = this.jdbcTemplate.queryForRowSet(sql);
-        if (columnDefinitions.next()) { return columnDefinitions; }
+        if (columnDefinitions.next()) {
+            return columnDefinitions;
+        }
 
         throw new DatatableNotFoundException(datatable);
     }

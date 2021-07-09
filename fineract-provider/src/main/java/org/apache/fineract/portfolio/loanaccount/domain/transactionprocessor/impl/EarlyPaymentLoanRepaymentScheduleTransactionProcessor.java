@@ -18,8 +18,8 @@
  */
 package org.apache.fineract.portfolio.loanaccount.domain.transactionprocessor.impl;
 
+import java.time.LocalDate;
 import java.util.List;
-
 import org.apache.fineract.organisation.monetary.domain.MonetaryCurrency;
 import org.apache.fineract.organisation.monetary.domain.Money;
 import org.apache.fineract.portfolio.loanaccount.domain.LoanRepaymentScheduleInstallment;
@@ -27,17 +27,16 @@ import org.apache.fineract.portfolio.loanaccount.domain.LoanTransaction;
 import org.apache.fineract.portfolio.loanaccount.domain.LoanTransactionToRepaymentScheduleMapping;
 import org.apache.fineract.portfolio.loanaccount.domain.transactionprocessor.AbstractLoanRepaymentScheduleTransactionProcessor;
 import org.apache.fineract.portfolio.loanaccount.domain.transactionprocessor.LoanRepaymentScheduleTransactionProcessor;
-import org.joda.time.LocalDate;
 
 /**
- * This {@link LoanRepaymentScheduleTransactionProcessor} defaults to having the
- * payment order of Interest first, then principal, penalties and fees.
+ * This {@link LoanRepaymentScheduleTransactionProcessor} defaults to having the payment order of Interest first, then
+ * principal, penalties and fees.
  */
 public class EarlyPaymentLoanRepaymentScheduleTransactionProcessor extends AbstractLoanRepaymentScheduleTransactionProcessor {
 
     /**
-     * For early/'in advance' repayments, pay off in the same way as on-time
-     * payments, interest first, principal, penalties and charges.
+     * For early/'in advance' repayments, pay off in the same way as on-time payments, interest first, principal,
+     * penalties and charges.
      */
     @SuppressWarnings("unused")
     @Override
@@ -58,8 +57,8 @@ public class EarlyPaymentLoanRepaymentScheduleTransactionProcessor extends Abstr
                     loanTransaction.getPenaltyChargesPortion(currency));
             transactionAmountRemaining = transactionAmountRemaining.minus(penaltyChargesPortion);
 
-            feeChargesPortion = currentInstallment
-                    .waiveFeeChargesComponent(transactionDate, loanTransaction.getFeeChargesPortion(currency));
+            feeChargesPortion = currentInstallment.waiveFeeChargesComponent(transactionDate,
+                    loanTransaction.getFeeChargesPortion(currency));
             transactionAmountRemaining = transactionAmountRemaining.minus(feeChargesPortion);
 
         } else if (loanTransaction.isInterestWaiver()) {
@@ -93,8 +92,7 @@ public class EarlyPaymentLoanRepaymentScheduleTransactionProcessor extends Abstr
     }
 
     /**
-     * For late repayments, pay off in the same way as on-time payments,
-     * interest first then principal.
+     * For late repayments, pay off in the same way as on-time payments, interest first then principal.
      */
     @SuppressWarnings("unused")
     @Override

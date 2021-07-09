@@ -21,7 +21,6 @@ package org.apache.fineract.portfolio.group.service;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
-
 import org.apache.fineract.infrastructure.codes.data.CodeValueData;
 import org.apache.fineract.infrastructure.core.domain.JdbcSupport;
 import org.apache.fineract.infrastructure.core.service.RoutingDataSource;
@@ -62,13 +61,13 @@ public class GroupRolesReadPlatformServiceImpl implements GroupRolesReadPlatform
             final String sql = "Select " + mapper.schema() + " where role.group_id=? and role.id=?";
             return this.jdbcTemplate.queryForObject(sql, mapper, new Object[] { groupId, roleId });
         } catch (final EmptyResultDataAccessException e) {
-            throw new GroupRoleNotFoundException(roleId);
+            throw new GroupRoleNotFoundException(roleId, e);
         }
     }
 
     private static final class GroupRolesDataMapper implements RowMapper<GroupRoleData> {
 
-        public final String schema() {
+        public String schema() {
             return " role.id AS id, role.client_id AS clientId, c.display_name as clientName, role.role_cv_id AS roleId, cv.code_value AS roleName"
                     + " from m_code_value cv join m_group_roles role on role.role_cv_id = cv.id left join m_client c on c.id = role.client_id ";
         }

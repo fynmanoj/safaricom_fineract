@@ -20,14 +20,13 @@ package org.apache.fineract.portfolio.account.domain;
 
 import java.util.Collection;
 import java.util.List;
-
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface AccountTransferRepository extends JpaRepository<AccountTransferTransaction, Long>,
-        JpaSpecificationExecutor<AccountTransferTransaction> {
+public interface AccountTransferRepository
+        extends JpaRepository<AccountTransferTransaction, Long>, JpaSpecificationExecutor<AccountTransferTransaction> {
 
     @Query("select att from AccountTransferTransaction att where att.accountTransferDetails.fromLoanAccount.id= :accountNumber and att.reversed=false")
     List<AccountTransferTransaction> findByFromLoanId(@Param("accountNumber") Long accountNumber);

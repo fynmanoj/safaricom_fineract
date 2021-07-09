@@ -18,28 +18,29 @@
  */
 package org.apache.fineract.infrastructure.campaigns.email.api;
 
+import java.util.Collection;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.UriInfo;
 import org.apache.fineract.commands.domain.CommandWrapper;
 import org.apache.fineract.commands.service.CommandWrapperBuilder;
 import org.apache.fineract.commands.service.PortfolioCommandSourceWritePlatformService;
+import org.apache.fineract.infrastructure.campaigns.email.data.EmailConfigurationData;
+import org.apache.fineract.infrastructure.campaigns.email.service.EmailConfigurationReadPlatformService;
+import org.apache.fineract.infrastructure.campaigns.email.service.EmailReadPlatformService;
 import org.apache.fineract.infrastructure.core.api.ApiRequestParameterHelper;
 import org.apache.fineract.infrastructure.core.data.CommandProcessingResult;
 import org.apache.fineract.infrastructure.core.serialization.ApiRequestJsonSerializationSettings;
 import org.apache.fineract.infrastructure.core.serialization.DefaultToApiJsonSerializer;
-import org.apache.fineract.infrastructure.campaigns.email.data.EmailConfigurationData;
-import org.apache.fineract.infrastructure.campaigns.email.data.EmailData;
-import org.apache.fineract.infrastructure.campaigns.email.service.EmailConfigurationReadPlatformService;
-import org.apache.fineract.infrastructure.campaigns.email.service.EmailReadPlatformService;
 import org.apache.fineract.infrastructure.security.service.PlatformSecurityContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-
-import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.UriInfo;
-import java.util.Collection;
-
 
 @Path("/email/configuration")
 @Consumes({ MediaType.APPLICATION_JSON })
@@ -58,10 +59,10 @@ public class EmailConfigurationApiResource {
 
     @Autowired
     public EmailConfigurationApiResource(final PlatformSecurityContext context, final EmailReadPlatformService readPlatformService,
-                            final DefaultToApiJsonSerializer<EmailConfigurationData> toApiJsonSerializer,
-                            final ApiRequestParameterHelper apiRequestParameterHelper,
-                            final PortfolioCommandSourceWritePlatformService commandsSourceWritePlatformService,
-                            final EmailConfigurationReadPlatformService emailConfigurationReadPlatformService) {
+            final DefaultToApiJsonSerializer<EmailConfigurationData> toApiJsonSerializer,
+            final ApiRequestParameterHelper apiRequestParameterHelper,
+            final PortfolioCommandSourceWritePlatformService commandsSourceWritePlatformService,
+            final EmailConfigurationReadPlatformService emailConfigurationReadPlatformService) {
         this.context = context;
         this.readPlatformService = readPlatformService;
         this.toApiJsonSerializer = toApiJsonSerializer;
@@ -71,7 +72,7 @@ public class EmailConfigurationApiResource {
     }
 
     @GET
-    public String retrieveAll(@Context final UriInfo uriInfo){
+    public String retrieveAll(@Context final UriInfo uriInfo) {
         this.context.authenticatedUser().validateHasReadPermission(this.resourceNameForPermissions);
 
         final Collection<EmailConfigurationData> configuration = this.emailConfigurationReadPlatformService.retrieveAll();
@@ -81,9 +82,8 @@ public class EmailConfigurationApiResource {
         return this.toApiJsonSerializer.serialize(settings, configuration);
     }
 
-
     @PUT
-    public String updateConfiguration(@Context final UriInfo uriInfo, final String apiRequestBodyAsJson){
+    public String updateConfiguration(@Context final UriInfo uriInfo, final String apiRequestBodyAsJson) {
 
         final CommandWrapper commandRequest = new CommandWrapperBuilder().updateEmailConfiguration().withJson(apiRequestBodyAsJson).build();
 

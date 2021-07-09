@@ -21,18 +21,16 @@ package org.apache.fineract.portfolio.loanaccount.domain;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Set;
-
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
-
 import org.apache.fineract.organisation.monetary.domain.MonetaryCurrency;
 import org.apache.fineract.organisation.monetary.domain.Money;
 
 /**
  * Encapsulates all the summary details of a {@link Loan}.
- * 
+ *
  * {@link LoanSummary} fields are updated through a scheduled job. see -
- * 
+ *
  */
 @Embeddable
 public final class LoanSummary {
@@ -123,7 +121,7 @@ public final class LoanSummary {
         return new LoanSummary(totalFeeChargesDueAtDisbursement);
     }
 
-    protected LoanSummary() {
+    LoanSummary() {
         //
     }
 
@@ -172,8 +170,7 @@ public final class LoanSummary {
     }
 
     /**
-     * All fields but <code>totalFeeChargesDueAtDisbursement</code> should be
-     * reset.
+     * All fields but <code>totalFeeChargesDueAtDisbursement</code> should be reset.
      */
     public void zeroFields() {
         this.totalPrincipalDisbursed = BigDecimal.ZERO;
@@ -224,27 +221,27 @@ public final class LoanSummary {
         this.totalInterestOutstanding = totalInterestCharged.minus(this.totalInterestRepaid).minus(this.totalInterestWaived)
                 .minus(this.totalInterestWrittenOff).getAmount();
 
-        final Money totalFeeChargesCharged = summaryWrapper.calculateTotalFeeChargesCharged(repaymentScheduleInstallments, currency).plus(
-                this.totalFeeChargesDueAtDisbursement);
+        final Money totalFeeChargesCharged = summaryWrapper.calculateTotalFeeChargesCharged(repaymentScheduleInstallments, currency)
+                .plus(this.totalFeeChargesDueAtDisbursement);
         this.totalFeeChargesCharged = totalFeeChargesCharged.getAmount();
 
-        Money totalFeeChargesRepaidAtDisbursement = summaryWrapper.calculateTotalChargesRepaidAtDisbursement(charges,currency);
+        Money totalFeeChargesRepaidAtDisbursement = summaryWrapper.calculateTotalChargesRepaidAtDisbursement(charges, currency);
         this.totalFeeChargesRepaid = totalFeeChargesRepaidAtDisbursement.getAmount();
-        
-        if(charges != null) {
-            this.totalFeeChargesWaived = summaryWrapper.calculateTotalFeeChargesWaived(charges, currency).getAmount();    
-        }else {
+
+        if (charges != null) {
+            this.totalFeeChargesWaived = summaryWrapper.calculateTotalFeeChargesWaived(charges, currency).getAmount();
+        } else {
             this.totalFeeChargesWaived = BigDecimal.ZERO;
         }
-        
+
         this.totalFeeChargesWrittenOff = summaryWrapper.calculateTotalFeeChargesWrittenOff(repaymentScheduleInstallments, currency)
                 .getAmount();
 
         this.totalFeeChargesOutstanding = totalFeeChargesCharged.minus(this.totalFeeChargesRepaid).minus(this.totalFeeChargesWaived)
                 .minus(this.totalFeeChargesWrittenOff).getAmount();
 
-        final Money totalPenaltyChargesCharged = summaryWrapper
-                .calculateTotalPenaltyChargesCharged(repaymentScheduleInstallments, currency);
+        final Money totalPenaltyChargesCharged = summaryWrapper.calculateTotalPenaltyChargesCharged(repaymentScheduleInstallments,
+                currency);
         this.totalPenaltyChargesCharged = totalPenaltyChargesCharged.getAmount();
         this.totalPenaltyChargesRepaid = summaryWrapper.calculateTotalPenaltyChargesRepaid(repaymentScheduleInstallments, currency)
                 .getAmount();
@@ -336,7 +333,6 @@ public final class LoanSummary {
         return this.totalPenaltyChargesWaived;
     }
 
-    
     public BigDecimal getTotalExpectedRepayment() {
         return this.totalExpectedRepayment;
     }

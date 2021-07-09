@@ -18,12 +18,16 @@
  */
 package org.apache.fineract.portfolio.loanaccount.loanschedule.domain;
 
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import org.apache.fineract.infrastructure.core.domain.LocalDateInterval;
 import org.apache.fineract.portfolio.common.domain.PeriodFrequencyType;
-import org.joda.time.Days;
-import org.joda.time.LocalDate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DefaultPaymentPeriodsInOneYearCalculator implements PaymentPeriodsInOneYearCalculator {
+
+    private static final Logger LOG = LoggerFactory.getLogger(DefaultPaymentPeriodsInOneYearCalculator.class);
 
     @Override
     public Integer calculate(final PeriodFrequencyType repaymentFrequencyType) {
@@ -45,6 +49,9 @@ public class DefaultPaymentPeriodsInOneYearCalculator implements PaymentPeriodsI
             case INVALID:
                 paymentPeriodsInOneYear = Integer.valueOf(0);
             break;
+            case WHOLE_TERM:
+                LOG.error("TODO Implement repaymentFrequencyType for WHOLE_TERM");
+            break;
         }
         return paymentPeriodsInOneYear;
     }
@@ -62,8 +69,8 @@ public class DefaultPaymentPeriodsInOneYearCalculator implements PaymentPeriodsI
             periodFraction = Double.valueOf("1.0");
         } else if (interestChargedFromLocalDate != null && repaymentPeriod.contains(interestChargedFromLocalDate)) {
 
-            final int numberOfDaysInterestCalculationGraceInPeriod = Days.daysBetween(repaymentPeriodStartDate,
-                    interestChargedFromLocalDate).getDays();
+            final int numberOfDaysInterestCalculationGraceInPeriod = Math
+                    .toIntExact(ChronoUnit.DAYS.between(repaymentPeriodStartDate, interestChargedFromLocalDate));
             periodFraction = calculateRepaymentPeriodFraction(repaymentPeriodFrequencyType, repaidEvery,
                     numberOfDaysInterestCalculationGraceInPeriod);
         }
@@ -80,16 +87,19 @@ public class DefaultPaymentPeriodsInOneYearCalculator implements PaymentPeriodsI
                 fraction = numberOfDaysInterestCalculationGrace.doubleValue() * every.doubleValue();
             break;
             case WEEKS:
-                fraction = numberOfDaysInterestCalculationGrace.doubleValue() / (Double.valueOf("7.0") * every.doubleValue());
+                fraction = numberOfDaysInterestCalculationGrace.doubleValue() / (Double.parseDouble("7.0") * every.doubleValue());
             break;
             case MONTHS:
-                fraction = numberOfDaysInterestCalculationGrace.doubleValue() / (Double.valueOf("30.0") * every.doubleValue());
+                fraction = numberOfDaysInterestCalculationGrace.doubleValue() / (Double.parseDouble("30.0") * every.doubleValue());
             break;
             case YEARS:
-                fraction = numberOfDaysInterestCalculationGrace.doubleValue() / (Double.valueOf("365.0") * every.doubleValue());
+                fraction = numberOfDaysInterestCalculationGrace.doubleValue() / (Double.parseDouble("365.0") * every.doubleValue());
             break;
             case INVALID:
                 fraction = Double.valueOf("0");
+            break;
+            case WHOLE_TERM:
+                LOG.error("TODO Implement repaymentPeriodFrequencyType for WHOLE_TERM");
             break;
         }
         return fraction;

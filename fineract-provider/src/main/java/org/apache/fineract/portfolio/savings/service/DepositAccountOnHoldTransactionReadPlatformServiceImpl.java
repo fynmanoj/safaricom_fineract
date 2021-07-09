@@ -21,9 +21,9 @@ package org.apache.fineract.portfolio.savings.service;
 import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.apache.fineract.infrastructure.core.data.EnumOptionData;
 import org.apache.fineract.infrastructure.core.domain.JdbcSupport;
 import org.apache.fineract.infrastructure.core.service.Page;
@@ -32,7 +32,6 @@ import org.apache.fineract.infrastructure.core.service.RoutingDataSource;
 import org.apache.fineract.infrastructure.core.service.SearchParameters;
 import org.apache.fineract.infrastructure.security.utils.ColumnValidator;
 import org.apache.fineract.portfolio.savings.data.DepositAccountOnHoldTransactionData;
-import org.joda.time.LocalDate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -48,14 +47,15 @@ public class DepositAccountOnHoldTransactionReadPlatformServiceImpl implements D
 
     @Autowired
     public DepositAccountOnHoldTransactionReadPlatformServiceImpl(final RoutingDataSource dataSource,
-    		final ColumnValidator columnValidator) {
+            final ColumnValidator columnValidator) {
         this.jdbcTemplate = new JdbcTemplate(dataSource);
         mapper = new DepositAccountOnHoldTransactionsMapper();
         this.columnValidator = columnValidator;
     }
 
     @Override
-    public Page<DepositAccountOnHoldTransactionData> retriveAll(Long savingsId, Long guarantorFundingId, SearchParameters searchParameters) {
+    public Page<DepositAccountOnHoldTransactionData> retriveAll(Long savingsId, Long guarantorFundingId,
+            SearchParameters searchParameters) {
         final StringBuilder sqlBuilder = new StringBuilder(200);
         List<Long> paramObj = new ArrayList<>(2);
         sqlBuilder.append("select SQL_CALC_FOUND_ROWS ");
@@ -95,7 +95,7 @@ public class DepositAccountOnHoldTransactionReadPlatformServiceImpl implements D
 
         private final String schemaSql;
 
-        public DepositAccountOnHoldTransactionsMapper() {
+        DepositAccountOnHoldTransactionsMapper() {
 
             final StringBuilder sqlBuilder = new StringBuilder(400);
             sqlBuilder.append(" tr.id as transactionId, tr.transaction_type_enum as transactionType, ");

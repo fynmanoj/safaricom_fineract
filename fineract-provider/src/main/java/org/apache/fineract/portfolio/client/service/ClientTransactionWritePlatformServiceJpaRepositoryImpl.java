@@ -20,7 +20,6 @@ package org.apache.fineract.portfolio.client.service;
 
 import java.util.Map;
 import java.util.Set;
-
 import org.apache.fineract.accounting.journalentry.service.JournalEntryWritePlatformService;
 import org.apache.fineract.infrastructure.core.data.CommandProcessingResult;
 import org.apache.fineract.infrastructure.core.data.CommandProcessingResultBuilder;
@@ -63,7 +62,9 @@ public class ClientTransactionWritePlatformServiceJpaRepositoryImpl implements C
         final ClientTransaction clientTransaction = this.clientTransactionRepository.findOneWithNotFoundDetection(clientId, transactionId);
 
         // validate that transaction can be undone
-        if (clientTransaction.isReversed()) { throw new ClientTransactionCannotBeUndoneException(clientId, transactionId); }
+        if (clientTransaction.isReversed()) {
+            throw new ClientTransactionCannotBeUndoneException(clientId, transactionId);
+        }
 
         // mark transaction as reversed
         clientTransaction.reverse();

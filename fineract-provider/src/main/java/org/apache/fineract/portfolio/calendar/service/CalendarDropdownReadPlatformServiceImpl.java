@@ -19,7 +19,6 @@
 package org.apache.fineract.portfolio.calendar.service;
 
 import java.util.List;
-
 import org.apache.fineract.infrastructure.core.data.EnumOptionData;
 import org.apache.fineract.portfolio.calendar.domain.CalendarEntityType;
 import org.apache.fineract.portfolio.calendar.domain.CalendarFrequencyType;
@@ -55,6 +54,7 @@ public class CalendarDropdownReadPlatformServiceImpl implements CalendarDropdown
     public List<EnumOptionData> retrieveCalendarWeekDaysTypeOptions() {
         return CalendarEnumerations.calendarWeekDaysType(CalendarWeekDaysType.values());
     }
+
     @Override
     public List<EnumOptionData> retrieveCalendarFrequencyNthDayTypeOptions() {
         return CalendarEnumerations.calendarFrequencyNthDayType();

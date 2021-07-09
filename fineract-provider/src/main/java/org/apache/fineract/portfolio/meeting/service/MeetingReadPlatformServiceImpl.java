@@ -20,15 +20,14 @@ package org.apache.fineract.portfolio.meeting.service;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
-
 import org.apache.fineract.infrastructure.core.domain.JdbcSupport;
 import org.apache.fineract.infrastructure.core.service.RoutingDataSource;
 import org.apache.fineract.portfolio.calendar.service.CalendarUtils;
 import org.apache.fineract.portfolio.meeting.data.MeetingData;
 import org.apache.fineract.portfolio.meeting.exception.MeetingNotFoundException;
-import org.joda.time.LocalDate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -73,7 +72,7 @@ public class MeetingReadPlatformServiceImpl implements MeetingReadPlatformServic
 
             return this.jdbcTemplate.queryForObject(sql, rm, new Object[] { meetingId, entityId, entityTypeId });
         } catch (final EmptyResultDataAccessException e) {
-            throw new MeetingNotFoundException(meetingId);
+            throw new MeetingNotFoundException(meetingId, e);
         }
     }
 

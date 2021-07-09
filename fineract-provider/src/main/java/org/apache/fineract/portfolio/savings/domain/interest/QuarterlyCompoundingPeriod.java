@@ -20,16 +20,15 @@ package org.apache.fineract.portfolio.savings.domain.interest;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.apache.fineract.infrastructure.core.domain.LocalDateInterval;
 import org.apache.fineract.organisation.monetary.domain.MoneyHelper;
 import org.apache.fineract.portfolio.savings.SavingsCompoundingInterestPeriodType;
 import org.apache.fineract.portfolio.savings.SavingsInterestCalculationType;
-import org.joda.time.LocalDate;
 
-public class QuarterlyCompoundingPeriod implements CompoundingPeriod {
+public final class QuarterlyCompoundingPeriod implements CompoundingPeriod {
 
     private final LocalDateInterval periodInterval;
     private final List<EndOfDayBalance> endOfDayBalances;
@@ -68,7 +67,7 @@ public class QuarterlyCompoundingPeriod implements CompoundingPeriod {
     }
 
     private BigDecimal calculateUsingAverageDailyBalanceMethod(final BigDecimal interestToCompound, final BigDecimal interestRateAsFraction,
-            final long daysInYear, final BigDecimal minBalanceForInterestCalculation, final BigDecimal overdraftInterestRateAsFraction, 
+            final long daysInYear, final BigDecimal minBalanceForInterestCalculation, final BigDecimal overdraftInterestRateAsFraction,
             final BigDecimal minOverdraftForInterestCalculation) {
 
         BigDecimal cumulativeBalance = BigDecimal.ZERO;
@@ -87,19 +86,21 @@ public class QuarterlyCompoundingPeriod implements CompoundingPeriod {
             final BigDecimal averageDailyBalance = cumulativeBalance.divide(BigDecimal.valueOf(numberOfDays), MathContext.DECIMAL64)
                     .setScale(9, MoneyHelper.getRoundingMode());
 
-            if(averageDailyBalance.compareTo(BigDecimal.ZERO) >= 0){
+            if (averageDailyBalance.compareTo(BigDecimal.ZERO) >= 0) {
                 if (averageDailyBalance.compareTo(minBalanceForInterestCalculation) >= 0) {
                     final BigDecimal multiplicand = BigDecimal.ONE.divide(BigDecimal.valueOf(daysInYear), MathContext.DECIMAL64);
                     final BigDecimal dailyInterestRate = interestRateAsFraction.multiply(multiplicand, MathContext.DECIMAL64);
-                    final BigDecimal periodicInterestRate = dailyInterestRate.multiply(BigDecimal.valueOf(numberOfDays), MathContext.DECIMAL64);
+                    final BigDecimal periodicInterestRate = dailyInterestRate.multiply(BigDecimal.valueOf(numberOfDays),
+                            MathContext.DECIMAL64);
                     interestEarned = averageDailyBalance.multiply(periodicInterestRate, MathContext.DECIMAL64).setScale(9,
                             MoneyHelper.getRoundingMode());
                 }
-            }else{
+            } else {
                 if (averageDailyBalance.compareTo(minOverdraftForInterestCalculation.negate()) < 0) {
                     final BigDecimal multiplicand = BigDecimal.ONE.divide(BigDecimal.valueOf(daysInYear), MathContext.DECIMAL64);
                     final BigDecimal dailyInterestRate = overdraftInterestRateAsFraction.multiply(multiplicand, MathContext.DECIMAL64);
-                    final BigDecimal periodicInterestRate = dailyInterestRate.multiply(BigDecimal.valueOf(numberOfDays), MathContext.DECIMAL64);
+                    final BigDecimal periodicInterestRate = dailyInterestRate.multiply(BigDecimal.valueOf(numberOfDays),
+                            MathContext.DECIMAL64);
                     interestEarned = averageDailyBalance.multiply(periodicInterestRate, MathContext.DECIMAL64).setScale(9,
                             MoneyHelper.getRoundingMode());
                 }
@@ -111,7 +112,7 @@ public class QuarterlyCompoundingPeriod implements CompoundingPeriod {
 
     private BigDecimal calculateUsingDailyBalanceMethod(final SavingsCompoundingInterestPeriodType compoundingInterestPeriodType,
             final BigDecimal interestToCompound, final BigDecimal interestRateAsFraction, final long daysInYear,
-            final BigDecimal minBalanceForInterestCalculation, final BigDecimal overdraftInterestRateAsFraction, 
+            final BigDecimal minBalanceForInterestCalculation, final BigDecimal overdraftInterestRateAsFraction,
             final BigDecimal minOverdraftForInterestCalculation) {
 
         BigDecimal interestEarned = BigDecimal.ZERO;
@@ -121,7 +122,8 @@ public class QuarterlyCompoundingPeriod implements CompoundingPeriod {
             switch (compoundingInterestPeriodType) {
                 case DAILY:
                     interestOnBalanceUnrounded = balance.calculateInterestOnBalanceAndInterest(interestToCompound, interestRateAsFraction,
-                            daysInYear, minBalanceForInterestCalculation, overdraftInterestRateAsFraction, minOverdraftForInterestCalculation);
+                            daysInYear, minBalanceForInterestCalculation, overdraftInterestRateAsFraction,
+                            minOverdraftForInterestCalculation);
                 break;
                 case MONTHLY:
                     interestOnBalanceUnrounded = balance.calculateInterestOnBalance(interestToCompound, interestRateAsFraction, daysInYear,
@@ -178,8 +180,8 @@ public class QuarterlyCompoundingPeriod implements CompoundingPeriod {
         this.endOfDayBalances = endOfDayBalances;
     }
 
-	@Override
-	public LocalDateInterval getPeriodInterval() {
-		return this.periodInterval;
-	}
+    @Override
+    public LocalDateInterval getPeriodInterval() {
+        return this.periodInterval;
+    }
 }

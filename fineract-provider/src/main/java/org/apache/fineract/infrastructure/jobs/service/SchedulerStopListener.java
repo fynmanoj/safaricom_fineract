@@ -25,13 +25,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * Global job Listener class to Stop the temporary scheduler once job execution
- * completes
+ * Global job Listener class to Stop the temporary scheduler once job execution completes
  */
 @Component
 public class SchedulerStopListener implements JobListener {
 
-    private static final String name = "Singlr Trigger Global Listner";
+    private static final String name = "Singlr Trigger Global Listener";
 
     // MIFOSX-1184: This class cannot use constructor injection, because one of
     // its dependencies (SchedulerStopListener) has a circular dependency to

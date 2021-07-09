@@ -19,13 +19,11 @@
 package org.apache.fineract.portfolio.collectionsheet.data;
 
 import java.math.BigDecimal;
-
 import org.apache.fineract.infrastructure.core.data.EnumOptionData;
 import org.apache.fineract.organisation.monetary.data.CurrencyData;
 
 /**
- * Immutable data object for extracting flat data for joint liability group's
- * collection sheet.
+ * Immutable data object for extracting flat data for joint liability group's collection sheet.
  */
 public class JLGCollectionSheetFlatData {
 
@@ -56,9 +54,9 @@ public class JLGCollectionSheetFlatData {
     public JLGCollectionSheetFlatData(final String groupName, final Long groupId, final Long staffId, final String staffName,
             final Long levelId, final String levelName, final String clientName, final Long clientId, final Long loanId,
             final String accountId, final Integer accountStatusId, final String productShortName, final Long productId,
-            final CurrencyData currency, final BigDecimal disbursementAmount, final BigDecimal principalDue,
-            final BigDecimal principalPaid, final BigDecimal interestDue, final BigDecimal interestPaid, final BigDecimal chargesDue,
-            final EnumOptionData attendanceType, final BigDecimal feeDue, final BigDecimal feePaid) {
+            final CurrencyData currency, final BigDecimal disbursementAmount, final BigDecimal principalDue, final BigDecimal principalPaid,
+            final BigDecimal interestDue, final BigDecimal interestPaid, final BigDecimal chargesDue, final EnumOptionData attendanceType,
+            final BigDecimal feeDue, final BigDecimal feePaid) {
         this.groupName = groupName;
         this.groupId = groupId;
         this.staffId = staffId;

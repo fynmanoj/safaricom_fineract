@@ -19,8 +19,8 @@
 package org.apache.fineract.organisation.office.domain;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Date;
-
 import javax.persistence.Column;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
@@ -30,16 +30,15 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-
 import org.apache.fineract.infrastructure.core.api.JsonCommand;
+import org.apache.fineract.infrastructure.core.domain.AbstractPersistableCustom;
+import org.apache.fineract.infrastructure.core.service.DateUtils;
 import org.apache.fineract.organisation.monetary.domain.MonetaryCurrency;
 import org.apache.fineract.organisation.monetary.domain.Money;
-import org.joda.time.LocalDate;
-import org.apache.fineract.infrastructure.core.domain.AbstractPersistableCustom;
 
 @Entity
 @Table(name = "m_office_transaction")
-public class OfficeTransaction extends AbstractPersistableCustom<Long> {
+public class OfficeTransaction extends AbstractPersistableCustom {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "from_office_id")
@@ -62,7 +61,8 @@ public class OfficeTransaction extends AbstractPersistableCustom<Long> {
     @Column(name = "description", nullable = true, length = 100)
     private String description;
 
-    public static OfficeTransaction fromJson(final Office fromOffice, final Office toOffice, final Money amount, final JsonCommand command) {
+    public static OfficeTransaction fromJson(final Office fromOffice, final Office toOffice, final Money amount,
+            final JsonCommand command) {
 
         final LocalDate transactionLocalDate = command.localDateValueOfParameterNamed("transactionDate");
         final String description = command.stringValueOfParameterNamed("description");
@@ -79,7 +79,7 @@ public class OfficeTransaction extends AbstractPersistableCustom<Long> {
         this.from = fromOffice;
         this.to = toOffice;
         if (transactionLocalDate != null) {
-            this.transactionDate = transactionLocalDate.toDate();
+            this.transactionDate = Date.from(transactionLocalDate.atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant());
         }
         this.currency = amount.getCurrency();
         this.transactionAmount = amount.getAmount();

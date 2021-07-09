@@ -18,10 +18,10 @@
  */
 package org.apache.fineract.organisation.staff.domain;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
@@ -31,20 +31,19 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.UniqueConstraint;
-
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.fineract.infrastructure.core.api.JsonCommand;
 import org.apache.fineract.infrastructure.core.data.EnumOptionData;
 import org.apache.fineract.infrastructure.core.domain.AbstractPersistableCustom;
+import org.apache.fineract.infrastructure.core.service.DateUtils;
 import org.apache.fineract.infrastructure.documentmanagement.domain.Image;
 import org.apache.fineract.organisation.office.domain.Office;
-import org.joda.time.LocalDate;
 
 @Entity
 @Table(name = "m_staff", uniqueConstraints = { @UniqueConstraint(columnNames = { "display_name" }, name = "display_name"),
         @UniqueConstraint(columnNames = { "external_id" }, name = "external_id_UNIQUE"),
         @UniqueConstraint(columnNames = { "mobile_no" }, name = "mobile_no_UNIQUE") })
-public class Staff extends AbstractPersistableCustom<Long> {
+public class Staff extends AbstractPersistableCustom {
 
     @Column(name = "firstname", length = 50)
     private String firstname;
@@ -61,7 +60,7 @@ public class Staff extends AbstractPersistableCustom<Long> {
     @Column(name = "external_id", length = 100, nullable = true, unique = true)
     private String externalId;
 
-	@Column(name = "email_address", length = 50, unique = true)
+    @Column(name = "email_address", length = 50, unique = true)
     private String emailAddress;
 
     @ManyToOne
@@ -131,10 +130,10 @@ public class Staff extends AbstractPersistableCustom<Long> {
         this.externalId = StringUtils.defaultIfEmpty(externalId, null);
         this.mobileNo = StringUtils.defaultIfEmpty(mobileNo, null);
         this.loanOfficer = isLoanOfficer;
-        this.active = (isActive == null) ? true : isActive;
+        this.active = isActive == null ? true : isActive;
         deriveDisplayName(firstname);
         if (joiningDate != null) {
-            this.joiningDate = joiningDate.toDateTimeAtStartOfDay().toDate();
+            this.joiningDate = Date.from(joiningDate.atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant());
         }
     }
 
@@ -215,7 +214,7 @@ public class Staff extends AbstractPersistableCustom<Long> {
             final String valueAsInput = command.stringValueOfParameterNamed(joiningDateParamName);
             actualChanges.put(joiningDateParamName, valueAsInput);
             final LocalDate newValue = command.localDateValueOfParameterNamed(joiningDateParamName);
-            this.joiningDate = newValue.toDate();
+            this.joiningDate = Date.from(newValue.atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant());
         }
 
         return actualChanges;
@@ -249,7 +248,7 @@ public class Staff extends AbstractPersistableCustom<Long> {
         return getId().equals(staff.getId());
     }
 
-	public String emailAddress() {
+    public String emailAddress() {
         return emailAddress;
     }
 

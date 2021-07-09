@@ -18,16 +18,16 @@
  */
 package org.apache.fineract.portfolio.savings.data;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
-
+import java.time.LocalDate;
 import org.apache.fineract.organisation.monetary.data.CurrencyData;
-import org.joda.time.LocalDate;
 
 /**
  * Immutable data object representing Savings Account summary information.
  */
 @SuppressWarnings("unused")
-public class SavingsAccountSummaryData {
+public class SavingsAccountSummaryData implements Serializable {
 
     private final CurrencyData currency;
     private final BigDecimal totalDeposits;
@@ -48,7 +48,7 @@ public class SavingsAccountSummaryData {
     public SavingsAccountSummaryData(final CurrencyData currency, final BigDecimal totalDeposits, final BigDecimal totalWithdrawals,
             final BigDecimal totalWithdrawalFees, final BigDecimal totalAnnualFees, final BigDecimal totalInterestEarned,
             final BigDecimal totalInterestPosted, final BigDecimal accountBalance, final BigDecimal totalFeeCharge,
-            final BigDecimal totalPenaltyCharge, final BigDecimal totalOverdraftInterestDerived,final BigDecimal totalWithholdTax,
+            final BigDecimal totalPenaltyCharge, final BigDecimal totalOverdraftInterestDerived, final BigDecimal totalWithholdTax,
             final BigDecimal interestNotPosted, final LocalDate lastInterestCalculationDate, final BigDecimal availableBalance) {
         this.currency = currency;
         this.totalDeposits = totalDeposits;

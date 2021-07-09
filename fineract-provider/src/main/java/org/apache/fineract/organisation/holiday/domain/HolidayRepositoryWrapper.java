@@ -18,19 +18,18 @@
  */
 package org.apache.fineract.organisation.holiday.domain;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
-
+import org.apache.fineract.infrastructure.core.service.DateUtils;
 import org.apache.fineract.organisation.holiday.exception.HolidayNotFoundException;
 import org.apache.fineract.organisation.holiday.service.HolidayUtil;
-import org.joda.time.LocalDate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
  * <p>
- * Wrapper for {@link HolidayRepository} that adds NULL checking and Error
- * handling capabilities
+ * Wrapper for {@link HolidayRepository} that adds NULL checking and Error handling capabilities
  * </p>
  */
 @Service
@@ -44,9 +43,7 @@ public class HolidayRepositoryWrapper {
     }
 
     public Holiday findOneWithNotFoundDetection(final Long id) {
-        final Holiday holiday = this.repository.findOne(id);
-        if (holiday == null) { throw new HolidayNotFoundException(id); }
-        return holiday;
+        return this.repository.findById(id).orElseThrow(() -> new HolidayNotFoundException(id));
     }
 
     public void save(final Holiday holiday) {
@@ -54,7 +51,7 @@ public class HolidayRepositoryWrapper {
     }
 
     public void save(final Iterable<Holiday> holidays) {
-        this.repository.save(holidays);
+        this.repository.saveAll(holidays);
     }
 
     public void saveAndFlush(final Holiday holiday) {
@@ -74,7 +71,8 @@ public class HolidayRepositoryWrapper {
     }
 
     public boolean isHoliday(Long officeId, LocalDate transactionDate) {
-        final List<Holiday> holidays = findByOfficeIdAndGreaterThanDate(officeId, transactionDate.toDate());
+        final List<Holiday> holidays = findByOfficeIdAndGreaterThanDate(officeId,
+                Date.from(transactionDate.atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant()));
         return HolidayUtil.isHoliday(transactionDate, holidays);
     }
 }

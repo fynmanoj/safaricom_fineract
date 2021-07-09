@@ -21,8 +21,7 @@ package org.apache.fineract.portfolio.savings;
 import org.apache.fineract.portfolio.savings.domain.SavingsAccount;
 
 /**
- * An enumeration of different transactions that can occur on a
- * {@link SavingsAccount}.
+ * An enumeration of different transactions that can occur on a {@link SavingsAccount}.
  */
 public enum SavingsAccountTransactionType {
 
@@ -40,15 +39,13 @@ public enum SavingsAccountTransactionType {
     WITHDRAW_TRANSFER(14, "savingsAccountTransactionType.withdrawTransfer"), //
     REJECT_TRANSFER(15, "savingsAccountTransactionType.rejectTransfer"), WRITTEN_OFF(16, "savingsAccountTransactionType.writtenoff"), //
     OVERDRAFT_INTEREST(17, "savingsAccountTransactionType.overdraftInterest"), //
-    WITHHOLD_TAX(18, "savingsAccountTransactionType.withholdTax"),
-    ESCHEAT(19, "savingsAccountTransactionType.escheat"),
-    AMOUNT_HOLD(20, "savingsAccountTransactionType.onHold"),
-    AMOUNT_RELEASE(21, "savingsAccountTransactionType.release");
+    WITHHOLD_TAX(18, "savingsAccountTransactionType.withholdTax"), ESCHEAT(19, "savingsAccountTransactionType.escheat"), AMOUNT_HOLD(20,
+            "savingsAccountTransactionType.onHold"), AMOUNT_RELEASE(21, "savingsAccountTransactionType.release");
 
     private final Integer value;
     private final String code;
 
-    private SavingsAccountTransactionType(final Integer value, final String code) {
+    SavingsAccountTransactionType(final Integer value, final String code) {
         this.value = value;
         this.code = code;
     }
@@ -63,7 +60,9 @@ public enum SavingsAccountTransactionType {
 
     public static SavingsAccountTransactionType fromInt(final Integer transactionType) {
 
-        if (transactionType == null) { return SavingsAccountTransactionType.INVALID; }
+        if (transactionType == null) {
+            return SavingsAccountTransactionType.INVALID;
+        }
 
         SavingsAccountTransactionType savingsAccountTransactionType = SavingsAccountTransactionType.INVALID;
         switch (transactionType) {
@@ -113,7 +112,7 @@ public enum SavingsAccountTransactionType {
                 savingsAccountTransactionType = SavingsAccountTransactionType.WITHHOLD_TAX;
             break;
             case 19:
-            	savingsAccountTransactionType = SavingsAccountTransactionType.ESCHEAT;
+                savingsAccountTransactionType = SavingsAccountTransactionType.ESCHEAT;
             break;
             case 20:
                 savingsAccountTransactionType = SavingsAccountTransactionType.AMOUNT_HOLD;
@@ -137,10 +136,10 @@ public enum SavingsAccountTransactionType {
         return this.value.equals(SavingsAccountTransactionType.INTEREST_POSTING.getValue());
     }
 
-	public boolean isOverDraftInterestPosting() {
-		return this.value.equals(SavingsAccountTransactionType.OVERDRAFT_INTEREST.getValue());
-	}
-	
+    public boolean isOverDraftInterestPosting() {
+        return this.value.equals(SavingsAccountTransactionType.OVERDRAFT_INTEREST.getValue());
+    }
+
     public boolean isWithHoldTax() {
         return this.value.equals(SavingsAccountTransactionType.WITHHOLD_TAX.getValue());
     }
@@ -196,7 +195,7 @@ public enum SavingsAccountTransactionType {
     public boolean isEscheat() {
         return this.value.equals(SavingsAccountTransactionType.ESCHEAT.getValue());
     }
-    
+
     public boolean isAmountOnHold() {
         return this.value.equals(SavingsAccountTransactionType.AMOUNT_HOLD.getValue());
     }
@@ -206,10 +205,11 @@ public enum SavingsAccountTransactionType {
     }
 
     public boolean isDebit() {
-        return isWithdrawal() || isWithdrawalFee() || isAnnualFee() || isPayCharge() || isIncomeFromInterest() || isWithHoldTax() || isEscheat() || isAmountOnHold();
+        return isWithdrawal() || isWithdrawalFee() || isAnnualFee() || isPayCharge() || isIncomeFromInterest() || isWithHoldTax()
+                || isEscheat();
     }
 
     public boolean isCredit() {
-        return isDeposit() || isInterestPosting() || isDividendPayout() || isAmountRelease();
+        return isDeposit() || isInterestPosting() || isDividendPayout();
     }
 }

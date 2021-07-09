@@ -26,16 +26,14 @@ public enum LoanTermVariationType {
     PRINCIPAL_AMOUNT(3, "loanTermType.principalAmount"), //
     DUE_DATE(4, "loanTermType.dueDate"), //
     INSERT_INSTALLMENT(5, "loanTermType.insertInstallment"), //
-    DELETE_INSTALLMENT(6, "loanTermType.deleteInstallment"),
-    GRACE_ON_INTEREST(7, "loanTermType.graceOnInterest"),
-    GRACE_ON_PRINCIPAL(8, "loanTermType.graceOnPrincipal"),
-    EXTEND_REPAYMENT_PERIOD(9, "loanTermType.extendRepaymentPeriod"),
-    INTEREST_RATE_FROM_INSTALLMENT(10, "loanTermType.interestRateFromInstallment");
+    DELETE_INSTALLMENT(6, "loanTermType.deleteInstallment"), GRACE_ON_INTEREST(7, "loanTermType.graceOnInterest"), GRACE_ON_PRINCIPAL(8,
+            "loanTermType.graceOnPrincipal"), EXTEND_REPAYMENT_PERIOD(9,
+                    "loanTermType.extendRepaymentPeriod"), INTEREST_RATE_FROM_INSTALLMENT(10, "loanTermType.interestRateFromInstallment");
 
     private final Integer value;
     private final String code;
 
-    private LoanTermVariationType(final Integer value, final String code) {
+    LoanTermVariationType(final Integer value, final String code) {
         this.value = value;
         this.code = code;
     }
@@ -109,19 +107,19 @@ public enum LoanTermVariationType {
     public boolean isDeleteInstallment() {
         return this.value.equals(LoanTermVariationType.DELETE_INSTALLMENT.getValue());
     }
-    
+
     public boolean isGraceOnInterest() {
         return this.value.equals(LoanTermVariationType.GRACE_ON_INTEREST.getValue());
     }
-    
+
     public boolean isGraceOnPrincipal() {
         return this.value.equals(LoanTermVariationType.GRACE_ON_PRINCIPAL.getValue());
     }
-    
+
     public boolean isExtendRepaymentPeriod() {
         return this.value.equals(LoanTermVariationType.EXTEND_REPAYMENT_PERIOD.getValue());
     }
-    
+
     public boolean isInterestRateFromInstallment() {
         return this.value.equals(LoanTermVariationType.INTEREST_RATE_FROM_INSTALLMENT.getValue());
     }

@@ -19,7 +19,6 @@
 package org.apache.fineract.template.service;
 
 import java.util.List;
-
 import org.apache.fineract.infrastructure.core.api.JsonCommand;
 import org.apache.fineract.infrastructure.core.data.CommandProcessingResult;
 import org.apache.fineract.template.domain.Template;
@@ -36,9 +35,9 @@ public interface TemplateDomainService {
 
     Template updateTemplate(Template template);
 
-    CommandProcessingResult createTemplate(final JsonCommand command);
+    CommandProcessingResult createTemplate(JsonCommand command);
 
-    CommandProcessingResult updateTemplate(final Long templateId, final JsonCommand command);
+    CommandProcessingResult updateTemplate(Long templateId, JsonCommand command);
 
-    CommandProcessingResult removeTemplate(final Long templateId);
+    CommandProcessingResult removeTemplate(Long templateId);
 }

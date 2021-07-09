@@ -19,10 +19,14 @@
 
 package org.apache.fineract.portfolio.self.savings.data;
 
-public class SelfSavingsAccountConstants {
+public final class SelfSavingsAccountConstants {
 
-	public static final String savingsAccountResource = "savings";
-	public static final String clientIdParameterName = "clientId";
-	public static final String productIdParameterName = "productId";
+    private SelfSavingsAccountConstants() {
+
+    }
+
+    public static final String savingsAccountResource = "savings";
+    public static final String clientIdParameterName = "clientId";
+    public static final String productIdParameterName = "productId";
 
 }

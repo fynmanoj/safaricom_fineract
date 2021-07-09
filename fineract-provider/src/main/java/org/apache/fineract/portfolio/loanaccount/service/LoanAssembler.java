@@ -18,19 +18,22 @@
  */
 package org.apache.fineract.portfolio.loanaccount.service;
 
+import com.google.gson.JsonElement;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
-
 import org.apache.fineract.infrastructure.codes.domain.CodeValue;
 import org.apache.fineract.infrastructure.codes.domain.CodeValueRepositoryWrapper;
 import org.apache.fineract.infrastructure.configuration.domain.ConfigurationDomainService;
 import org.apache.fineract.infrastructure.core.api.JsonCommand;
 import org.apache.fineract.infrastructure.core.data.EnumOptionData;
 import org.apache.fineract.infrastructure.core.serialization.FromJsonHelper;
+import org.apache.fineract.infrastructure.core.service.DateUtils;
 import org.apache.fineract.organisation.holiday.domain.Holiday;
 import org.apache.fineract.organisation.holiday.domain.HolidayRepository;
 import org.apache.fineract.organisation.holiday.domain.HolidayStatusType;
@@ -78,12 +81,11 @@ import org.apache.fineract.portfolio.loanproduct.domain.LoanTransactionProcessin
 import org.apache.fineract.portfolio.loanproduct.exception.InvalidCurrencyException;
 import org.apache.fineract.portfolio.loanproduct.exception.LinkedAccountRequiredException;
 import org.apache.fineract.portfolio.loanproduct.exception.LoanProductNotFoundException;
+import org.apache.fineract.portfolio.rate.domain.Rate;
+import org.apache.fineract.portfolio.rate.service.RateAssembler;
 import org.apache.fineract.useradministration.domain.AppUser;
-import org.joda.time.LocalDate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import com.google.gson.JsonElement;
 
 @Service
 public class LoanAssembler {
@@ -106,6 +108,7 @@ public class LoanAssembler {
     private final ConfigurationDomainService configurationDomainService;
     private final WorkingDaysRepositoryWrapper workingDaysRepository;
     private final LoanUtilService loanUtilService;
+    private final RateAssembler rateAssembler;
 
     @Autowired
     public LoanAssembler(final FromJsonHelper fromApiJsonHelper, final LoanRepositoryWrapper loanRepository,
@@ -117,7 +120,7 @@ public class LoanAssembler {
             final CollateralAssembler loanCollateralAssembler, final LoanSummaryWrapper loanSummaryWrapper,
             final LoanRepaymentScheduleTransactionProcessorFactory loanRepaymentScheduleTransactionProcessorFactory,
             final HolidayRepository holidayRepository, final ConfigurationDomainService configurationDomainService,
-            final WorkingDaysRepositoryWrapper workingDaysRepository, final LoanUtilService loanUtilService) {
+            final WorkingDaysRepositoryWrapper workingDaysRepository, final LoanUtilService loanUtilService, RateAssembler rateAssembler) {
         this.fromApiJsonHelper = fromApiJsonHelper;
         this.loanRepository = loanRepository;
         this.loanProductRepository = loanProductRepository;
@@ -136,6 +139,7 @@ public class LoanAssembler {
         this.configurationDomainService = configurationDomainService;
         this.workingDaysRepository = workingDaysRepository;
         this.loanUtilService = loanUtilService;
+        this.rateAssembler = rateAssembler;
     }
 
     public Loan assembleFrom(final Long accountId) {
@@ -169,15 +173,16 @@ public class LoanAssembler {
         final Long transactionProcessingStrategyId = this.fromApiJsonHelper.extractLongNamed("transactionProcessingStrategyId", element);
         final Long loanPurposeId = this.fromApiJsonHelper.extractLongNamed("loanPurposeId", element);
         final Boolean syncDisbursementWithMeeting = this.fromApiJsonHelper.extractBooleanNamed("syncDisbursementWithMeeting", element);
-        final Boolean createStandingInstructionAtDisbursement = this.fromApiJsonHelper.extractBooleanNamed(
-                "createStandingInstructionAtDisbursement", element);
+        final Boolean createStandingInstructionAtDisbursement = this.fromApiJsonHelper
+                .extractBooleanNamed("createStandingInstructionAtDisbursement", element);
 
-        final LoanProduct loanProduct = this.loanProductRepository.findOne(productId);
-        if (loanProduct == null) { throw new LoanProductNotFoundException(productId); }
+        final LoanProduct loanProduct = this.loanProductRepository.findById(productId)
+                .orElseThrow(() -> new LoanProductNotFoundException(productId));
 
         final Fund fund = findFundByIdIfProvided(fundId);
         final Staff loanOfficer = findLoanOfficerByIdIfProvided(loanOfficerId);
-        final LoanTransactionProcessingStrategy loanTransactionProcessingStrategy = findStrategyByIdIfProvided(transactionProcessingStrategyId);
+        final LoanTransactionProcessingStrategy loanTransactionProcessingStrategy = findStrategyByIdIfProvided(
+                transactionProcessingStrategyId);
         CodeValue loanPurpose = null;
         if (loanPurposeId != null) {
             loanPurpose = this.codeValueRepository.findOneWithNotFoundDetection(loanPurposeId);
@@ -205,7 +210,7 @@ public class LoanAssembler {
             }
         }
         final Set<LoanCollateral> collateral = this.loanCollateralAssembler.fromParsedJson(element);
-        final Set<LoanCharge> loanCharges = this.loanChargeAssembler.fromParsedJson(element,disbursementDetails);
+        final Set<LoanCharge> loanCharges = this.loanChargeAssembler.fromParsedJson(element, disbursementDetails);
         for (final LoanCharge loanCharge : loanCharges) {
             if (!loanProduct.hasCurrencyCodeOf(loanCharge.currencyCode())) {
                 final String errorMessage = "Charge and Loan must have the same currency.";
@@ -224,56 +229,67 @@ public class LoanAssembler {
         Client client = null;
         Group group = null;
 
+        // Here we add Rates to LoanApplication
+        final List<Rate> rates = this.rateAssembler.fromParsedJson(element);
+
         final LoanProductRelatedDetail loanProductRelatedDetail = this.loanScheduleAssembler.assembleLoanProductRelatedDetail(element);
-        
-        final BigDecimal interestRateDifferential = this.fromApiJsonHelper.extractBigDecimalWithLocaleNamed(LoanApiConstants.interestRateDifferentialParameterName, element);
-        final Boolean isFloatingInterestRate = this.fromApiJsonHelper.extractBooleanNamed(LoanApiConstants.isFloatingInterestRateParameterName, element);
+
+        final BigDecimal interestRateDifferential = this.fromApiJsonHelper
+                .extractBigDecimalWithLocaleNamed(LoanApiConstants.interestRateDifferentialParameterName, element);
+        final Boolean isFloatingInterestRate = this.fromApiJsonHelper
+                .extractBooleanNamed(LoanApiConstants.isFloatingInterestRateParameterName, element);
 
         final String loanTypeParameterName = "loanType";
         final String loanTypeStr = this.fromApiJsonHelper.extractStringNamed(loanTypeParameterName, element);
         final EnumOptionData loanType = AccountEnumerations.loanType(loanTypeStr);
-       
 
         if (clientId != null) {
             client = this.clientRepository.findOneWithNotFoundDetection(clientId);
-            if (client.isNotActive()) { throw new ClientNotActiveException(clientId); }
+            if (client.isNotActive()) {
+                throw new ClientNotActiveException(clientId);
+            }
         }
 
         if (groupId != null) {
-            group = this.groupRepository.findOne(groupId);
-            if (group == null) { throw new GroupNotFoundException(groupId); }
-            if (group.isNotActive()) { throw new GroupNotActiveException(groupId); }
+            group = this.groupRepository.findById(groupId).orElseThrow(() -> new GroupNotFoundException(groupId));
+            if (group.isNotActive()) {
+                throw new GroupNotActiveException(groupId);
+            }
         }
 
         if (client != null && group != null) {
 
-            if (!group.hasClientAsMember(client)) { throw new ClientNotInGroupException(clientId, groupId); }
+            if (!group.hasClientAsMember(client)) {
+                throw new ClientNotInGroupException(clientId, groupId);
+            }
 
-            loanApplication = Loan.newIndividualLoanApplicationFromGroup(accountNo, client, group, loanType.getId().intValue(),
-                    loanProduct, fund, loanOfficer, loanPurpose, loanTransactionProcessingStrategy, loanProductRelatedDetail, loanCharges,
-                    collateral, syncDisbursementWithMeeting, fixedEmiAmount, disbursementDetails, maxOutstandingLoanBalance,
-                    createStandingInstructionAtDisbursement, isFloatingInterestRate, interestRateDifferential);
+            loanApplication = Loan.newIndividualLoanApplicationFromGroup(accountNo, client, group, loanType.getId().intValue(), loanProduct,
+                    fund, loanOfficer, loanPurpose, loanTransactionProcessingStrategy, loanProductRelatedDetail, loanCharges, collateral,
+                    syncDisbursementWithMeeting, fixedEmiAmount, disbursementDetails, maxOutstandingLoanBalance,
+                    createStandingInstructionAtDisbursement, isFloatingInterestRate, interestRateDifferential, rates);
 
         } else if (group != null) {
 
             loanApplication = Loan.newGroupLoanApplication(accountNo, group, loanType.getId().intValue(), loanProduct, fund, loanOfficer,
                     loanPurpose, loanTransactionProcessingStrategy, loanProductRelatedDetail, loanCharges, collateral,
                     syncDisbursementWithMeeting, fixedEmiAmount, disbursementDetails, maxOutstandingLoanBalance,
-                    createStandingInstructionAtDisbursement,isFloatingInterestRate, interestRateDifferential);
+                    createStandingInstructionAtDisbursement, isFloatingInterestRate, interestRateDifferential, rates);
 
         } else if (client != null) {
 
             loanApplication = Loan.newIndividualLoanApplication(accountNo, client, loanType.getId().intValue(), loanProduct, fund,
                     loanOfficer, loanPurpose, loanTransactionProcessingStrategy, loanProductRelatedDetail, loanCharges, collateral,
                     fixedEmiAmount, disbursementDetails, maxOutstandingLoanBalance, createStandingInstructionAtDisbursement,
-                    isFloatingInterestRate, interestRateDifferential);
+                    isFloatingInterestRate, interestRateDifferential, rates);
 
         }
 
         final String externalId = this.fromApiJsonHelper.extractStringNamed("externalId", element);
         final LocalDate submittedOnDate = this.fromApiJsonHelper.extractLocalDateNamed("submittedOnDate", element);
 
-        if (loanApplication == null) { throw new IllegalStateException("No loan application exists for either a client or group (or both)."); }
+        if (loanApplication == null) {
+            throw new IllegalStateException("No loan application exists for either a client or group (or both).");
+        }
         loanApplication.setHelpers(defaultLoanLifecycleStateMachine(), this.loanSummaryWrapper,
                 this.loanRepaymentScheduleTransactionProcessorFactory);
 
@@ -283,16 +299,16 @@ public class LoanAssembler {
             }
         }
 
-
         final LoanApplicationTerms loanApplicationTerms = this.loanScheduleAssembler.assembleLoanTerms(element);
         final boolean isHolidayEnabled = this.configurationDomainService.isRescheduleRepaymentsOnHolidaysEnabled();
         final List<Holiday> holidays = this.holidayRepository.findByOfficeIdAndGreaterThanDate(loanApplication.getOfficeId(),
-                loanApplicationTerms.getExpectedDisbursementDate().toDate(), HolidayStatusType.ACTIVE.getValue());
+                Date.from(loanApplicationTerms.getExpectedDisbursementDate().atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant()),
+                HolidayStatusType.ACTIVE.getValue());
         final WorkingDays workingDays = this.workingDaysRepository.findOne();
         final boolean allowTransactionsOnNonWorkingDay = this.configurationDomainService.allowTransactionsOnNonWorkingDayEnabled();
         final boolean allowTransactionsOnHoliday = this.configurationDomainService.allowTransactionsOnHolidayEnabled();
         final LoanScheduleModel loanScheduleModel = this.loanScheduleAssembler.assembleLoanScheduleFrom(loanApplicationTerms,
-                isHolidayEnabled, holidays, workingDays, element,disbursementDetails);
+                isHolidayEnabled, holidays, workingDays, element, disbursementDetails);
         loanApplication.loanApplicationSubmittal(currentUser, loanScheduleModel, loanApplicationTerms, defaultLoanLifecycleStateMachine(),
                 submittedOnDate, externalId, allowTransactionsOnHoliday, holidays, workingDays, allowTransactionsOnNonWorkingDay);
 
@@ -315,8 +331,7 @@ public class LoanAssembler {
     public Fund findFundByIdIfProvided(final Long fundId) {
         Fund fund = null;
         if (fundId != null) {
-            fund = this.fundRepository.findOne(fundId);
-            if (fund == null) { throw new FundNotFoundException(fundId); }
+            fund = this.fundRepository.findById(fundId).orElseThrow(() -> new FundNotFoundException(fundId));
         }
         return fund;
     }
@@ -324,10 +339,10 @@ public class LoanAssembler {
     public Staff findLoanOfficerByIdIfProvided(final Long loanOfficerId) {
         Staff staff = null;
         if (loanOfficerId != null) {
-            staff = this.staffRepository.findOne(loanOfficerId);
-            if (staff == null) {
-                throw new StaffNotFoundException(loanOfficerId);
-            } else if (staff.isNotLoanOfficer()) { throw new StaffRoleException(loanOfficerId, StaffRoleException.STAFF_ROLE.LOAN_OFFICER); }
+            staff = this.staffRepository.findById(loanOfficerId).orElseThrow(() -> new StaffNotFoundException(loanOfficerId));
+            if (staff.isNotLoanOfficer()) {
+                throw new StaffRoleException(loanOfficerId, StaffRoleException.StaffRole.LOAN_OFFICER);
+            }
         }
         return staff;
     }
@@ -335,8 +350,8 @@ public class LoanAssembler {
     public LoanTransactionProcessingStrategy findStrategyByIdIfProvided(final Long transactionProcessingStrategyId) {
         LoanTransactionProcessingStrategy strategy = null;
         if (transactionProcessingStrategyId != null) {
-            strategy = this.loanTransactionProcessingStrategyRepository.findOne(transactionProcessingStrategyId);
-            if (strategy == null) { throw new LoanTransactionProcessingStrategyNotFoundException(transactionProcessingStrategyId); }
+            strategy = this.loanTransactionProcessingStrategyRepository.findById(transactionProcessingStrategyId)
+                    .orElseThrow(() -> new LoanTransactionProcessingStrategyNotFoundException(transactionProcessingStrategyId));
         }
         return strategy;
     }
@@ -345,7 +360,8 @@ public class LoanAssembler {
 
         final boolean allowTransactionsOnHoliday = this.configurationDomainService.allowTransactionsOnHolidayEnabled();
         final List<Holiday> holidays = this.holidayRepository.findByOfficeIdAndGreaterThanDate(loanApplication.getOfficeId(),
-                loanApplication.getExpectedDisbursedOnLocalDate().toDate(), HolidayStatusType.ACTIVE.getValue());
+                Date.from(loanApplication.getExpectedDisbursedOnLocalDate().atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant()),
+                HolidayStatusType.ACTIVE.getValue());
         final WorkingDays workingDays = this.workingDaysRepository.findOne();
         final boolean allowTransactionsOnNonWorkingDay = this.configurationDomainService.allowTransactionsOnNonWorkingDayEnabled();
 

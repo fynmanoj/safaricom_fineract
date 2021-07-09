@@ -21,20 +21,13 @@ package org.apache.fineract.organisation.teller.data;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Date;
-
-import org.apache.fineract.infrastructure.codes.data.CodeValueData;
-import org.apache.fineract.organisation.office.data.OfficeData;
 import org.apache.fineract.organisation.staff.data.StaffData;
-import org.apache.fineract.portfolio.client.data.ClientData;
-import org.apache.fineract.portfolio.savings.data.SavingsProductData;
-import org.joda.time.LocalDate;
 
 /**
- * Represents a cashier, providing access to the cashier's office, staff
- * information, teller, and more.
+ * Represents a cashier, providing access to the cashier's office, staff information, teller, and more.
  *
  * @author Markus Geiss
-
+ *
  * @since 2.0.0
  * @see org.apache.fineract.organisation.teller.domain.Cashier
  * @since 2.0.0
@@ -51,7 +44,7 @@ public final class CashierData implements Serializable {
     private final Boolean isFullDay;
     private final String startTime;
     private final String endTime;
-    
+
     // Template fields
     private final String officeName;
     private final String tellerName;
@@ -61,11 +54,9 @@ public final class CashierData implements Serializable {
     /*
      * Creates a new cashier.
      */
-    private CashierData(final Long id, final Long officeId, String officeName, 
-    		final Long staffId, final String staffName, final Long tellerId, final String tellerName,
-    		final String description,
-    		final Date startDate, final Date endDate, final Boolean isFullDay,
-            final String startTime, final String endTime, Collection<StaffData> staffOptions) {
+    private CashierData(final Long id, final Long officeId, String officeName, final Long staffId, final String staffName,
+            final Long tellerId, final String tellerName, final String description, final Date startDate, final Date endDate,
+            final Boolean isFullDay, final String startTime, final String endTime, Collection<StaffData> staffOptions) {
         this.id = id;
         this.officeId = officeId;
         this.staffId = staffId;
@@ -76,53 +67,65 @@ public final class CashierData implements Serializable {
         this.isFullDay = isFullDay;
         this.startTime = startTime;
         this.endTime = endTime;
-        
+
         this.officeName = officeName;
         this.tellerName = tellerName;
         this.staffName = staffName;
         this.staffOptions = staffOptions;
-        
+
     }
 
     /**
      * Creates a new cashier.
-     * 
-     * <p>The valid from/to dates may be used to define a time period in which
-     * the cashier is assignable to a teller.</p>
-     * 
-     * <p>The start/end times may be used to define a time period in which
-     * the cashier works part time.</p>
      *
-     * @param id the primary key of this cashier
-     * @param officeId the primary key of the related office
-     * @param officeName the primary key of the related staff
-     * @param staffId the primary key of the related teller
+     * <p>
+     * The valid from/to dates may be used to define a time period in which the cashier is assignable to a teller.
+     * </p>
+     *
+     * <p>
+     * The start/end times may be used to define a time period in which the cashier works part time.
+     * </p>
+     *
+     * @param id
+     *            the primary key of this cashier
+     * @param officeId
+     *            the primary key of the related office
+     * @param officeName
+     *            the primary key of the related staff
+     * @param staffId
+     *            the primary key of the related teller
      * @param staffName
-     * @param tellerId the primary key of the related teller
+     * @param tellerId
+     *            the primary key of the related teller
      * @param tellerName
-     * @param description the description of this cashier
-     * @param startDate the valid from date of this cashier
-     * @param endDate  the valid to date of this cashier
-     * @param isFullDay the part time flag of this cashier
-     * @param startTime the start time of this cashier
-     * @param endTime  the end time of this cashier
+     * @param description
+     *            the description of this cashier
+     * @param startDate
+     *            the valid from date of this cashier
+     * @param endDate
+     *            the valid to date of this cashier
+     * @param isFullDay
+     *            the part time flag of this cashier
+     * @param startTime
+     *            the start time of this cashier
+     * @param endTime
+     *            the end time of this cashier
      * @return
      */
-    public static CashierData instance(final Long id, final Long officeId, String officeName, 
-    		final Long staffId, final String staffName, final Long tellerId, final String tellerName,
-    		final String description, final Date startDate, final Date endDate,
-    		final Boolean isFullDay, final String startTime, final String endTime) {
-        return new CashierData(id, officeId, officeName, staffId, staffName, tellerId, tellerName, 
-        		description, startDate, endDate, isFullDay, startTime, endTime, null);
+    public static CashierData instance(final Long id, final Long officeId, String officeName, final Long staffId, final String staffName,
+            final Long tellerId, final String tellerName, final String description, final Date startDate, final Date endDate,
+            final Boolean isFullDay, final String startTime, final String endTime) {
+        return new CashierData(id, officeId, officeName, staffId, staffName, tellerId, tellerName, description, startDate, endDate,
+                isFullDay, startTime, endTime, null);
     }
-    
+
     /*
      * Creates a new cashier.
      */
-    public static CashierData template (final Long officeId, final String officeName, 
-    		final Long tellerId, final String tellerName, final Collection<StaffData> staffOptions) {
-        return new CashierData(null, officeId, officeName, null, null, tellerId, tellerName, 
-        		null, null, null, null, null, null, staffOptions);
+    public static CashierData template(final Long officeId, final String officeName, final Long tellerId, final String tellerName,
+            final Collection<StaffData> staffOptions) {
+        return new CashierData(null, officeId, officeName, null, null, tellerId, tellerName, null, null, null, null, null, null,
+                staffOptions);
     }
 
     /**
@@ -172,9 +175,10 @@ public final class CashierData implements Serializable {
 
     /**
      * Returns the valid from date of this cashier.
-     * 
-     * <p>The valid from/to dates may be used to define a time period in which
-     * the cashier is assignable to a teller.</p>
+     *
+     * <p>
+     * The valid from/to dates may be used to define a time period in which the cashier is assignable to a teller.
+     * </p>
      *
      * @return the valid from date of this cashier
      */
@@ -184,9 +188,10 @@ public final class CashierData implements Serializable {
 
     /**
      * Returns the valid to date of this cashier.
-     * 
-     * <p>The valid from/to dates may be used to define a time period in which
-     * the cashier is assignable to a teller.</p>
+     *
+     * <p>
+     * The valid from/to dates may be used to define a time period in which the cashier is assignable to a teller.
+     * </p>
      *
      * @return the valid to date of this cashier
      */
@@ -205,9 +210,10 @@ public final class CashierData implements Serializable {
 
     /**
      * Returns the start time of this cashier.
-     * 
-     * <p>The start/end times may be used to define a time period in which
-     * the cashier works part time.</p>
+     *
+     * <p>
+     * The start/end times may be used to define a time period in which the cashier works part time.
+     * </p>
      *
      * @return the start time of this cashier
      */
@@ -217,9 +223,10 @@ public final class CashierData implements Serializable {
 
     /**
      * Returns the end time of this cashier.
-     * 
-     * <p>The start/end times may be used to define a time period in which
-     * the cashier works part time.</p>
+     *
+     * <p>
+     * The start/end times may be used to define a time period in which the cashier works part time.
+     * </p>
      *
      * @return the start time of this cashier
      */
@@ -227,15 +234,15 @@ public final class CashierData implements Serializable {
         return endTime;
     }
 
-	public String getOfficeName() {
-		return officeName;
-	}
+    public String getOfficeName() {
+        return officeName;
+    }
 
-	public String getTellerName() {
-		return tellerName;
-	}
-	
-	public String getStaffName() {
-		return staffName;
-	}
+    public String getTellerName() {
+        return tellerName;
+    }
+
+    public String getStaffName() {
+        return staffName;
+    }
 }

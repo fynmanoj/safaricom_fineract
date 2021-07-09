@@ -16,192 +16,96 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-description = '''\
-Run as:
-gradle clean tomcatrunwar
-'''
-buildscript {
-  repositories {
-  	 jcenter()
-  	 mavenCentral()
-  	 maven { url "https://plugins.gradle.org/m2/" }
-  }
+description = 'Fineract Provider'
 
-  dependencies {
-     classpath 'org.gradle.api.plugins:gradle-tomcat-plugin:1.0',
-               'nl.javadude.gradle.plugins:license-gradle-plugin:0.11.0',
-               'org.zeroturnaround:gradle-jrebel-plugin:1.1.2',
-               'org.springframework.boot:spring-boot-gradle-plugin:1.1.6.RELEASE' // also change springDataJpaVersion below
-     classpath 'org.apache.openjpa:openjpa-all:2.4.1'
-     classpath 'at.schmutterer.oss.gradle:gradle-openjpa:0.2.0'
-     classpath 'gradle.plugin.org.nosphere.apache:creadur-rat-gradle:0.2.2'
-  }
-}
-
-apply plugin: "org.nosphere.apache.rat"
 apply plugin: 'rebel'
-apply plugin: 'license'
 apply plugin: 'war'
-apply plugin: 'spring-boot'
-apply plugin: 'eclipse'
-apply plugin: 'idea'
-apply plugin: 'tomcat'
-apply plugin: 'project-report'
-apply plugin: 'java'
+apply plugin: 'org.springframework.boot'
 apply plugin: 'openjpa'
-apply plugin: 'pmd'
-apply plugin: 'findbugs'
+apply plugin: 'com.gorylenko.gradle-git-properties'
+apply plugin: 'io.swagger.core.v3.swagger-gradle-plugin'
+apply plugin: 'distribution'
+apply plugin: 'signing'
 
-/* define the valid syntax level for source files */
-sourceCompatibility = JavaVersion.VERSION_1_8
-/* define binary compatibility version */
-targetCompatibility = JavaVersion.VERSION_1_8
+// Configuration for the OpenJPA enhance task
+// https://github.com/radcortez/openjpa-gradle-plugin
+System.setProperty("openjpa.Log", "commons")
 
-project.ext.springBootVersion = '1.2.8.RELEASE'
-project.ext.springVersion = '4.1.9.RELEASE'
-project.ext.springOauthVersion = '2.0.4.RELEASE'
-project.ext.jerseyVersion = '1.17'
-project.ext.springDataJpaVersion = '1.7.0.RELEASE' // also change spring-boot-gradle-plugin version above
-
-project.ext.mysqlUser='root'
-project.ext.mysqlPassword='mysql'
-
-
-group = 'org.apache.fineract'
-buildDir = new File(rootProject.projectDir, "../build")
-repositories {
-	jcenter()
-	// mavenLocal() // useful for local dev using MariaDB4j SNAPSHOTs (not needed for real-world non-SNAPHOT builds)
-}
 openjpa {
-    files = fileTree(sourceSets.main.output.classesDir).matching {
-		include '**/AbstractPersistableCustom.class'
-		include '**/domain/*.class'
-
+    includes = [
+        '**/AbstractPersistableCustom.class',
+        '**/domain/*.class'
+    ]
+    enhance {
+        enforcePropertyRestrictions true
     }
-    enforcePropertyRestrictions = true
 }
 
-rat {
-  xmlOutput = false
-  htmlOutput = false
-  plainOutput = true
-  verbose = false
-//  inputDir = './..'
-  reportDir = new File(buildDir,'reports/rat')
- excludes = [
-	'**/licenses/**',
-	'**/*.md',
-	'**/*.github/*',
-	'**/MANIFEST.MF',
-	'**/*.txt',
-	'**/*.log',
-	'**/fineractdev-eclipse-preferences.epf',
-	'**/template-expected.html',
-	'**/template.mustache',
-	'**/.classpath',
-	'**/.project',
-	'**/.idea/**',
-    '**/*.ipr',
-    '**/*.iws',
-	'**/.settings/**',
-	'**/bin/**',
-	'**/.git/**',
-    '**/.gitignore',
-    '**/.gitkeep',
-	'**/*.iml',
-	//Notice files
-	'**/NOTICE_RELEASE',
-	'**/NOTICE_SOURCE',
-    // Swagger License
-    '**/src/main/resources/swagger-ui/**',
-    // gradle
-    '**/.gradle/**',
-    '**/gradlew',
-    '**/gradlew.bat',
-    '**/gradle/wrapper/gradle-wrapper.properties',
-    '**/caches/**',
-    '**/daemon/**',
-    '**/native/**',
-    '**/wrapper/**',
-	'**/build/**',
+// Configuration for Swagger documentation generation task
+// https://github.com/swagger-api/swagger-core/tree/master/modules/swagger-gradle-plugin
+import org.apache.tools.ant.filters.ReplaceTokens
 
-	//Api Docs
-	'**/api-docs/*.*',
-	'**/docs/system-architecture/.htaccess',
-	'**/docs/system-architecture/404.html',
-	'**/docs/system-architecture/index.html',
-	'**/docs/system-architecture/**/*.xml',
-	'**/bootstrap-3.0.0/assets/application.js',
-	'**/system-architecture/js/plugins.js',
+task prepareInputYaml(dependsOn: 'generateGitProperties') {
+    doLast {
+        def versionForSwagger
 
-	//Apache License
-	'**/bootstrap-3.0.0/assets/less.js',
-	'**/css/bootstrap-3.0.0/**/*.*',
+        if(project.ext.properties.containsKey("gitProps"))
+            versionForSwagger = project.ext.gitProps['git.commit.id.describe']
+        else
+            versionForSwagger = "unknown"
 
-	//Public Domain See http://www.JSON.org/js.html
-	'**/bootstrap-3.0.0/assets/json2.js.htm',
-
-	// MIT License
-	'**/modernizr-2.6.2.min.js',
-	'**/css/normalize.css',
-	'**/assets/filesaver.js',
-	'**/css/fonts/glyphicons-halflings-regular.svg',
-	'**/assets/jszip.js',
-	'**/assets/jquery.js',
-	'**/api-docs/jquery-1.7.min.js',
-	'**/css/toc-0.1.2/**/*.*',
-	'**/docs/system-architecture/css/main.css',
-	'**/system-architecture/js/vendor/jquery-1.9.1.min.js',
-	'**/system-architecture/js/vendor/toc-0.1.2/jquery.toc.min.js',
-	'**/assets/respond.min.js',
-	'**/assets/html5shiv.js',
-
-	//BSD License
-	'**/assets/uglify.js',
-         //Ignore out folder
-         '**/out/**',
-    
-    //4C files
-	'**/4c/**',
-	'**/4c/lms/*',
-	'**/4c/od/*',
-	]
+        copy {
+            from file('config/swagger/fineract-input.yaml.template')
+            into file('config/swagger')
+            rename { String filename -> return 'fineract-input.yaml' }
+            filter(ReplaceTokens, tokens: [VERSION: versionForSwagger])
+        }
+    }
 }
+
+
+resolve {
+    logging.captureStandardOutput LogLevel.INFO
+    outputFileName = 'fineract'
+    outputFormat = 'YAML'
+    prettyPrint = 'TRUE'
+    classpath = sourceSets.main.runtimeClasspath
+    outputDir = file("${buildDir}/classes/java/main/static/swagger-ui")
+    openApiFile = file("config/swagger/fineract-input.yaml")
+}
+
+resolve.dependsOn prepareInputYaml
 
 configurations {
-	providedRuntime // needed for Spring Boot executable WAR
+    providedRuntime // needed for Spring Boot executable WAR
     providedCompile
-	compile() {
-		exclude module: 'hibernate-entitymanager'
-		exclude module: 'hibernate-validator'
-		exclude module: 'activation'
-		exclude module: 'bcmail-jdk14'
-		exclude module: 'bcprov-jdk14'
-		exclude module: 'bctsp-jdk14'
-		exclude module: 'bval-core'
-		exclude module: 'org.apache.bval.bundle'
-		exclude module: 'bval-jsr303'
-		exclude module: 'c3p0'
-		exclude module: 'stax-api'
-		exclude module: 'jaxb-api'
-		exclude module: 'jaxb-impl'
-		exclude module: 'jboss-logging'
-		exclude module: 'itext-rtf'
-		exclude module: 'classworlds'
-		exclude module: 'jcl-over-slf4j'
-		exclude module: 'jul-to-slf4j'
-		exclude module: 'serp'
-	}
-	runtime
-	all*.exclude group: 'commons-logging'
+    compile() {
+        exclude module: 'hibernate-entitymanager'
+        exclude module: 'hibernate-validator'
+        exclude module: 'activation'
+        exclude module: 'bcmail-jdk14'
+        exclude module: 'bcprov-jdk14'
+        exclude module: 'bctsp-jdk14'
+        exclude module: 'c3p0'
+        exclude module: 'stax-api'
+        exclude module: 'jaxb-api'
+        exclude module: 'jaxb-impl'
+        exclude module: 'jboss-logging'
+        exclude module: 'itext-rtf'
+        exclude module: 'classworlds'
+    }
+    runtime
 }
-/* Pick up dependencies based on the environemnt, defaults to production */
-if (project.hasProperty('env') && project.getProperty('env') == 'dev') {
-    apply from:  'dev-dependencies.gradle'
-}  else {
-    apply from: 'dependencies.gradle'
-}
+
+apply from: 'dependencies.gradle'
+/* TODO https://issues.apache.org/jira/browse/FINERACT-939 (dev-dependencies.gradle has been removed, as totally broken)
+ // Pick up dependencies based on the environment, defaults to production
+ if (project.hasProperty('env') && project.getProperty('env') == 'dev') {
+ apply from:  'dev-dependencies.gradle'
+ }  else {
+ apply from: 'dependencies.gradle'
+ }
+ */
 
 /* Enable Oauth2 authentication based on environment, default to HTTP basic auth */
 if (project.hasProperty('security') && project.getProperty('security') == 'oauth') {
@@ -234,156 +138,71 @@ if (project.hasProperty('security') && project.getProperty('security') == 'oauth
     }
 }
 
-task dist(type:Zip){
-	baseName = 'fineractplatform'
-	version = qualifyVersionIfNecessary(releaseVersion)
-    includeEmptyDirs = true
-	from('../') {
-		fileMode = 0755
-		include '*.md'
-	}
-    from('src/main/dist') {
-        fileMode = 0755
-        include '*'
-    }
-	from('../apps') {
-		fileMode = 0755
-        include '**/*'
-		into('apps')
-	}
-    from('../api-docs/') {
-        fileMode = 0755
-        include '*'
-        into('api-docs')
-    }
-    from('../fineract-db/') {
-        fileMode = 0755
-        include '*.sql'
-        into('database')
-    }
-    from('src/main/resources/sql/migrations') {
-        fileMode = 0755
-        include '**/*'
-        into('database/migrations')
-    }
-
-    from war.outputs.files
-    into(baseName + '-' + version)
+// Configuration for the modernizer plugin
+// https://github.com/andygoossens/gradle-modernizer-plugin
+modernizer {
+    ignoreClassNamePatterns = [
+        '.*AbstractPersistableCustom',
+        '.*EntityTables'
+    ]
 }
 
-compileJava{
+compileJava {
     dependsOn rat
-}
-pmd {
-    sourceSets = [sourceSets.main]
-    ignoreFailures = true
-}
-findbugs {
-    ignoreFailures = true
-    sourceSets = [sourceSets.main]
+    finalizedBy resolve
 }
 
 war {
-	from('../licenses/binary/') { // notice the parens
-		into "WEB-INF/licenses/binary/" // no leading slash
-	}
-	from('../LICENSE_RELEASE') { // notice the parens
-		into "WEB-INF/" // no leading slash
-	}
-	from('../NOTICE_RELEASE') { // notice the parens
-		into "WEB-INF/" // no leading slash
-	}
-	rename ('LICENSE_RELEASE', 'LICENSE')
-	rename ('NOTICE_RELEASE', 'NOTICE')
+    from("$rootDir/licenses/binary/") {
+        // notice the parens
+        into "WEB-INF/licenses/binary/" // no leading slash
+    }
+    from("$rootDir/LICENSE_RELEASE") {
+        // notice the parens
+        into "WEB-INF/" // no leading slash
+    }
+    from("$rootDir/NOTICE_RELEASE") {
+        // notice the parens
+        into "WEB-INF/" // no leading slash
+    }
+    rename ('LICENSE_RELEASE', 'LICENSE')
+    rename ('NOTICE_RELEASE', 'NOTICE')
 
-	from('../DISCLAIMER') { // notice the parens
-		into "WEB-INF/" // no leading slash
-	}
-    war.finalizedBy(bootRepackage)
-}
-
-license {
-    header rootProject.file('../APACHE_LICENSETEXT.md')
-    excludes(["**/*.html", "**/*.mustache", "**/package-info.java", "**/keystore.jks", "**/swagger-ui/**"])
-    strictCheck true
-}
-
-task licenseFormatBuildScripts (type:nl.javadude.gradle.plugins.license.License) {
-    source = fileTree(dir: '../', includes: ['**/*.bat', '**/*.sh', '**/*.sql'])
-}
-licenseFormat.dependsOn licenseFormatBuildScripts
-
-tomcatRun {
-    httpPort = 8080
-    httpsPort = 8443
-    stopPort = 8081
-    stopKey=   'stopKey'
-    enableSSL = true
-    configFile = file('src/test/resources/META-INF/context.xml')
-}
-
-tomcatRunWar {
-    httpPort = 8080
-    httpsPort = 8443
-    stopPort = 8081
-    stopKey=   'stopKey'
-    enableSSL = true
-    keystoreFile = file('src/main/resources/keystore.jks')
-    keystorePass = 'openmf'
-    configFile = file('src/test/resources/META-INF/context.xml')
+    from("$rootDir/DISCLAIMER") {
+        // notice the parens
+        into "WEB-INF/" // no leading slash
+    }
+    enabled = true
 }
 
 /* http://stackoverflow.com/questions/19653311/jpa-repository-works-in-idea-and-production-but-not-in-gradle */
-sourceSets.main.output.resourcesDir = sourceSets.main.output.classesDir
-sourceSets.test.output.resourcesDir = sourceSets.test.output.classesDir
+sourceSets.main.output.resourcesDir = sourceSets.main.java.outputDir
+sourceSets.test.output.resourcesDir = sourceSets.test.java.outputDir
 
-/* Exclude maria db and embedded tomcat related files for non dev builds */
+/* Exclude maria db related files for non dev builds */
 if (!(project.hasProperty('env') && project.getProperty('env') == 'dev')) {
-sourceSets {
-    main {
-        java {
-            exclude '**/Server*'
-            exclude '**/MariaDB4j*'
-            exclude '**/EmbeddedTomcatWithSSLConfiguration.java'
+    sourceSets {
+        main {
+            java {
+                exclude '**/ServerWithMariaDB*'
+                exclude '**/MariaDB4j*'
+            }
+        }
+        test {
+            java {
+                exclude '**/core/boot/tests/**'
+            }
         }
     }
-    test {
-    	java {
-    		exclude '**/core/boot/tests/**'
-    	}
-    }
-}
 }
 
-sourceSets {
- integrationTest {
-    	compileClasspath += main.output + test.output
-        runtimeClasspath += main.output + test.output
-    }
-}
-
-configurations {
-    integrationTestCompile.extendsFrom testCompile
-    integrationTestRuntime.extendsFrom testRuntime
-}
-
-task integrationTest(type:Test){
-    description = "Run integration tests (located in src/integrationTest/java). Starts tomcat in daemon mode before executing the tests."
-    it.dependsOn war
-    doFirst {
-        tomcatRunWar.daemon = true
-        tomcatRunWar.execute()
-    }
-    testClassesDir = project.sourceSets.integrationTest.output.classesDir
-    classpath = project.sourceSets.integrationTest.runtimeClasspath
-}
-
-
+// Configuration for SQL tasks
+// https://docs.groovy-lang.org/latest/html/api/groovy/sql/Sql.html
 import groovy.sql.Sql
 
-repositories {
-    mavenCentral()
-}
+project.ext.mysqlUser='root'
+project.ext.mysqlPassword='mysql'
+
 configurations {
     driver
 }
@@ -391,156 +210,135 @@ dependencies {
     driver 'mysql:mysql-connector-java:8.0.23'
 }
 
-test {
-	filter {
-        //includeTestsMatching "org.apache.fineract.infrastructure.configuration.spring.SpringConfigurationTest.*"
-        includeTestsMatching "org.apache.fineract.template.TemplateMergeServiceTest.*"
-    }
-}
-
 URLClassLoader loader = GroovyObject.class.classLoader
 configurations.driver.each {File file ->
     loader.addURL(file.toURL())
 }
 
-task createDB<<{
+task createDB {
     description= "Creates the Database. Needs database name to be passed (like: -PdbName=someDBname)"
-    sql = Sql.newInstance( 'jdbc:mysql://localhost:3306/', mysqlUser, mysqlPassword, 'com.mysql.jdbc.Driver' )
-    sql.execute( 'create database '+"`$dbName`" )
+    doLast {
+        def sql = Sql.newInstance( 'jdbc:mysql:thin://localhost:3306/', mysqlUser, mysqlPassword, 'org.drizzle.jdbc.DrizzleDriver' )
+        sql.execute( 'create database '+"`$dbName`" )
+    }
 }
 
-task dropDB<<{
+task dropDB {
     description= "Drops the specified database. The database name has to be passed (like: -PdbName=someDBname)"
-    sql = Sql.newInstance( 'jdbc:mysql://localhost:3306/', mysqlUser, mysqlPassword, 'com.mysql.jdbc.Driver' )
-    sql.execute( 'DROP DATABASE '+"`$dbName`")
-}
-task setBlankPassword<<{
-    sql = Sql.newInstance( 'jdbc:mysql://localhost:3306/', mysqlUser, mysqlPassword, 'com.mysql.jdbc.Driver' )
-    sql.execute('USE `mifosplatform-tenants`')
-    sql.execute('UPDATE mifosplatform-tenants.tenants SET schema_server = \'localhost\', schema_server_port = \'3306\', schema_username = \'mifos\', schema_password = \'mysql\' WHERE id=1;')
-}
-
-
-apply plugin: 'flyway'
-buildscript {
-    repositories {
-        mavenCentral()
+    doLast {
+        def sql = Sql.newInstance( 'jdbc:mysql:thin://localhost:3306/', mysqlUser, mysqlPassword, 'org.drizzle.jdbc.DrizzleDriver' )
+        sql.execute( 'DROP DATABASE '+"`$dbName`")
     }
-
-    dependencies {
-        classpath "org.flywaydb:flyway-gradle-plugin:3.0" // version upgraded during Spring Boot & MariaDB4j work, as prev. used v0.2 didn't work well after *.sql moved from fineract-db to fineract-provider/src/main/resources (new version also has clearer errors, e.g. in case of missing DB)
-        classpath 'mysql:mysql-connector-java:8.0.23'
+}
+task setBlankPassword {
+    doLast {
+        def sql = Sql.newInstance( 'jdbc:mysql:thin://localhost:3306/', mysqlUser, mysqlPassword, 'org.drizzle.jdbc.DrizzleDriver' )
+        sql.execute('USE `fineract_tenants`')
+        sql.execute('UPDATE fineract_tenants.tenants SET schema_server = \'localhost\', schema_server_port = \'3306\', schema_username = \'mifos\', schema_password = \'mysql\' WHERE id=1;')
     }
 }
 
-
-flyway {
-    url = "jdbc:mysql://localhost:3306/mifostenant-default"
-	driver = "com.mysql.jdbc.Driver"
-    user = mysqlUser
-    password = mysqlPassword
-}
-
-task migrateTenantDB<<{
-    description="Migrates a Tenant DB. Optionally can pass dbName. Defaults to 'mifostenant-default' (Example: -PdbName=someTenantDBname)"
-
-	def filePath = "filesystem:$projectDir" + '/src/main/resources/sql/migrations/core_db'
-	def tenantDbName = 'mifostenant-default';
-    if (rootProject.hasProperty("dbName")) {
-		tenantDbName = rootProject.getProperty("dbName")
-	}
-
-    flyway.url= "jdbc:mysql://localhost:3306/$tenantDbName"
-	flyway.driver = "com.mysql.jdbc.Driver"
-    flyway.locations= [filePath]
-    /**We use ${ as the prefix for strecthy reporting, do not want them to be interpreted by Flyway**/
-    flyway.placeholderPrefix = "\$\${"
-    flywayMigrate.execute()
-}
-
-task showTenantDBInfo<<{
-    description="Shows the migration info for a Tenant DB. Optionally can pass dbName. Defaults to 'mifostenant-default' (Example: -PdbName=someTenantDBname)"
-
-	def filePath = "filesystem:$projectDir" + '/src/main/resources/sql/migrations/core_db'
-    def tenantDbName = 'mifostenant-default';
-    if (rootProject.hasProperty("dbName")) {
-		tenantDbName = rootProject.getProperty("dbName")
-	}
-
-    flyway.url= "jdbc:mysql://localhost:3306/$tenantDbName"
-	flyway.driver = "com.mysql.jdbc.Driver"
-    flyway.locations= [filePath]
-    flywayInfo.execute()
-}
-
-
-task migrateTenantListDB<<{
-    description="Migrates a Tenant List DB. Optionally can pass dbName. Defaults to 'mifosplatform-tenants' (Example: -PdbName=someDBname)"
-
-	def filePath = "filesystem:$projectDir" + '/src/main/resources/sql/migrations/list_db'
- 	def tenantsDbName = 'mifosplatform-tenants';
-    if (rootProject.hasProperty("dbName")) {
-		tenantsDbName = rootProject.getProperty("dbName")
-	}
-
-    flyway.url= "jdbc:mysql://localhost:3306/$tenantsDbName"
-	flyway.driver = "com.mysql.jdbc.Driver"
-    flyway.locations= [filePath]
-
-    flywayMigrate.execute()
-}
-
-task showTenantListDBInfo<<{
-    description="Shows the migration info for a List DB. Optionally can pass dbName. Defaults to 'mifosplatform-tenants' (Example: -PdbName=someDBname)"
-
-	def filePath = "filesystem:$projectDir" + '/src/main/resources/sql/migrations/list_db'
-    def tenantsDbName = 'mifosplatform-tenants';
-    if (rootProject.hasProperty("dbName")) {
-		tenantsDbName = rootProject.getProperty("dbName")
-	}
-
-    flyway.url= "jdbc:mysql://localhost:3306/$tenantsDbName"
-	flyway.driver = "com.mysql.jdbc.Driver"
-    flyway.locations= [filePath]
-    flywayInfo.execute()
-}
-
-task repairTenantDB<<{
-    description="repair migrate"
-
-	def filePath = "filesystem:$projectDir" + '/src/main/resources/sql/migrations/list_db'
-    def tenantsDbName = 'mifosplatform-tenants';
-    if (rootProject.hasProperty("dbName")) {
-        tenantsDbName = rootProject.getProperty("dbName")
-    }
-
-    flyway.url= "jdbc:mysql://localhost:3306/$tenantsDbName"
-	flyway.driver = "com.mysql.jdbc.Driver"
-    flyway.locations= [filePath]
-    flywayRepair.execute()
-}
-
-/*
-* Support publication of artifacts versioned by topic branch.
-* CI builds supply `-P BRANCH_NAME=<TOPIC>` to gradle at build time.
-* If <TOPIC> starts with 'MIFOSX-', change version
-* from BUILD-SNAPSHOT => <TOPIC>-SNAPSHOT
-* e.g. 1.1.0.BUILD-SNAPSHOT => 1.0.0.MIFOSX-1234-SNAPSHOT
-*/
-def qualifyVersionIfNecessary(version) {
-
-	if (rootProject.hasProperty("BRANCH_NAME")) {
-		def qualifier = rootProject.getProperty("BRANCH_NAME")
-		if (qualifier.startsWith("MIFOSX-")) {
-			return version.replace('BUILD', qualifier)
-		}
-	}
-	return version
+bootRun {
+    jvmArgs = [
+        "-Dspring.output.ansi.enabled=ALWAYS"
+    ]
 }
 
 springBoot {
-    mainClass = 'org.apache.fineract.ServerWithMariaDB4jApplication'
+    mainClassName = 'org.apache.fineract.ServerApplication'
 }
-bootRepackage {
-    mainClass = 'org.apache.fineract.ServerWithMariaDB4jApplication'
+
+bootJar {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    manifest {
+        attributes 'Main-Class': 'org.springframework.boot.loader.PropertiesLauncher'
+    }
 }
+
+bootWar {
+    enabled = false
+}
+
+tasks.withType(Tar) {
+    compression Compression.GZIP
+    extension 'tar.gz'
+}
+
+distributions {
+    binary {
+        baseName "apache-fineract-$releaseVersion-binary"
+        contents {
+            from bootJar
+            from war
+            // TODO: @vidakovic add client library
+            from("$rootDir/licenses/binary/") {
+                into "licenses/binary/"
+            }
+            from "$rootDir/LICENSE_RELEASE"
+            from "$rootDir/NOTICE_RELEASE"
+            rename ('LICENSE_RELEASE', 'LICENSE')
+            rename ('NOTICE_RELEASE', 'NOTICE')
+
+            from "$rootDir/DISCLAIMER"
+            from "$rootDir/README.md"
+        }
+    }
+    src {
+        baseName "apache-fineract-$releaseVersion-src"
+        contents {
+            from "$rootDir/"
+            exclude '**/build' , '.git', '.gradle', '.github', '.settings', '.project', '.classpath', '.idea', 'out', '._.DS_Store', '.DS_Store', 'WebContent', '.externalToolbuilders', '.theia', '.gitpod.yml', '.travis.yml', 'LICENSE_RELEASE', 'NOTICE_RELEASE', '**/licenses/binary'
+            rename ('LICENSE_SOURCE', 'LICENSE')
+            rename ('NOTICE_SOURCE', 'NOTICE')
+        }
+    }
+}
+
+tasks.binaryDistZip.enabled false
+tasks.srcDistZip.enabled false
+
+// create signatures and checksums only if project parameter "fineract.release" is provided on the command line
+if( project.hasProperty("fineract.release") ) {
+    signing {
+        useGpgCmd()
+        sign (binaryDistTar, srcDistTar)
+    }
+    tasks.withType(Tar) { task ->
+        task.doLast {
+            ant.checksum file: task.archivePath, algorithm: 'SHA-512', fileext: '.sha512'
+        }
+    }
+    tasks.withType(Sign) { task ->
+        task.doLast {
+            task.getFilesToSign().each { f ->
+                new ByteArrayOutputStream().withStream { os ->
+                    def result = exec {
+                        workingDir "$buildDir/distributions"
+                        executable 'sh'
+                        args '-c', "gpg --verify ${f}.asc"
+                        standardOutput = os
+                    }
+                    if(result.exitValue==0) {
+                        println '+++ GPG signature correct!'
+                    } else {
+                        println '--- GPG signature incorrect!'
+                        throw new RuntimeException('--- GPG signature incorrect!')
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Configuration for git properties gradle plugin
+// https://github.com/n0mer/gradle-git-properties
+gitProperties {
+    gitPropertiesResourceDir = "$buildDir/classes/java/main/resources"
+    dateFormat = "yyyy-MM-dd'T'HH:mmZ"
+    dateFormatTimeZone = "GMT"
+    failOnNoGitDirectory = false
+    extProperty = 'gitProps'
+}
+
+// make sure the generateGitProperties task always executes (even when git.properties is not changed)
+generateGitProperties.outputs.upToDateWhen { false }

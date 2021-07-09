@@ -18,10 +18,12 @@
  */
 package org.apache.fineract.portfolio.savings.data;
 
+import java.io.Serializable;
+
 /**
  * Immutable data object represent savings account sub-status enumerations.
  */
-public class SavingsAccountSubStatusEnumData {
+public class SavingsAccountSubStatusEnumData implements Serializable {
 
     private final Long id;
     @SuppressWarnings("unused")
@@ -43,8 +45,8 @@ public class SavingsAccountSubStatusEnumData {
     @SuppressWarnings("unused")
     private final boolean blockDebit;
 
-    public SavingsAccountSubStatusEnumData(final Long id, final String code, final String value, final boolean none,
-            final boolean inactive, final boolean dormant, final boolean escheat, final boolean block, final boolean blockCredit, final boolean blockDebit) {
+    public SavingsAccountSubStatusEnumData(final Long id, final String code, final String value, final boolean none, final boolean inactive,
+            final boolean dormant, final boolean escheat, final boolean block, final boolean blockCredit, final boolean blockDebit) {
         this.id = id;
         this.code = code;
         this.value = value;

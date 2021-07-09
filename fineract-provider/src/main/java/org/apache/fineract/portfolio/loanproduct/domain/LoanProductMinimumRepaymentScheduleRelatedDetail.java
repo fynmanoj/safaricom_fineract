@@ -19,48 +19,46 @@
 package org.apache.fineract.portfolio.loanproduct.domain;
 
 import java.math.BigDecimal;
-
 import org.apache.fineract.organisation.monetary.domain.MonetaryCurrency;
 import org.apache.fineract.organisation.monetary.domain.Money;
 import org.apache.fineract.portfolio.common.domain.PeriodFrequencyType;
 
 /**
- * Represents the bare minimum repayment details needed for activities related
- * to generating repayment schedules.
+ * Represents the bare minimum repayment details needed for activities related to generating repayment schedules.
  */
 public interface LoanProductMinimumRepaymentScheduleRelatedDetail {
 
-	MonetaryCurrency getCurrency();
-	
-	Money getPrincipal();
-	
-	Integer graceOnInterestCharged();
-	
-	Integer graceOnInterestPayment();
-	
-	Integer graceOnPrincipalPayment();
-	
-	Integer recurringMoratoriumOnPrincipalPeriods();
-	
-	Money getInArrearsTolerance();
-	
-	BigDecimal getNominalInterestRatePerPeriod();
-	
-	PeriodFrequencyType getInterestPeriodFrequencyType();
-	
-	BigDecimal getAnnualNominalInterestRate();
-	
-	InterestMethod getInterestMethod();
-	
-	InterestCalculationPeriodMethod getInterestCalculationPeriodMethod();
-	
+    MonetaryCurrency getCurrency();
+
+    Money getPrincipal();
+
+    Integer graceOnInterestCharged();
+
+    Integer graceOnInterestPayment();
+
+    Integer graceOnPrincipalPayment();
+
+    Integer recurringMoratoriumOnPrincipalPeriods();
+
+    Money getInArrearsTolerance();
+
+    BigDecimal getNominalInterestRatePerPeriod();
+
+    PeriodFrequencyType getInterestPeriodFrequencyType();
+
+    BigDecimal getAnnualNominalInterestRate();
+
+    InterestMethod getInterestMethod();
+
+    InterestCalculationPeriodMethod getInterestCalculationPeriodMethod();
+
     Integer getRepayEvery();
 
     PeriodFrequencyType getRepaymentPeriodFrequencyType();
 
     Integer getNumberOfRepayments();
-    
+
     AmortizationMethod getAmortizationMethod();
-    
+
     Integer getGraceOnDueDate();
 }

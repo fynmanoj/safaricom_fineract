@@ -19,10 +19,9 @@
 package org.apache.fineract.portfolio.loanaccount.data;
 
 import java.math.BigDecimal;
-
+import java.time.LocalDate;
 import org.apache.fineract.infrastructure.core.data.EnumOptionData;
 import org.apache.fineract.portfolio.loanaccount.domain.LoanTermVariationType;
-import org.joda.time.LocalDate;
 
 public class LoanTermVariationsData implements Comparable<LoanTermVariationsData> {
 
@@ -45,8 +44,8 @@ public class LoanTermVariationsData implements Comparable<LoanTermVariationsData
         this.isSpecificToInstallment = isSpecificToInstallment;
     }
 
-    public LoanTermVariationsData(final EnumOptionData termType, final LocalDate termVariationApplicableFrom,
-            final BigDecimal decimalValue, LocalDate dateValue, final boolean isSpecificToInstallment) {
+    public LoanTermVariationsData(final EnumOptionData termType, final LocalDate termVariationApplicableFrom, final BigDecimal decimalValue,
+            LocalDate dateValue, final boolean isSpecificToInstallment) {
         this.id = null;
         this.termType = termType;
         this.termVariationApplicableFrom = termVariationApplicableFrom;
@@ -113,7 +112,7 @@ public class LoanTermVariationsData implements Comparable<LoanTermVariationsData
         }
         return comparsion;
     }
-    
+
     public void setApplicableFromDate(final LocalDate applicableFromDate) {
         this.termVariationApplicableFrom = applicableFromDate;
     }

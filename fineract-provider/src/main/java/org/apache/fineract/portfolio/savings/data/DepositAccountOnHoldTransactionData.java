@@ -19,11 +19,10 @@
 package org.apache.fineract.portfolio.savings.data;
 
 import java.math.BigDecimal;
-
+import java.time.LocalDate;
 import org.apache.fineract.infrastructure.core.data.EnumOptionData;
-import org.joda.time.LocalDate;
 
-public class DepositAccountOnHoldTransactionData {
+public final class DepositAccountOnHoldTransactionData {
 
     @SuppressWarnings("unused")
     private final Long id;
@@ -79,10 +78,9 @@ public class DepositAccountOnHoldTransactionData {
         this.loanClientName = null;
     }
 
-    public static DepositAccountOnHoldTransactionData instance(final Long id, final BigDecimal amount,
-            final EnumOptionData transactionType, final LocalDate transactionDate, final boolean reversed, final Long savingsId,
-            final String savingsAccountNo, final String savingsClientName, final Long loanId, final String loanAccountNo,
-            final String loanClientName) {
+    public static DepositAccountOnHoldTransactionData instance(final Long id, final BigDecimal amount, final EnumOptionData transactionType,
+            final LocalDate transactionDate, final boolean reversed, final Long savingsId, final String savingsAccountNo,
+            final String savingsClientName, final Long loanId, final String loanAccountNo, final String loanClientName) {
         return new DepositAccountOnHoldTransactionData(id, amount, transactionType, transactionDate, reversed, savingsId, savingsAccountNo,
                 savingsClientName, loanId, loanAccountNo, loanClientName);
     }

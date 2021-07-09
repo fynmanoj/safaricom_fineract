@@ -21,9 +21,8 @@ package org.apache.fineract.portfolio.loanproduct.exception;
 import org.apache.fineract.infrastructure.core.exception.AbstractPlatformDomainRuleException;
 
 /**
- * {@link AbstractPlatformDomainRuleException} thrown when a value is not within
- * minimum and maximum values.
- * 
+ * {@link AbstractPlatformDomainRuleException} thrown when a value is not within minimum and maximum values.
+ *
  */
 public class NotInMinMaxRangeException extends AbstractPlatformDomainRuleException {
 

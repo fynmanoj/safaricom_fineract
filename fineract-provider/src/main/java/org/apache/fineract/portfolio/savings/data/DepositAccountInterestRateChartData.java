@@ -18,19 +18,18 @@
  */
 package org.apache.fineract.portfolio.savings.data;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
-
 import org.apache.fineract.infrastructure.codes.data.CodeValueData;
 import org.apache.fineract.infrastructure.core.data.EnumOptionData;
 import org.apache.fineract.portfolio.interestratechart.data.InterestRateChartData;
 import org.apache.fineract.portfolio.interestratechart.data.InterestRateChartSlabData;
-import org.joda.time.LocalDate;
 
 /**
  * Immutable data object representing a deposit account interest rate chart.
  */
-public class DepositAccountInterestRateChartData {
+public final class DepositAccountInterestRateChartData {
 
     private final Long id;
     private final String name;
@@ -65,8 +64,8 @@ public class DepositAccountInterestRateChartData {
         final Collection<CodeValueData> clientTypeOptions = null;
         final Collection<CodeValueData> clientClassificationOptions = null;
         return new DepositAccountInterestRateChartData(id, name, description, fromDate, endDate, isPrimaryGroupingByAmount, accountId,
-                accountNumber, chartSlabs, periodTypes, entityTypeOptions, attributeNameOptions, conditionTypeOptions,
-                incentiveTypeOptions, genderOptions, clientTypeOptions, clientClassificationOptions);
+                accountNumber, chartSlabs, periodTypes, entityTypeOptions, attributeNameOptions, conditionTypeOptions, incentiveTypeOptions,
+                genderOptions, clientTypeOptions, clientClassificationOptions);
     }
 
     public static DepositAccountInterestRateChartData from(InterestRateChartData productChartData) {
@@ -126,8 +125,8 @@ public class DepositAccountInterestRateChartData {
         final boolean isPrimaryGroupingByAmount = false;
         final Collection<DepositAccountInterestRateChartSlabData> chartSlabs = null;
         return new DepositAccountInterestRateChartData(id, name, description, fromDate, endDate, isPrimaryGroupingByAmount, accountId,
-                accountNumber, chartSlabs, periodTypes, entityTypeOptions, attributeNameOptions, conditionTypeOptions,
-                incentiveTypeOptions, genderOptions, clientTypeOptions, clientClassificationOptions);
+                accountNumber, chartSlabs, periodTypes, entityTypeOptions, attributeNameOptions, conditionTypeOptions, incentiveTypeOptions,
+                genderOptions, clientTypeOptions, clientClassificationOptions);
     }
 
     private DepositAccountInterestRateChartData(Long id, String name, String description, LocalDate fromDate, LocalDate endDate,

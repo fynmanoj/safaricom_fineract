@@ -19,74 +19,76 @@
 package org.apache.fineract.infrastructure.campaigns.email.domain;
 
 public enum ScheduledEmailStretchyReportParamDateOption {
-    INVALID(0, "scheduledEmailStretchyReportParamDateOption.invalid", "invalid"),
-    TODAY(1, "scheduledEmailStretchyReportParamDateOption.today", "today"),
-    // YESTERDAY(2, "scheduledEmailStretchyReportParamDateOption.yesterday", "yesterday"),
+
+    INVALID(0, "scheduledEmailStretchyReportParamDateOption.invalid", "invalid"), TODAY(1,
+            "scheduledEmailStretchyReportParamDateOption.today", "today"),
+    // YESTERDAY(2, "scheduledEmailStretchyReportParamDateOption.yesterday",
+    // "yesterday"),
     TOMORROW(3, "scheduledEmailStretchyReportParamDateOption.tomorrow", "tomorrow");
 
-    private String code;
-    private String value;
-    private Integer id;
+    private final String code;
+    private final String value;
+    private final Integer id;
 
     /**
      * @param id
      * @param code
      * @param value
      */
-    private ScheduledEmailStretchyReportParamDateOption(final Integer id, final String code, final String value) {
+    ScheduledEmailStretchyReportParamDateOption(final Integer id, final String code, final String value) {
         this.value = value;
         this.code = code;
         this.id = id;
     }
-    
+
     /**
      * @param value
      * @return
      */
     public static ScheduledEmailStretchyReportParamDateOption instance(final String value) {
         ScheduledEmailStretchyReportParamDateOption scheduledEmailStretchyReportParamDateOption = INVALID;
-        
+
         switch (value) {
             case "today":
                 scheduledEmailStretchyReportParamDateOption = TODAY;
-                break;
-                
+            break;
+
             // case "yesterday":
-                // scheduledEmailStretchyReportParamDateOption = YESTERDAY;
-                // break;
-                
+            // scheduledEmailStretchyReportParamDateOption = YESTERDAY;
+            // break;
+
             case "tomorrow":
                 scheduledEmailStretchyReportParamDateOption = TOMORROW;
-                break;
+            break;
         }
-        
+
         return scheduledEmailStretchyReportParamDateOption;
     }
-    
+
     /**
      * @param id
      * @return
      */
     public static ScheduledEmailStretchyReportParamDateOption instance(final Integer id) {
         ScheduledEmailStretchyReportParamDateOption scheduledEmailStretchyReportParamDateOption = INVALID;
-        
+
         switch (id) {
             case 1:
                 scheduledEmailStretchyReportParamDateOption = TODAY;
-                break;
-                
+            break;
+
             // case 2:
-                // scheduledEmailStretchyReportParamDateOption = YESTERDAY;
-                // break;
-                
+            // scheduledEmailStretchyReportParamDateOption = YESTERDAY;
+            // break;
+
             case 3:
                 scheduledEmailStretchyReportParamDateOption = TOMORROW;
-                break;
+            break;
         }
-        
+
         return scheduledEmailStretchyReportParamDateOption;
     }
-    
+
     /**
      * @return the code
      */
@@ -107,8 +109,8 @@ public enum ScheduledEmailStretchyReportParamDateOption {
     public Integer getId() {
         return id;
     }
-    
-    /** 
+
+    /**
      * @return list of valid ScheduledEmailAttachmentFileFormat values
      **/
     public static Object[] validValues() {

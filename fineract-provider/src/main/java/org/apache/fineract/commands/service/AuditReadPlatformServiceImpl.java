@@ -18,17 +18,20 @@
  */
 package org.apache.fineract.commands.service;
 
+import com.google.common.reflect.TypeToken;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import java.lang.reflect.Type;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.fineract.commands.data.AuditData;
 import org.apache.fineract.commands.data.AuditSearchData;
 import org.apache.fineract.commands.data.ProcessingResultLookup;
@@ -42,6 +45,7 @@ import org.apache.fineract.infrastructure.core.service.PaginationHelper;
 import org.apache.fineract.infrastructure.core.service.RoutingDataSource;
 import org.apache.fineract.infrastructure.security.service.PlatformSecurityContext;
 import org.apache.fineract.infrastructure.security.utils.ColumnValidator;
+import org.apache.fineract.infrastructure.security.utils.SQLBuilder;
 import org.apache.fineract.organisation.office.data.OfficeData;
 import org.apache.fineract.organisation.office.service.OfficeReadPlatformService;
 import org.apache.fineract.organisation.staff.data.StaffData;
@@ -60,7 +64,6 @@ import org.apache.fineract.portfolio.savings.service.SavingsProductReadPlatformS
 import org.apache.fineract.useradministration.data.AppUserData;
 import org.apache.fineract.useradministration.domain.AppUser;
 import org.apache.fineract.useradministration.service.AppUserReadPlatformService;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,17 +71,13 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Service;
 
-import com.google.common.reflect.TypeToken;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-
 @Service
 public class AuditReadPlatformServiceImpl implements AuditReadPlatformService {
 
-    private final static Logger logger = LoggerFactory.getLogger(AuditReadPlatformServiceImpl.class);
-    private final static Set<String> supportedOrderByValues = new HashSet<>(
-            Arrays.asList("id", "actionName", "entityName", "resourceId", "subresourceId", "madeOnDate", "checkedOnDate", "officeName",
-                    "groupName", "clientName", "loanAccountNo", "savingsAccountNo", "clientId", "loanId"));
+    private static final Logger LOG = LoggerFactory.getLogger(AuditReadPlatformServiceImpl.class);
+    private static final Set<String> supportedOrderByValues = new HashSet<>(Arrays.asList("id", "actionName", "entityName", "resourceId",
+            "subresourceId", "madeOnDate", "checkedOnDate", "officeName", "groupName", "clientName", "loanAccountNo", "savingsAccountNo",
+            "clientId", "loanId", "maker", "checker", "processingResult"));
 
     private final JdbcTemplate jdbcTemplate;
     private final PlatformSecurityContext context;
@@ -101,8 +100,7 @@ public class AuditReadPlatformServiceImpl implements AuditReadPlatformService {
             final LoanProductReadPlatformService loanProductReadPlatformService, final StaffReadPlatformService staffReadPlatformService,
             final PaginationParametersDataValidator paginationParametersDataValidator,
             final SavingsProductReadPlatformService savingsProductReadPlatformService,
-            final DepositProductReadPlatformService depositProductReadPlatformService,
-            final ColumnValidator columnValidator) {
+            final DepositProductReadPlatformService depositProductReadPlatformService, final ColumnValidator columnValidator) {
         this.context = context;
         this.jdbcTemplate = new JdbcTemplate(dataSource);
         this.fromApiJsonHelper = fromApiJsonHelper;
@@ -141,7 +139,7 @@ public class AuditReadPlatformServiceImpl implements AuditReadPlatformService {
 
             // data scoping: head office (hierarchy = ".") can see all audit
             // entries
-            if (!(hierarchy.equals("."))) {
+            if (!hierarchy.equals(".")) {
                 partSql += " join m_office o2 on o2.id = aud.office_id and o2.hierarchy like '" + hierarchy + "%' ";
             }
 
@@ -159,9 +157,9 @@ public class AuditReadPlatformServiceImpl implements AuditReadPlatformService {
             final Long loanId = JdbcSupport.getLong(rs, "loanId");
             final Long subresourceId = JdbcSupport.getLong(rs, "subresourceId");
             final String maker = rs.getString("maker");
-            final DateTime madeOnDate = JdbcSupport.getDateTime(rs, "madeOnDate");
+            final ZonedDateTime madeOnDate = JdbcSupport.getDateTime(rs, "madeOnDate");
             final String checker = rs.getString("checker");
-            final DateTime checkedOnDate = JdbcSupport.getDateTime(rs, "checkedOnDate");
+            final ZonedDateTime checkedOnDate = JdbcSupport.getDateTime(rs, "checkedOnDate");
             final String processingResult = rs.getString("processingResult");
             final String resourceGetUrl = rs.getString("resourceGetUrl");
             String commandAsJson;
@@ -186,36 +184,24 @@ public class AuditReadPlatformServiceImpl implements AuditReadPlatformService {
     }
 
     @Override
-    public Collection<AuditData> retrieveAuditEntries(final String extraCriteria, final boolean includeJson) {
-
-        String updatedExtraCriteria = "";
-        if (StringUtils.isNotBlank(extraCriteria)) {
-            updatedExtraCriteria = " where (" + extraCriteria + ")";
-        }
-
-        updatedExtraCriteria += " order by aud.id DESC limit " + PaginationParameters.getCheckedLimit(null);
-        return retrieveEntries("audit", updatedExtraCriteria, includeJson, StringUtils.isNotBlank(extraCriteria));
+    public Collection<AuditData> retrieveAuditEntries(final SQLBuilder extraCriteria, final boolean includeJson) {
+        return retrieveEntries("audit", extraCriteria, " order by aud.id DESC limit " + PaginationParameters.getCheckedLimit(null),
+                includeJson);
     }
 
     @Override
-    public Page<AuditData> retrievePaginatedAuditEntries(final String extraCriteria, final boolean includeJson,
+    public Page<AuditData> retrievePaginatedAuditEntries(final SQLBuilder extraCriteria, final boolean includeJson,
             final PaginationParameters parameters) {
 
         this.paginationParametersDataValidator.validateParameterValues(parameters, supportedOrderByValues, "audits");
         final AppUser currentUser = this.context.authenticatedUser();
         final String hierarchy = currentUser.getOffice().getHierarchy();
 
-        String updatedExtraCriteria = "";
-        if (StringUtils.isNotBlank(extraCriteria)) {
-            updatedExtraCriteria = " where (" + extraCriteria + ")";            
-        }
-
         final AuditMapper rm = new AuditMapper();
         final StringBuilder sqlBuilder = new StringBuilder(200);
         sqlBuilder.append("select SQL_CALC_FOUND_ROWS ");
         sqlBuilder.append(rm.schema(includeJson, hierarchy));
-        sqlBuilder.append(' ').append(updatedExtraCriteria);
-        this.columnValidator.validateSqlInjection(sqlBuilder.toString(), extraCriteria);
+        sqlBuilder.append(' ').append(extraCriteria.getSQLTemplate());
         if (parameters.isOrderByRequested()) {
             sqlBuilder.append(' ').append(parameters.orderBySql());
             this.columnValidator.validateSqlInjection(sqlBuilder.toString(), parameters.orderBySql());
@@ -228,38 +214,32 @@ public class AuditReadPlatformServiceImpl implements AuditReadPlatformService {
             this.columnValidator.validateSqlInjection(sqlBuilder.toString(), parameters.limitSql());
         }
 
-        logger.info("sql: " + sqlBuilder.toString());
+        LOG.info("sql: {}", sqlBuilder);
 
         final String sqlCountRows = "SELECT FOUND_ROWS()";
-        return this.paginationHelper.fetchPage(this.jdbcTemplate, sqlCountRows, sqlBuilder.toString(), new Object[] {}, rm);
+        return this.paginationHelper.fetchPage(this.jdbcTemplate, sqlCountRows, sqlBuilder.toString(), extraCriteria.getArguments(), rm);
     }
 
     @Override
-    public Collection<AuditData> retrieveAllEntriesToBeChecked(final String extraCriteria, final boolean includeJson) {
-
-        String updatedExtraCriteria = "";
-        if (StringUtils.isNotBlank(extraCriteria)) {
-            updatedExtraCriteria = " where (" + extraCriteria + ")" + " and aud.processing_result_enum = 2";
-        } else {
-            updatedExtraCriteria = " where aud.processing_result_enum = 2";
-        }
-
-        updatedExtraCriteria += " group by aud.id order by aud.id";
-
-        return retrieveEntries("makerchecker", updatedExtraCriteria, includeJson, StringUtils.isNotBlank(extraCriteria));
+    public Collection<AuditData> retrieveAllEntriesToBeChecked(final SQLBuilder extraCriteria, final boolean includeJson) {
+        extraCriteria.addCriteria("aud.processing_result_enum = ", 2);
+        return retrieveEntries("makerchecker", extraCriteria, " group by aud.id order by aud.id", includeJson);
     }
 
-    public Collection<AuditData> retrieveEntries(final String useType, final String extraCriteria, final boolean includeJson, boolean isExtraCritereaIncluded) {
+    private Collection<AuditData> retrieveEntries(final String useType, final SQLBuilder extraCriteria, final String groupAndOrderBySQL,
+            final boolean includeJson) {
 
-        if (!(useType.equals("audit") || useType.equals("makerchecker"))) { throw new PlatformDataIntegrityException(
-                "error.msg.invalid.auditSearchTemplate.useType", "Invalid Audit Search Template UseType: " + useType); }
+        if ((!useType.equals("audit") && !useType.equals("makerchecker"))) {
+            throw new PlatformDataIntegrityException("error.msg.invalid.auditSearchTemplate.useType",
+                    "Invalid Audit Search Template UseType: " + useType);
+        }
 
         final AppUser currentUser = this.context.authenticatedUser();
         final String hierarchy = currentUser.getOffice().getHierarchy();
 
         final AuditMapper rm = new AuditMapper();
         String sql = "select " + rm.schema(includeJson, hierarchy);
-        
+
         Boolean isLimitedChecker = false;
         if (useType.equals("makerchecker")) {
             if (currentUser.hasNotPermissionForAnyOf("ALL_FUNCTIONS", "CHECKER_SUPER_USER")) {
@@ -272,13 +252,11 @@ public class AuditReadPlatformServiceImpl implements AuditReadPlatformService {
                     + " join m_role_permission rp on rp.permission_id = p.id" + " join m_role r on r.id = rp.role_id "
                     + " join m_appuser_role ur on ur.role_id = r.id and ur.appuser_id = " + currentUser.getId();
         }
-        sql += extraCriteria;
-        if(isExtraCritereaIncluded){
-        	this.columnValidator.validateSqlInjection(sql, extraCriteria);
-        }        
-        logger.info("sql: " + sql);
+        sql += extraCriteria.getSQLTemplate();
+        sql += groupAndOrderBySQL;
+        LOG.info("sql: {}", sql);
 
-        return this.jdbcTemplate.query(sql, rm, new Object[] {});
+        return this.jdbcTemplate.query(sql, rm, extraCriteria.getArguments());
     }
 
     @Override
@@ -291,7 +269,7 @@ public class AuditReadPlatformServiceImpl implements AuditReadPlatformService {
 
         final String sql = "select " + rm.schema(true, hierarchy) + " where aud.id = ? ";
 
-        final AuditData auditResult = this.jdbcTemplate.queryForObject(sql, rm, new Object[] {auditId});
+        final AuditData auditResult = this.jdbcTemplate.queryForObject(sql, rm, auditId);
 
         return replaceIdsOnAuditData(auditResult);
     }
@@ -452,8 +430,10 @@ public class AuditReadPlatformServiceImpl implements AuditReadPlatformService {
     @Override
     public AuditSearchData retrieveSearchTemplate(final String useType) {
 
-        if (!(useType.equals("audit") || useType.equals("makerchecker"))) { throw new PlatformDataIntegrityException(
-                "error.msg.invalid.auditSearchTemplate.useType", "Invalid Audit Search Template UseType: " + useType); }
+        if (!(useType.equals("audit") || useType.equals("makerchecker"))) {
+            throw new PlatformDataIntegrityException("error.msg.invalid.auditSearchTemplate.useType",
+                    "Invalid Audit Search Template UseType: " + useType);
+        }
 
         final AppUser currentUser = this.context.authenticatedUser();
 
@@ -463,18 +443,18 @@ public class AuditReadPlatformServiceImpl implements AuditReadPlatformService {
         sql += makercheckerCapabilityOnly(useType, currentUser);
         sql += " order by if(action_name in ('CREATE', 'DELETE', 'UPDATE'), action_name, 'ZZZ'), action_name";
         final ActionNamesMapper mapper = new ActionNamesMapper();
-        final List<String> actionNames = this.jdbcTemplate.query(sql, mapper, new Object[] {});
+        final List<String> actionNames = this.jdbcTemplate.query(sql, mapper);
 
         sql = " select distinct(entity_name) as entityName from m_permission p ";
         sql += makercheckerCapabilityOnly(useType, currentUser);
         sql += " order by if(`grouping` = 'datatable', 'ZZZ', entity_name), entity_name";
         final EntityNamesMapper mapper2 = new EntityNamesMapper();
-        final List<String> entityNames = this.jdbcTemplate.query(sql, mapper2, new Object[] {});
+        final List<String> entityNames = this.jdbcTemplate.query(sql, mapper2);
 
         Collection<ProcessingResultLookup> processingResults = null;
         if (useType.equals("audit")) {
             final ProcessingResultsMapper mapper3 = new ProcessingResultsMapper();
-            processingResults = this.jdbcTemplate.query(mapper3.schema(), mapper3, new Object[] {});
+            processingResults = this.jdbcTemplate.query(mapper3.schema(), mapper3);
         }
 
         return new AuditSearchData(appUsers, actionNames, entityNames, processingResults);

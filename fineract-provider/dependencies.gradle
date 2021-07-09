@@ -17,93 +17,121 @@
  * under the License.
  */
 dependencies {
-        def tomcatVersion = '9.0.26'
-        def tomcatLog4jVersion = '9.0.0.M6'
-        tomcat "org.apache.tomcat.embed:tomcat-embed-core:${tomcatVersion}",
-               "org.apache.tomcat.embed:tomcat-embed-logging-log4j:${tomcatLog4jVersion}" // NOT tomcat-embed-logging-juli (http://stackoverflow.com/questions/23963049/classcircularityerror-java-util-logging-logrecord-running-gradle-webapp-with-ja)
-        tomcat("org.apache.tomcat.embed:tomcat-embed-jasper:${tomcatVersion}") {
-            exclude group: 'org.eclipse.jdt.core.compiler', module: 'ecj'
-        }
-        tomcat "org.apache.tomcat:tomcat-dbcp:${tomcatVersion}"
+    providedRuntime("org.springframework.boot:spring-boot-starter-tomcat")
 
-    providedRuntime("org.springframework.boot:spring-boot-starter-tomcat:2.1.9.RELEASE")
+    // Never use "compile" scope, but make all dependencies either 'implementation', 'runtimeOnly' or 'testCompile'.
+    // Note that we never use 'api', because Fineract at least currently is a simple monolithic application ("WAR"), not a library.
+    // We also (normally should have) no need to ever use 'compileOnly'.
 
-    providedCompile(
-//              [group: 'javax.servlet', name: 'servlet-api', version: '2.5'],
+    // implementation dependencies are directly used (compiled against) in src/main (and src/test)
+    //
+    implementation(
+            //'ch.vorburger.mariaDB4j:mariaDB4j:2.4.0',
+
+            'org.springframework.boot:spring-boot-starter-web',
+            'org.springframework.boot:spring-boot-starter-security',
+            'org.springframework.boot:spring-boot-starter-cache',
+
+            'org.springframework:spring-jms',
+            'org.springframework:spring-context-support',
+            'org.springframework.security.oauth:spring-security-oauth2',
+
+            'com.sun.jersey:jersey-servlet',
+            'com.sun.jersey:jersey-server',
+            'com.sun.jersey:jersey-json',
+            'com.sun.jersey.contribs:jersey-spring',
+            'com.sun.jersey.contribs:jersey-multipart',
+
+            'com.google.guava:guava',
+            'com.google.code.gson:gson',
+            'com.sun.jersey:jersey-core',
+            'jakarta.jms:jakarta.jms-api',
+            'jakarta.management.j2ee:jakarta.management.j2ee-api',
+            'jakarta.validation:jakarta.validation-api',
+
+            'com.squareup.retrofit2:retrofit',
+            'com.squareup.okhttp3:okhttp',
+            'com.squareup.okhttp3:okhttp-urlconnection',
+
+            'org.apache.commons:commons-email',
+            'org.apache.commons:commons-lang3',
+            'commons-io:commons-io',
+            'org.apache.poi:poi',
+            'org.apache.poi:poi-ooxml',
+            'org.apache.poi:poi-ooxml-schemas',
+            'org.apache.tika:tika-core',
+
+            'org.drizzle.jdbc:drizzle-jdbc',
+            'org.flywaydb:flyway-core',
+
+            'com.github.librepdf:openpdf',
+            'com.github.spullara.mustache.java:compiler',
+            'com.jayway.jsonpath:json-path',
+
+            'org.dom4j:dom4j',
+
+            'javax.cache:cache-api',
+
+            'com.github.spotbugs:spotbugs-annotations',
+            'io.swagger.core.v3:swagger-annotations',
+            'org.webjars:webjars-locator-core',
+
+            'com.google.cloud.sql:mysql-socket-factory-connector-j-8:1.3.0',
+            'com.squareup.retrofit2:converter-gson',
+            'com.sun.activation:jakarta.activation:1.2.2'
+            )
+    implementation ('jakarta.xml.bind:jakarta.xml.bind-api') {
+        exclude group: 'jakarta.activation'
+    }
+    implementation ('org.apache.activemq:activemq-broker') {
+        exclude group: 'org.apache.geronimo.specs'
+    }
+    implementation ('org.springframework.boot:spring-boot-starter-data-jpa') {
+        exclude group: 'org.hibernate'
+    }
+    implementation ('org.apache.openjpa:openjpa') {
+        exclude group: 'org.eclipse.persistence'
+        exclude group: 'org.apache.geronimo.specs'
+    }
+    implementation ('org.quartz-scheduler:quartz') {
+        exclude group: 'com.zaxxer', module: 'HikariCP-java7'
+    }
+    implementation ('com.amazonaws:aws-java-sdk-s3') {
+        exclude group: 'commons-logging'
+    }
+    implementation ('org.mnode.ical4j:ical4j') {
+        exclude group: 'commons-logging'
+    }
+
+    runtimeOnly('org.ehcache:ehcache') {
+        exclude group: 'com.sun.activation'
+    }
+
+    // runtimeOnly dependencies are things that Fineract code has no direct compile time dependency on, but which must be present at run-time
+    runtimeOnly(
+            'org.apache.bval:org.apache.bval.bundle',
+            'org.springframework.boot:spring-boot-starter-actuator',
+            'org.webjars.npm:swagger-ui-dist',
+            'org.glassfish.jaxb:jaxb-runtime',
+
+            // Although fineract (at the time of writing) doesn't have any compile time dep. on httpclient,
+            // it's useful to have this for the Spring Boot TestRestTemplate http://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#boot-features-rest-templates-test-utility
+            'org.apache.httpcomponents:httpclient'
             )
 
-    compile(
-               // [group: 'ch.vorburger.mariaDB4j', name: 'mariaDB4j', version: '2.1.3'],
-
-                [group: 'org.springframework.boot', name: 'spring-boot-starter-web', version: springBootVersion],
-                [group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa', version: springBootVersion],
-                [group: 'org.springframework.boot', name: 'spring-boot-starter-security', version: springBootVersion],
-				//[group: 'org.eclipse.persistence', name: 'javax.persistence', version: '2.0.0'],
-                [group: 'org.springframework', name: 'spring-context-support', version: springVersion],
-				
-	       		[group: 'org.springframework.security.oauth', name: 'spring-security-oauth2', version: springOauthVersion],
-
-                [group: 'org.apache.openjpa', name:'openjpa-all', version:'2.4.1'],
-                //[group: 'org.apache.openjpa', name:'openjpa-maven-plugin', version:'2.4.1'],
-                //[group: 'javax.ws.rs', name: 'jsr311-api', version: '1.1.1'],
-                [group: 'com.sun.jersey', name: 'jersey-core', version: jerseyVersion],
-                [group: 'com.sun.jersey', name: 'jersey-servlet', version: jerseyVersion],
-                [group: 'com.sun.jersey', name: 'jersey-server', version: jerseyVersion],
-                [group: 'com.sun.jersey', name: 'jersey-json', version: jerseyVersion],
-                [group: 'com.sun.jersey.contribs', name: 'jersey-spring', version: jerseyVersion],
-                [group: 'com.sun.jersey.contribs', name: 'jersey-multipart', version: jerseyVersion],
-
-                [group: 'com.squareup.retrofit', name: 'retrofit', version: '1.6.1'],
-                [group: 'com.squareup.okhttp', name: 'okhttp', version: '2.0.0'],
-                [group: 'com.squareup.okhttp', name: 'okhttp-urlconnection', version: '2.0.0'],
-
-
-                [group: 'com.google.code.gson', name: 'gson', version: '2.2.4'],
-                [group: 'com.google.guava', name: 'guava', version: '15.0'],
-
-                [group: 'joda-time', name: 'joda-time', version: '2.4'],
-                //[group: 'net.sourceforge.javacsv', name: 'javacsv', version: '2.0'],
-                [group: 'org.apache.commons', name: 'commons-email', version: '1.3.3'],
-                [group: 'org.apache.commons', name: 'commons-lang3', version: '3.3.2'],
-
-                // no slf4j & logback here (anymore), as spring-boot-starter-logging already brings this now, better assembled (log4j-over-slf4j was originally forgotten here)
-
-                [group: 'mysql', name: 'mysql-connector-java', version: '8.0.23'],
-                //[group: 'org.drizzle.jdbc', name: 'drizzle-jdbc', version: '1.3'],
-               // [group: 'org.apache.tomcat', name: 'tomcat-jdbc', version: tomcatVersion],
-
-
-                [group: 'org.apache.poi',name: 'poi', version: '3.9'],
-                [group: 'org.apache.poi',name: 'poi-ooxml', version: '3.9'],
-                [group: 'org.apache.poi',name: 'poi-ooxml-schemas', version: '3.9'],
-
-                [group: 'com.lowagie', name: 'itext', version: '2.1.7'],
-                //[group: 'com.lowagie', name: 'itext-rtf', version: '2.1.7'],
-                [group: 'org.mnode.ical4j', name: 'ical4j', version: '1.0.4'],
-                [group: 'com.googlecode.flyway', name: 'flyway-core', version: '2.1.1'],
-                [group: 'org.quartz-scheduler', name: 'quartz', version: '2.1.7'],
-                [group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.11.80'],
-                [group: 'net.sf.ehcache', name: 'ehcache', version: '2.7.2'],
-                [group: 'com.github.spullara.mustache.java', name: 'compiler', version: '0.8.12'],
-                [group: 'com.jayway.jsonpath', name: 'json-path', version: '0.9.1'],
-                [group: 'org.apache.tika', name: 'tika-core', version :'1.9'],
-                // Although fineract (at the time of writing) doesn't have any compile time dep. on this,
-                // it's useful to have this for the Spring Boot TestRestTemplate http://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#boot-features-rest-templates-test-utility
-                [group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.3.5'],
-                // Once we've switched to Java 8 this dep can be removed.
-                //[group: 'com.google.code.findbugs', name: 'jsr305', version: '3.0.0']
-
-                [group: 'io.swagger', name: 'swagger-jersey-jaxrs', version: '1.5.15'],
-                [group: 'org.springframework', name:'spring-jms'],
-                [group: 'org.apache.activemq', name: 'activemq-broker']
-    )
-
-     testCompile 'junit:junit:4.11',
-                 'junit:junit-dep:4.11',
-                 'org.mockito:mockito-core:1.9.5',
-                 'com.jayway.restassured:rest-assured:2.3.3',
-                 [group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: springBootVersion],
-                 [group: 'com.mockrunner', name: 'mockrunner-jms', version: '1.0.6'],
-                 [group: 'com.mockrunner', name: 'mockrunner-jdbc', version: '1.0.6']
+    // testCompile dependencies are ONLY used in src/test, not src/main.
+    // Do NOT repeat dependencies which are ALREADY in implementation or runtimeOnly!
+    //
+    testImplementation( 'org.mockito:mockito-core',
+            'org.mockito:mockito-junit-jupiter',
+            'org.junit.platform:junit-platform-runner', // required to be able to run tests directly under Eclipse, see FINERACT-943 & FINERACT-1021
+            'io.github.classgraph:classgraph'
+            )
+    testImplementation ('org.springframework.boot:spring-boot-starter-test') {
+        exclude group: 'com.jayway.jsonpath', module: 'json-path'
+        exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+        exclude group: 'jakarta.activation'
+        exclude group: 'javax.activation'
+    }
 
 }

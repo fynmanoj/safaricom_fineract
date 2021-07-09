@@ -18,27 +18,29 @@
  */
 package org.apache.fineract.portfolio.loanaccount;
 
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
-
 import org.apache.fineract.organisation.monetary.domain.MonetaryCurrency;
 import org.apache.fineract.portfolio.loanaccount.domain.LoanRepaymentScheduleInstallment;
-import org.joda.time.LocalDate;
 
 /**
  * Helper class for creating loan schedule data suitable for testing.
  */
-public class LoanScheduleTestDataHelper {
+public final class LoanScheduleTestDataHelper {
+
+    private LoanScheduleTestDataHelper() {
+
+    }
 
     /**
      * Creates brand new three installment loan:
-     * 
+     *
      * For example: with firstDueDate = 02 July 2011
-     * 
-     * Date Principal Interest Interest Waived
-     * ==================================
-     * ================================================ 02 July 2011 1,000 200 0
-     * 02 August 2011 1,000 200 0 02 September 2011 1,000 200 0
+     *
+     * Date Principal Interest Interest Waived ==================================
+     * ================================================ 02 July 2011 1,000 200 0 02 August 2011 1,000 200 0 02 September
+     * 2011 1,000 200 0
      */
     public static List<LoanRepaymentScheduleInstallment> createSimpleLoanSchedule(final LocalDate firstDueDate,
             final MonetaryCurrency currency) {
@@ -56,18 +58,15 @@ public class LoanScheduleTestDataHelper {
 
     /**
      * Creates three installment loan with first installment fully completed:
-     * 
+     *
      * For example: with firstDueDate = 02 July 2011
-     * 
-     * Date Principal Interest Interest Waived Completed
-     * ========================
-     * ==================================================
-     * ====================================== 02 July 2011 1,000 200 0 true
-     * (principal paid, interest paid) 02 August 2011 1,000 200 0 false 02
-     * September 2011 1,000 200 0 false
+     *
+     * Date Principal Interest Interest Waived Completed ========================
+     * ================================================== ====================================== 02 July 2011 1,000 200
+     * 0 true (principal paid, interest paid) 02 August 2011 1,000 200 0 false 02 September 2011 1,000 200 0 false
      */
-    public static List<LoanRepaymentScheduleInstallment> createSimpleLoanScheduleWithFirstInstallmentFullyPaid(
-            final LocalDate firstDueDate, final MonetaryCurrency currency) {
+    public static List<LoanRepaymentScheduleInstallment> createSimpleLoanScheduleWithFirstInstallmentFullyPaid(final LocalDate firstDueDate,
+            final MonetaryCurrency currency) {
 
         final LoanRepaymentScheduleInstallment firstInstallment = new LoanRepaymentScheduleInstallmentBuilder(currency)
                 .withInstallmentNumber(1).withDueDate(firstDueDate).withPrincipal("1000.00").withInterest("200.00").completed().build();

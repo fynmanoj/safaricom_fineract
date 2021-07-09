@@ -18,28 +18,25 @@
  */
 package org.apache.fineract.infrastructure.core.api;
 
-import java.lang.reflect.Type;
-
-import org.joda.time.DateTime;
-
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
+import java.lang.reflect.Type;
+import java.time.ZonedDateTime;
 
 /**
- * Serializer for joda time {@link DateTime} that returns date as long to match
- * previous functionality.
+ * Serializer for Joda Time {@link ZonedDateTime} that returns the date as long to match previous (Jackson)
+ * functionality.
  */
-public class JodaDateTimeAdapter implements JsonSerializer<DateTime> {
+public class JodaDateTimeAdapter implements JsonSerializer<ZonedDateTime> {
 
-    @SuppressWarnings("unused")
     @Override
-    public JsonElement serialize(final DateTime src, final Type typeOfSrc, final JsonSerializationContext context) {
-
+    @SuppressWarnings("unused")
+    public JsonElement serialize(final ZonedDateTime src, final Type typeOfSrc, final JsonSerializationContext context) {
         JsonElement element = null;
         if (src != null) {
-            element = new JsonPrimitive(src.getMillis());
+            element = new JsonPrimitive(src.toInstant().toEpochMilli());
         }
 
         return element;

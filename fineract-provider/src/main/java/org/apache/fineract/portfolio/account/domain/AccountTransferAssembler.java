@@ -23,7 +23,7 @@ import static org.apache.fineract.portfolio.account.api.AccountTransfersApiConst
 import static org.apache.fineract.portfolio.account.api.AccountTransfersApiConstants.transferDescriptionParamName;
 
 import java.math.BigDecimal;
-
+import java.time.LocalDate;
 import org.apache.fineract.infrastructure.core.api.JsonCommand;
 import org.apache.fineract.organisation.monetary.domain.Money;
 import org.apache.fineract.portfolio.account.data.AccountTransferDTO;
@@ -31,7 +31,6 @@ import org.apache.fineract.portfolio.loanaccount.domain.Loan;
 import org.apache.fineract.portfolio.loanaccount.domain.LoanTransaction;
 import org.apache.fineract.portfolio.savings.domain.SavingsAccount;
 import org.apache.fineract.portfolio.savings.domain.SavingsAccountTransaction;
-import org.joda.time.LocalDate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -91,7 +90,7 @@ public class AccountTransferAssembler {
 
         final String description = command.stringValueOfParameterNamed(transferDescriptionParamName);
 
-        AccountTransferTransaction accountTransferTransaction = AccountTransferTransaction.LoanTosavingsTransfer(accountTransferDetails,
+        AccountTransferTransaction accountTransferTransaction = AccountTransferTransaction.loanTosavingsTransfer(accountTransferDetails,
                 deposit, loanRefundTransaction, transactionDate, transactionMonetaryAmount, description);
         accountTransferDetails.addAccountTransferTransaction(accountTransferTransaction);
         return accountTransferDetails;
@@ -138,7 +137,7 @@ public class AccountTransferAssembler {
             accountTransferDetails = this.accountTransferDetailAssembler.assembleLoanToSavingsTransfer(fromLoanAccount, toSavingsAccount,
                     accountTransferDTO.getTransferType());
         }
-        AccountTransferTransaction accountTransferTransaction = AccountTransferTransaction.LoanTosavingsTransfer(accountTransferDetails,
+        AccountTransferTransaction accountTransferTransaction = AccountTransferTransaction.loanTosavingsTransfer(accountTransferDetails,
                 deposit, loanRefundTransaction, accountTransferDTO.getTransactionDate(), transactionMonetaryAmount,
                 accountTransferDTO.getDescription());
         accountTransferDetails.addAccountTransferTransaction(accountTransferTransaction);
@@ -153,7 +152,7 @@ public class AccountTransferAssembler {
             accountTransferDetails = this.accountTransferDetailAssembler.assembleLoanToLoanTransfer(fromLoanAccount, toLoanAccount,
                     accountTransferDTO.getFromTransferType());
         }
-        AccountTransferTransaction accountTransferTransaction = AccountTransferTransaction.LoanToLoanTransfer(accountTransferDetails,
+        AccountTransferTransaction accountTransferTransaction = AccountTransferTransaction.loanToLoanTransfer(accountTransferDetails,
                 disburseTransaction, repaymentTransaction, accountTransferDTO.getTransactionDate(), transactionMonetaryAmount,
                 accountTransferDTO.getDescription());
         accountTransferDetails.addAccountTransferTransaction(accountTransferTransaction);

@@ -18,15 +18,8 @@
  */
 package org.apache.fineract.portfolio.savings;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-
-import org.apache.fineract.accounting.common.AccountingConstants.SAVINGS_PRODUCT_ACCOUNTING_PARAMS;
-import org.apache.fineract.portfolio.savings.data.SavingsAccountData;
-import org.apache.fineract.portfolio.savings.data.SavingsProductData;
-
-public class    SavingsApiConstants {
+@SuppressWarnings({ "HideUtilityClassConstructor" })
+public class SavingsApiConstants {
 
     public static final String SAVINGS_PRODUCT_RESOURCE_NAME = "savingsproduct";
     public static final String SAVINGS_ACCOUNT_RESOURCE_NAME = "savingsaccount";
@@ -65,7 +58,7 @@ public class    SavingsApiConstants {
     public static final String COMMAND_INACTIVATE_CHARGE = "inactivate";
     public static final String COMMAND_HOLD_AMOUNT = "holdAmount";
     public static final String COMMAND_RELEASE_AMOUNT = "releaseAmount";
-    public static final String COMMAND_UNBLOCK_ACCOUNT= "unblock";
+    public static final String COMMAND_UNBLOCK_ACCOUNT = "unblock";
     public static final String COMMAND_BLOCK_ACCOUNT = "block";
     public static final String COMMAND_BLOCK_CREDIT = "blockCredit";
     public static final String COMMAND_BLOCK_DEBIT = "blockDebit";
@@ -80,11 +73,20 @@ public class    SavingsApiConstants {
 
     // savings product and account parameters
     public static final String idParamName = "id";
+    public static final String isGSIM = "isGSIM";
+    public static final String isParentAccount = "isParentAccount";
     public static final String accountNoParamName = "accountNo";
     public static final String externalIdParamName = "externalId";
     public static final String statusParamName = "status";
     public static final String subStatusParamName = "subStatus";
     public static final String clientIdParamName = "clientId";
+    public static final String isRetailAccountParamName = "isRetailAccount";
+    public static final String autogenerateTransactionIdParamName = "autogenerateTransactionId";
+    public static final String transactionUpperLimitParamName = "transactionUpperLimit";
+    public static final String transactionLowerLimitParamName = "transactionLowerLimit";
+    public static final String retailEntriesParamName = "retailEntries";
+    public static final String childAccountIdParamName = "childAccountId";
+
     public static final String groupIdParamName = "groupId";
     public static final String productIdParamName = "productId";
     public static final String fieldOfficerIdParamName = "fieldOfficerId";
@@ -177,7 +179,7 @@ public class    SavingsApiConstants {
     public static final String onHoldTransactionTypeParamName = "transactionType";
     public static final String onHoldTransactionDateParamName = "transactionDate";
     public static final String onHoldReversedParamName = "reversed";
-    
+
     // Savings Dormancy
     public static final String isDormancyTrackingActiveParamName = "isDormancyTrackingActive";
     public static final String daysToInactiveParamName = "daysToInactive";
@@ -185,6 +187,8 @@ public class    SavingsApiConstants {
     public static final String daysToEscheatParamName = "daysToEscheat";
 
     public static final String datatables = "datatables";
-    
+
+    public static final String gsimApplicationId = "applicationId";
+    public static final String gsimLastApplication = "lastApplication";
     public static final String ERROR_MSG_SAVINGS_ACCOUNT_NOT_ACTIVE = "not.in.active.state";
 }

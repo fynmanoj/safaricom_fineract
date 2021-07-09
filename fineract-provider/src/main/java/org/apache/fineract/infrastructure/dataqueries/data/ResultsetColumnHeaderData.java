@@ -18,15 +18,15 @@
  */
 package org.apache.fineract.infrastructure.dataqueries.data;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.apache.fineract.infrastructure.core.exception.PlatformDataIntegrityException;
 
 /**
  * Immutable data object representing a resultset column.
  */
-public final class ResultsetColumnHeaderData {
+public final class ResultsetColumnHeaderData implements Serializable {
 
     private final String columnName;
     private String columnType;
@@ -88,8 +88,8 @@ public final class ResultsetColumnHeaderData {
             } else if (isBit()) {
                 displayType = "BOOLEAN";
             } else {
-                throw new PlatformDataIntegrityException("error.msg.invalid.lookup.type", "Invalid Lookup Type:" + this.columnType
-                        + " - Column Name: " + this.columnName);
+                throw new PlatformDataIntegrityException("error.msg.invalid.lookup.type",
+                        "Invalid Lookup Type:" + this.columnType + " - Column Name: " + this.columnName);
             }
 
         } else {
@@ -98,8 +98,8 @@ public final class ResultsetColumnHeaderData {
             } else if (isVarchar()) {
                 displayType = "CODEVALUE";
             } else {
-                throw new PlatformDataIntegrityException("error.msg.invalid.lookup.type", "Invalid Lookup Type:" + this.columnType
-                        + " - Column Name: " + this.columnName);
+                throw new PlatformDataIntegrityException("error.msg.invalid.lookup.type",
+                        "Invalid Lookup Type:" + this.columnType + " - Column Name: " + this.columnName);
             }
         }
 

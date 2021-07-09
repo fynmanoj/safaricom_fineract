@@ -20,7 +20,6 @@ package org.apache.fineract.portfolio.client.service;
 
 import java.util.Collection;
 import java.util.Date;
-
 import org.apache.fineract.infrastructure.core.service.Page;
 import org.apache.fineract.infrastructure.core.service.SearchParameters;
 import org.apache.fineract.portfolio.client.data.ClientData;
@@ -43,11 +42,22 @@ public interface ClientReadPlatformService {
 
     Collection<ClientData> retrieveActiveClientMembersOfGroup(Long groupId);
 
-    Collection<ClientData> retrieveActiveClientMembersOfCenter(final Long centerId);
+    Collection<ClientData> retrieveActiveClientMembersOfCenter(Long centerId);
 
     ClientData retrieveAllNarrations(String clientNarrations);
-    
-	Date retrieveClientTransferProposalDate(Long clientId);
 
-	void validateClient(Long clientId);
+    /**
+     * Gets a list of Client IDs associated with a user ID.
+     * <p>
+     * This is used in self service authentication
+     *
+     * @param aUserID
+     *            the user id (not null)
+     * @return client IDs listing (may be null)
+     */
+    Collection<Long> retrieveUserClients(Long aUserID);
+
+    Date retrieveClientTransferProposalDate(Long clientId);
+
+    void validateClient(Long clientId);
 }

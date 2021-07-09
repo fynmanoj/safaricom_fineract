@@ -21,8 +21,7 @@ package org.apache.fineract.infrastructure.documentmanagement.contentrepository;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.fineract.infrastructure.core.data.ApiParameterError;
 import org.apache.fineract.infrastructure.core.domain.Base64EncodedImage;
 import org.apache.fineract.infrastructure.core.exception.ImageDataURLNotValidException;
@@ -30,16 +29,19 @@ import org.apache.fineract.infrastructure.core.exception.ImageUploadException;
 import org.apache.fineract.infrastructure.core.exception.PlatformApiDataValidationException;
 import org.apache.fineract.infrastructure.documentmanagement.exception.ContentManagementException;
 
-public class ContentRepositoryUtils {
+public final class ContentRepositoryUtils {
 
     private static final Random random = new Random();
 
-    public static enum IMAGE_MIME_TYPE {
+    private ContentRepositoryUtils() {}
+
+    public enum ImageMIMEtype {
+
         GIF("image/gif"), JPEG("image/jpeg"), PNG("image/png");
 
         private final String value;
 
-        private IMAGE_MIME_TYPE(final String value) {
+        ImageMIMEtype(final String value) {
             this.value = value;
         }
 
@@ -47,27 +49,29 @@ public class ContentRepositoryUtils {
             return this.value;
         }
 
-        public static IMAGE_MIME_TYPE fromFileExtension(IMAGE_FILE_EXTENSION fileExtension) {
+        @SuppressWarnings("UnnecessaryDefaultInEnumSwitch")
+        public static ImageMIMEtype fromFileExtension(ImageFileExtension fileExtension) {
             switch (fileExtension) {
                 case GIF:
-                    return IMAGE_MIME_TYPE.GIF;
+                    return ImageMIMEtype.GIF;
                 case JPG:
                 case JPEG:
-                    return IMAGE_MIME_TYPE.JPEG;
+                    return ImageMIMEtype.JPEG;
                 case PNG:
-                    return IMAGE_MIME_TYPE.PNG;
+                    return ImageMIMEtype.PNG;
                 default:
                     throw new IllegalArgumentException();
             }
         }
     }
 
-    public static enum IMAGE_FILE_EXTENSION {
+    public enum ImageFileExtension {
+
         GIF(".gif"), JPEG(".jpeg"), JPG(".jpg"), PNG(".png");
 
         private final String value;
 
-        private IMAGE_FILE_EXTENSION(final String value) {
+        ImageFileExtension(final String value) {
             this.value = value;
         }
 
@@ -79,27 +83,28 @@ public class ContentRepositoryUtils {
             return this.value.substring(1);
         }
 
-        public IMAGE_FILE_EXTENSION getFileExtension() {
+        public ImageFileExtension getFileExtension() {
             switch (this) {
                 case GIF:
-                    return IMAGE_FILE_EXTENSION.GIF;
+                    return ImageFileExtension.GIF;
                 case JPEG:
-                    return IMAGE_FILE_EXTENSION.JPEG;
+                    return ImageFileExtension.JPEG;
                 case PNG:
-                    return IMAGE_FILE_EXTENSION.PNG;
+                    return ImageFileExtension.PNG;
                 default:
                     throw new IllegalArgumentException();
             }
         }
     }
 
-    public static enum IMAGE_DATA_URI_SUFFIX {
-        GIF("data:" + IMAGE_MIME_TYPE.GIF.getValue() + ";base64,"), JPEG("data:" + IMAGE_MIME_TYPE.JPEG.getValue() + ";base64,"), PNG(
-                "data:" + IMAGE_MIME_TYPE.PNG.getValue() + ";base64,");
+    public enum ImageDataURIsuffix {
+
+        GIF("data:" + ImageMIMEtype.GIF.getValue() + ";base64,"), JPEG("data:" + ImageMIMEtype.JPEG.getValue() + ";base64,"), PNG(
+                "data:" + ImageMIMEtype.PNG.getValue() + ";base64,");
 
         private final String value;
 
-        private IMAGE_DATA_URI_SUFFIX(final String value) {
+        ImageDataURIsuffix(final String value) {
             this.value = value;
         }
 
@@ -108,33 +113,46 @@ public class ContentRepositoryUtils {
         }
     }
 
+    public static ImageFileExtension imageExtensionFromFileName(String fileName) {
+        if (StringUtils.endsWith(fileName.toLowerCase(), ContentRepositoryUtils.ImageFileExtension.GIF.getValue())) {
+            return ContentRepositoryUtils.ImageFileExtension.GIF;
+        } else if (StringUtils.endsWith(fileName, ContentRepositoryUtils.ImageFileExtension.PNG.getValue())) {
+            return ContentRepositoryUtils.ImageFileExtension.PNG;
+        } else {
+            return ContentRepositoryUtils.ImageFileExtension.JPEG;
+        }
+    }
+
     /**
      * Validates that passed in Mime type maps to known image mime types
-     * 
+     *
      * @param mimeType
      */
     public static void validateImageMimeType(final String mimeType) {
-        if (!(mimeType.equalsIgnoreCase(IMAGE_MIME_TYPE.GIF.getValue()) || mimeType.equalsIgnoreCase(IMAGE_MIME_TYPE.JPEG.getValue()) || mimeType
-                .equalsIgnoreCase(IMAGE_MIME_TYPE.PNG.getValue()))) { throw new ImageUploadException(); }
+        if ((!mimeType.equalsIgnoreCase(ImageMIMEtype.GIF.getValue()) && !mimeType.equalsIgnoreCase(ImageMIMEtype.JPEG.getValue())
+                && !mimeType.equalsIgnoreCase(ImageMIMEtype.PNG.getValue()))) {
+            throw new ImageUploadException(mimeType);
+        }
     }
 
     /**
      * Extracts Image from a Data URL
-     * 
-     * @param dataURL mimeType
+     *
+     * @param dataURL
+     *            mimeType
      */
     public static Base64EncodedImage extractImageFromDataURL(final String dataURL) {
         String fileExtension = "";
         String base64EncodedString = null;
-        if (StringUtils.startsWith(dataURL, IMAGE_DATA_URI_SUFFIX.GIF.getValue())) {
-            base64EncodedString = dataURL.replaceAll(IMAGE_DATA_URI_SUFFIX.GIF.getValue(), "");
-            fileExtension = IMAGE_FILE_EXTENSION.GIF.getValue();
-        } else if (StringUtils.startsWith(dataURL, IMAGE_DATA_URI_SUFFIX.PNG.getValue())) {
-            base64EncodedString = dataURL.replaceAll(IMAGE_DATA_URI_SUFFIX.PNG.getValue(), "");
-            fileExtension = IMAGE_FILE_EXTENSION.PNG.getValue();
-        } else if (StringUtils.startsWith(dataURL, IMAGE_DATA_URI_SUFFIX.JPEG.getValue())) {
-            base64EncodedString = dataURL.replaceAll(IMAGE_DATA_URI_SUFFIX.JPEG.getValue(), "");
-            fileExtension = IMAGE_FILE_EXTENSION.JPEG.getValue();
+        if (StringUtils.startsWith(dataURL, ImageDataURIsuffix.GIF.getValue())) {
+            base64EncodedString = dataURL.replaceAll(ImageDataURIsuffix.GIF.getValue(), "");
+            fileExtension = ImageFileExtension.GIF.getValue();
+        } else if (StringUtils.startsWith(dataURL, ImageDataURIsuffix.PNG.getValue())) {
+            base64EncodedString = dataURL.replaceAll(ImageDataURIsuffix.PNG.getValue(), "");
+            fileExtension = ImageFileExtension.PNG.getValue();
+        } else if (StringUtils.startsWith(dataURL, ImageDataURIsuffix.JPEG.getValue())) {
+            base64EncodedString = dataURL.replaceAll(ImageDataURIsuffix.JPEG.getValue(), "");
+            fileExtension = ImageFileExtension.JPEG.getValue();
         } else {
             throw new ImageDataURLNotValidException();
         }
@@ -144,13 +162,13 @@ public class ContentRepositoryUtils {
 
     public static void validateFileSizeWithinPermissibleRange(final Long fileSize, final String name) {
         /**
-         * Using Content-Length gives me size of the entire request, which is
-         * good enough for now for a fast fail as the length of the rest of the
-         * content i.e name and description while compared to the uploaded file
-         * size is negligible
+         * Using Content-Length gives me size of the entire request, which is good enough for now for a fast fail as the
+         * length of the rest of the content i.e name and description while compared to the uploaded file size is
+         * negligible
          **/
-        if (fileSize != null && ((fileSize / (1024 * 1024)) > ContentRepository.MAX_FILE_UPLOAD_SIZE_IN_MB)) { throw new ContentManagementException(
-                name, fileSize, ContentRepository.MAX_FILE_UPLOAD_SIZE_IN_MB); }
+        if (fileSize != null && ((fileSize / (1024 * 1024)) > ContentRepository.MAX_FILE_UPLOAD_SIZE_IN_MB)) {
+            throw new ContentManagementException(name, fileSize, ContentRepository.MAX_FILE_UPLOAD_SIZE_IN_MB);
+        }
     }
 
     public static void validateClientImageNotEmpty(final String imageFileName) {
@@ -167,27 +185,16 @@ public class ContentRepositoryUtils {
     }
 
     /**
-     * Generate a random String
-     * 
-     * @return
+     * Generate a random String.
      */
     public static String generateRandomString() {
         final String characters = "abcdefghijklmnopqrstuvwxyz123456789";
-        final int length = generateRandomNumber();
+        // length is a random number between 5 to 16
+        final int length = random.nextInt(11) + 5;
         final char[] text = new char[length];
         for (int i = 0; i < length; i++) {
             text[i] = characters.charAt(random.nextInt(characters.length()));
         }
         return new String(text);
-    }
-
-    /**
-     * Generate a random number between 5 to 16
-     * 
-     * @return
-     */
-    public static int generateRandomNumber() {
-        final Random randomGenerator = new Random();
-        return randomGenerator.nextInt(11) + 5;
     }
 }

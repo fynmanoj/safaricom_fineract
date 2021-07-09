@@ -24,19 +24,18 @@ import java.util.Set;
 
 public interface InterestIncentiveApiConstants {
 
-    public static final String idParamName = "id";
-    public static final String entityTypeParamName = "entityType";
-    public static final String attributeNameParamName = "attributeName";
-    public static final String conditionTypeParamName = "conditionType";
-    public static final String attributeValueParamName = "attributeValue";
-    public static final String incentiveTypeparamName = "incentiveType";
-    public static final String amountParamName = "amount";
-    public static final String deleteParamName = "delete";
-    
-    public static final String INCENTIVE_RESOURCE_NAME = "interest.rate.incentives";
+    String idParamName = "id";
+    String entityTypeParamName = "entityType";
+    String attributeNameParamName = "attributeName";
+    String conditionTypeParamName = "conditionType";
+    String attributeValueParamName = "attributeValue";
+    String incentiveTypeparamName = "incentiveType";
+    String amountParamName = "amount";
+    String deleteParamName = "delete";
 
-    public static final Set<String> INTERESTRATE_INCENTIVE_RESPONSE_DATA_PARAMETERS = new HashSet<>(Arrays.asList(idParamName,
-            entityTypeParamName, attributeNameParamName, conditionTypeParamName, attributeValueParamName, incentiveTypeparamName,
-            amountParamName));
+    String INCENTIVE_RESOURCE_NAME = "interest.rate.incentives";
+
+    Set<String> INTERESTRATE_INCENTIVE_RESPONSE_DATA_PARAMETERS = new HashSet<>(Arrays.asList(idParamName, entityTypeParamName,
+            attributeNameParamName, conditionTypeParamName, attributeValueParamName, incentiveTypeparamName, amountParamName));
 
 }

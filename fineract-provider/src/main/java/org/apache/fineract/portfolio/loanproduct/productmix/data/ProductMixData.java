@@ -19,7 +19,6 @@
 package org.apache.fineract.portfolio.loanproduct.productmix.data;
 
 import java.util.Collection;
-
 import org.apache.fineract.portfolio.loanproduct.data.LoanProductData;
 
 public class ProductMixData {
@@ -44,7 +43,8 @@ public class ProductMixData {
         return new ProductMixData(null, null, null, null, productOptions);
     }
 
-    public static ProductMixData withTemplateOptions(final ProductMixData productMixData, final Collection<LoanProductData> productOptions) {
+    public static ProductMixData withTemplateOptions(final ProductMixData productMixData,
+            final Collection<LoanProductData> productOptions) {
         return new ProductMixData(productMixData.productId, productMixData.productName, productMixData.restrictedProducts,
                 productMixData.allowedProducts, productOptions);
     }

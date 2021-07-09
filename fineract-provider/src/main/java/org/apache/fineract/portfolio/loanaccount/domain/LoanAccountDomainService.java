@@ -19,19 +19,17 @@
 package org.apache.fineract.portfolio.loanaccount.domain;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Map;
-
 import org.apache.fineract.infrastructure.core.data.CommandProcessingResultBuilder;
 import org.apache.fineract.portfolio.loanaccount.data.HolidayDetailDTO;
 import org.apache.fineract.portfolio.paymentdetail.domain.PaymentDetail;
-import org.joda.time.LocalDate;
-import org.springframework.transaction.annotation.Transactional;
 
 public interface LoanAccountDomainService {
 
     LoanTransaction makeRepayment(Loan loan, CommandProcessingResultBuilder builderResult, LocalDate transactionDate,
-            BigDecimal transactionAmount, PaymentDetail paymentDetail, String noteText, String txnExternalId,
-            final boolean isRecoveryRepayment, boolean isAccountTransfer, HolidayDetailDTO holidatDetailDto, Boolean isHolidayValidationDone);
+            BigDecimal transactionAmount, PaymentDetail paymentDetail, String noteText, String txnExternalId, boolean isRecoveryRepayment,
+            boolean isAccountTransfer, HolidayDetailDTO holidatDetailDto, Boolean isHolidayValidationDone);
 
     LoanTransaction makeRefund(Long accountId, CommandProcessingResultBuilder builderResult, LocalDate transactionDate,
             BigDecimal transactionAmount, PaymentDetail paymentDetail, String noteText, String txnExternalId);
@@ -51,10 +49,9 @@ public interface LoanAccountDomainService {
             BigDecimal transactionAmount, PaymentDetail paymentDetail, String noteText, String txnExternalId);
 
     /**
-     * This method is to recalculate and accrue the income till the last accrued
-     * date. this method is used when the schedule changes due to interest
-     * recalculation
-     * 
+     * This method is to recalculate and accrue the income till the last accrued date. this method is used when the
+     * schedule changes due to interest recalculation
+     *
      * @param loan
      */
     void recalculateAccruals(Loan loan);
@@ -65,12 +62,13 @@ public interface LoanAccountDomainService {
 
     void saveLoanWithDataIntegrityViolationChecks(Loan loan);
 
-    Map<String, Object> foreCloseLoan(final Loan loan, final LocalDate foreClourseDate, String noteText);
-    
+    Map<String, Object> foreCloseLoan(Loan loan, LocalDate foreClourseDate, String noteText);
+
     /**
      * Disables all standing instructions linked to a closed loan
-     * 
-     * @param loan {@link Loan} object
+     *
+     * @param loan
+     *            {@link Loan} object
      */
     void disableStandingInstructionsLinkedToClosedLoan(Loan loan);
 

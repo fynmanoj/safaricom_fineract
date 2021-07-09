@@ -21,13 +21,14 @@ package org.apache.fineract.portfolio.savings.service;
 import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
 import org.apache.fineract.infrastructure.core.data.EnumOptionData;
 import org.apache.fineract.infrastructure.core.data.PaginationParameters;
 import org.apache.fineract.infrastructure.core.data.PaginationParametersDataValidator;
@@ -65,7 +66,6 @@ import org.apache.fineract.portfolio.paymenttype.data.PaymentTypeData;
 import org.apache.fineract.portfolio.paymenttype.service.PaymentTypeReadPlatformService;
 import org.apache.fineract.portfolio.savings.DepositAccountOnClosureType;
 import org.apache.fineract.portfolio.savings.DepositAccountType;
-import org.apache.fineract.portfolio.savings.DepositsApiConstants;
 import org.apache.fineract.portfolio.savings.SavingsAccountTransactionType;
 import org.apache.fineract.portfolio.savings.SavingsCompoundingInterestPeriodType;
 import org.apache.fineract.portfolio.savings.SavingsInterestCalculationDaysInYearType;
@@ -88,9 +88,6 @@ import org.apache.fineract.portfolio.savings.domain.SavingsAccountStatusType;
 import org.apache.fineract.portfolio.savings.exception.DepositAccountNotFoundException;
 import org.apache.fineract.portfolio.tax.data.TaxGroupData;
 import org.apache.fineract.useradministration.domain.AppUser;
-import org.joda.time.LocalDate;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -123,11 +120,10 @@ public class DepositAccountReadPlatformServiceImpl implements DepositAccountRead
     private final RecurringAccountDepositTransactionTemplateMapper rdTransactionTemplateMapper;
     private final DropdownReadPlatformService dropdownReadPlatformService;
     private final CalendarReadPlatformService calendarReadPlatformService;
-    private final DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd");
+    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private final PaymentTypeReadPlatformService paymentTypeReadPlatformService;
     // allowed column names for sorting the query result
-    private final static Set<String> supportedOrderByValues = new HashSet<>(Arrays.asList("id", "accountNumbr",
-            "officeId", "officeName"));
+    private static final Set<String> supportedOrderByValues = new HashSet<>(Arrays.asList("id", "accountNumbr", "officeId", "officeName"));
 
     @Autowired
     public DepositAccountReadPlatformServiceImpl(final PlatformSecurityContext context, final RoutingDataSource dataSource,
@@ -168,7 +164,9 @@ public class DepositAccountReadPlatformServiceImpl implements DepositAccountRead
 
         this.context.authenticatedUser();
         final DepositAccountMapper depositAccountMapper = this.getDepositAccountMapper(depositAccountType);
-        if (depositAccountMapper == null) return null;
+        if (depositAccountMapper == null) {
+            return null;
+        }
 
         final StringBuilder sqlBuilder = new StringBuilder(400);
         sqlBuilder.append("select ");
@@ -188,7 +186,9 @@ public class DepositAccountReadPlatformServiceImpl implements DepositAccountRead
                 depositAccountType.resourceName());
 
         final DepositAccountMapper depositAccountMapper = this.getDepositAccountMapper(depositAccountType);
-        if (depositAccountMapper == null) return null;
+        if (depositAccountMapper == null) {
+            return null;
+        }
 
         final StringBuilder sqlBuilder = new StringBuilder(400);
         sqlBuilder.append("select SQL_CALC_FOUND_ROWS ");
@@ -224,10 +224,8 @@ public class DepositAccountReadPlatformServiceImpl implements DepositAccountRead
 
         LocalDate today = DateUtils.getLocalDateOfTenant();
 
-        return this.jdbcTemplate.query(
-                sqlBuilder.toString(),
-                this.depositAccountForMaturityRowMapper,
-                new Object[] { formatter.print(today), DepositAccountType.FIXED_DEPOSIT.getValue(),
+        return this.jdbcTemplate.query(sqlBuilder.toString(), this.depositAccountForMaturityRowMapper,
+                new Object[] { formatter.format(today), DepositAccountType.FIXED_DEPOSIT.getValue(),
                         DepositAccountType.RECURRING_DEPOSIT.getValue(), SavingsAccountStatusType.ACTIVE.getValue() });
     }
 
@@ -237,18 +235,20 @@ public class DepositAccountReadPlatformServiceImpl implements DepositAccountRead
             this.context.authenticatedUser();
 
             final DepositAccountMapper depositAccountMapper = this.getDepositAccountMapper(depositAccountType);
-            if (depositAccountMapper == null) return null;
+            if (depositAccountMapper == null) {
+                return null;
+            }
 
             final StringBuilder sqlBuilder = new StringBuilder(400);
             sqlBuilder.append("select ");
             sqlBuilder.append(depositAccountMapper.schema());
             sqlBuilder.append(" where sa.id = ? and sa.deposit_type_enum = ? ");
 
-            return this.jdbcTemplate.queryForObject(sqlBuilder.toString(), depositAccountMapper, new Object[] { accountId,
-                    depositAccountType.getValue() });
+            return this.jdbcTemplate.queryForObject(sqlBuilder.toString(), depositAccountMapper,
+                    new Object[] { accountId, depositAccountType.getValue() });
 
         } catch (final EmptyResultDataAccessException e) {
-            throw new DepositAccountNotFoundException(depositAccountType, accountId);
+            throw new DepositAccountNotFoundException(depositAccountType, accountId, e);
         }
     }
 
@@ -258,20 +258,22 @@ public class DepositAccountReadPlatformServiceImpl implements DepositAccountRead
             this.context.authenticatedUser();
 
             final DepositAccountMapper depositAccountMapper = this.getDepositAccountMapper(depositAccountType);
-            if (depositAccountMapper == null) return null;
+            if (depositAccountMapper == null) {
+                return null;
+            }
 
             final StringBuilder sqlBuilder = new StringBuilder(400);
             sqlBuilder.append("select ");
             sqlBuilder.append(depositAccountMapper.schema());
             sqlBuilder.append(" where sa.id = ? and sa.deposit_type_enum = ? ");
 
-            DepositAccountData account = this.jdbcTemplate.queryForObject(sqlBuilder.toString(), depositAccountMapper, new Object[] {
-                    accountId, depositAccountType.getValue() });
+            DepositAccountData account = this.jdbcTemplate.queryForObject(sqlBuilder.toString(), depositAccountMapper,
+                    new Object[] { accountId, depositAccountType.getValue() });
             Collection<EnumOptionData> onAccountClosureOptions = SavingsEnumerations
                     .depositAccountOnClosureType(DepositAccountOnClosureType.values());
             final Collection<PaymentTypeData> paymentTypeOptions = this.paymentTypeReadPlatformService.retrieveAllPaymentTypes();
-            final Collection<SavingsAccountData> savingsAccountDatas = this.savingsAccountReadPlatformService.retrieveActiveForLookup(
-                    account.clientId(), DepositAccountType.SAVINGS_DEPOSIT);
+            final Collection<SavingsAccountData> savingsAccountDatas = this.savingsAccountReadPlatformService
+                    .retrieveActiveForLookup(account.clientId(), DepositAccountType.SAVINGS_DEPOSIT);
             if (depositAccountType.isFixedDeposit()) {
                 account = FixedDepositAccountData.withClosureTemplateDetails((FixedDepositAccountData) account, onAccountClosureOptions,
                         paymentTypeOptions, savingsAccountDatas);
@@ -283,7 +285,7 @@ public class DepositAccountReadPlatformServiceImpl implements DepositAccountRead
             return account;
 
         } catch (final EmptyResultDataAccessException e) {
-            throw new DepositAccountNotFoundException(depositAccountType, accountId);
+            throw new DepositAccountNotFoundException(depositAccountType, accountId, e);
         }
     }
 
@@ -378,7 +380,11 @@ public class DepositAccountReadPlatformServiceImpl implements DepositAccountRead
             final Collection<SavingsAccountChargeData> charges = fromChargesToSavingsCharges(productCharges);
 
             final boolean feeChargesOnly = false;
-            final Collection<ChargeData> chargeOptions = this.chargeReadPlatformService.retrieveSavingsProductApplicableCharges(feeChargesOnly);
+            final Collection<ChargeData> chargeOptions = this.chargeReadPlatformService
+                    .retrieveSavingsProductApplicableCharges(feeChargesOnly);
+
+            final Collection<EnumOptionData> maturityInstructionOptions = this.depositsDropdownReadPlatformService
+                    .maturityInstructionOptions();
 
             Collection<StaffData> fieldOfficerOptions = null;
 
@@ -416,7 +422,7 @@ public class DepositAccountReadPlatformServiceImpl implements DepositAccountRead
                         fieldOfficerOptions, interestCompoundingPeriodTypeOptions, interestPostingPeriodTypeOptions,
                         interestCalculationTypeOptions, interestCalculationDaysInYearTypeOptions, lockinPeriodFrequencyTypeOptions,
                         withdrawalFeeTypeOptions, transactions, charges, chargeOptions, preClosurePenalInterestOnTypeOptions,
-                        periodFrequencyTypeOptions, savingsAccountDatas);
+                        periodFrequencyTypeOptions, savingsAccountDatas, maturityInstructionOptions);
 
                 template = FixedDepositAccountData.withInterestChart((FixedDepositAccountData) template, accountChart);
             } else if (depositAccountType.isRecurringDeposit()) {
@@ -452,9 +458,11 @@ public class DepositAccountReadPlatformServiceImpl implements DepositAccountRead
 
             final Collection<SavingsAccountTransactionData> transactions = null;
             final Collection<SavingsAccountChargeData> charges = null;
+            final Collection<EnumOptionData> maturityInstructionOptions = null;
 
             final boolean feeChargesOnly = true;
-            final Collection<ChargeData> chargeOptions = this.chargeReadPlatformService.retrieveSavingsProductApplicableCharges(feeChargesOnly);
+            final Collection<ChargeData> chargeOptions = this.chargeReadPlatformService
+                    .retrieveSavingsProductApplicableCharges(feeChargesOnly);
 
             if (depositAccountType.isFixedDeposit()) {
 
@@ -464,7 +472,7 @@ public class DepositAccountReadPlatformServiceImpl implements DepositAccountRead
                         fieldOfficerOptions, interestCompoundingPeriodTypeOptions, interestPostingPeriodTypeOptions,
                         interestCalculationTypeOptions, interestCalculationDaysInYearTypeOptions, lockinPeriodFrequencyTypeOptions,
                         withdrawalFeeTypeOptions, transactions, charges, chargeOptions, preClosurePenalInterestOnTypeOptions,
-                        periodFrequencyTypeOptions, savingsAccountDatas);
+                        periodFrequencyTypeOptions, savingsAccountDatas, maturityInstructionOptions);
             } else if (depositAccountType.isRecurringDeposit()) {
 
                 template = RecurringDepositAccountData.withClientTemplate(clientId, clientName, groupId, groupName);
@@ -486,10 +494,10 @@ public class DepositAccountReadPlatformServiceImpl implements DepositAccountRead
         try {
             final String sql = "select " + this.rdTransactionTemplateMapper.schema()
                     + " where sa.id = ? and sa.deposit_type_enum = ? order by mss.installment limit 1";
-            return this.jdbcTemplate.queryForObject(sql, this.rdTransactionTemplateMapper, new Object[] { accountId, accountId,
-                    DepositAccountType.RECURRING_DEPOSIT.getValue() });
+            return this.jdbcTemplate.queryForObject(sql, this.rdTransactionTemplateMapper,
+                    new Object[] { accountId, accountId, DepositAccountType.RECURRING_DEPOSIT.getValue() });
         } catch (final EmptyResultDataAccessException e) {
-            throw new DepositAccountNotFoundException(DepositAccountType.RECURRING_DEPOSIT, accountId);
+            throw new DepositAccountNotFoundException(DepositAccountType.RECURRING_DEPOSIT, accountId, e);
         }
     }
 
@@ -500,10 +508,10 @@ public class DepositAccountReadPlatformServiceImpl implements DepositAccountRead
         sqlBuilder.append("SELECT ");
         sqlBuilder.append(mapper.schema());
         sqlBuilder.append(" where da.transfer_interest_to_linked_account = 1 and ");
-        sqlBuilder
-                .append("st.transaction_date > (select IFNULL(max(sat.transaction_date),sa.activatedon_date) from m_savings_account_transaction sat where sat.transaction_type_enum = ? and sat.savings_account_id = sa.id and sat.is_reversed=0) ");
-        sqlBuilder
-                .append("and st.transaction_type_enum = ? and sa.status_enum = ? and st.is_reversed=0 and st.transaction_date > IFNULL(sa.lockedin_until_date_derived,sa.activatedon_date)");
+        sqlBuilder.append(
+                "st.transaction_date > (select IFNULL(max(sat.transaction_date),sa.activatedon_date) from m_savings_account_transaction sat where sat.transaction_type_enum = ? and sat.savings_account_id = sa.id and sat.is_reversed=0) ");
+        sqlBuilder.append(
+                "and st.transaction_type_enum = ? and sa.status_enum = ? and st.is_reversed=0 and st.transaction_date > IFNULL(sa.lockedin_until_date_derived,sa.activatedon_date)");
 
         return this.jdbcTemplate.query(sqlBuilder.toString(), mapper, new Object[] { SavingsAccountTransactionType.WITHDRAWAL.getValue(),
                 SavingsAccountTransactionType.INTEREST_POSTING.getValue(), SavingsAccountStatusType.ACTIVE.getValue() });
@@ -527,10 +535,10 @@ public class DepositAccountReadPlatformServiceImpl implements DepositAccountRead
 
         return this.jdbcTemplate.queryForList(sb.toString(), SavingsAccountStatusType.ACTIVE.getValue(),
                 CalendarEntityType.SAVINGS.getValue(), CalendarType.COLLECTION.getValue(),
-                formatter.print(DateUtils.getLocalDateOfTenant()));
+                formatter.format(DateUtils.getLocalDateOfTenant()));
     }
 
-    private static abstract class DepositAccountMapper implements RowMapper<DepositAccountData> {
+    private abstract static class DepositAccountMapper implements RowMapper<DepositAccountData> {
 
         private final String selectFieldsSql;
         private final String selectTablesSql;
@@ -538,7 +546,7 @@ public class DepositAccountReadPlatformServiceImpl implements DepositAccountRead
         @Override
         public abstract DepositAccountData mapRow(ResultSet rs, int rowNum) throws SQLException;
 
-        public DepositAccountMapper() {
+        protected DepositAccountMapper() {
             final StringBuilder selectFieldsSqlBuilder = new StringBuilder(400);
             selectFieldsSqlBuilder.append("sa.id as id, sa.account_no as accountNo, sa.external_id as externalId, ");
             selectFieldsSqlBuilder.append("c.id as clientId, c.display_name as clientName, ");
@@ -564,8 +572,8 @@ public class DepositAccountReadPlatformServiceImpl implements DepositAccountRead
             selectFieldsSqlBuilder.append("sa.closedon_date as closedOnDate,");
             selectFieldsSqlBuilder.append("cbu.username as closedByUsername,");
             selectFieldsSqlBuilder.append("cbu.firstname as closedByFirstname, cbu.lastname as closedByLastname,");
-            selectFieldsSqlBuilder
-                    .append("sa.currency_code as currencyCode, sa.currency_digits as currencyDigits, sa.currency_multiplesof as inMultiplesOf, ");
+            selectFieldsSqlBuilder.append(
+                    "sa.currency_code as currencyCode, sa.currency_digits as currencyDigits, sa.currency_multiplesof as inMultiplesOf, ");
             selectFieldsSqlBuilder.append("curr.name as currencyName, curr.internationalized_name_code as currencyNameCode, ");
             selectFieldsSqlBuilder.append("curr.display_symbol as currencyDisplaySymbol, ");
             selectFieldsSqlBuilder.append("sa.nominal_annual_interest_rate as nominalAnnualInterestRate, ");
@@ -591,7 +599,6 @@ public class DepositAccountReadPlatformServiceImpl implements DepositAccountRead
             selectFieldsSqlBuilder.append("sa.min_balance_for_interest_calculation as minBalanceForInterestCalculation, ");
             selectFieldsSqlBuilder.append("sa.withhold_tax as withHoldTax,");
             selectFieldsSqlBuilder.append("tg.id as taxGroupId, tg.name as taxGroupName ");
-            
 
             this.selectFieldsSql = selectFieldsSqlBuilder.toString();
 
@@ -675,11 +682,10 @@ public class DepositAccountReadPlatformServiceImpl implements DepositAccountRead
             final String closedByLastname = rs.getString("closedByLastname");
 
             final SavingsAccountApplicationTimelineData timeline = new SavingsAccountApplicationTimelineData(submittedOnDate,
-                    submittedByUsername, submittedByFirstname, submittedByLastname, rejectedOnDate, rejectedByUsername,
-                    rejectedByFirstname, rejectedByLastname, withdrawnOnDate, withdrawnByUsername, withdrawnByFirstname,
-                    withdrawnByLastname, approvedOnDate, approvedByUsername, approvedByFirstname, approvedByLastname, activatedOnDate,
-                    activatedByUsername, activatedByFirstname, activatedByLastname, closedOnDate, closedByUsername, closedByFirstname,
-                    closedByLastname);
+                    submittedByUsername, submittedByFirstname, submittedByLastname, rejectedOnDate, rejectedByUsername, rejectedByFirstname,
+                    rejectedByLastname, withdrawnOnDate, withdrawnByUsername, withdrawnByFirstname, withdrawnByLastname, approvedOnDate,
+                    approvedByUsername, approvedByFirstname, approvedByLastname, activatedOnDate, activatedByUsername, activatedByFirstname,
+                    activatedByLastname, closedOnDate, closedByUsername, closedByFirstname, closedByLastname);
 
             final Integer depositTypeId = JdbcSupport.getInteger(rs, "depositTypeId");
             final EnumOptionData depositType = (depositTypeId == null) ? null : SavingsEnumerations.depositType(depositTypeId);
@@ -690,24 +696,22 @@ public class DepositAccountReadPlatformServiceImpl implements DepositAccountRead
             final String currencyDisplaySymbol = rs.getString("currencyDisplaySymbol");
             final Integer currencyDigits = JdbcSupport.getInteger(rs, "currencyDigits");
             final Integer inMultiplesOf = JdbcSupport.getInteger(rs, "inMultiplesOf");
-            final CurrencyData currency = new CurrencyData(currencyCode, currencyName, currencyDigits, inMultiplesOf,
-                    currencyDisplaySymbol, currencyNameCode);
+            final CurrencyData currency = new CurrencyData(currencyCode, currencyName, currencyDigits, inMultiplesOf, currencyDisplaySymbol,
+                    currencyNameCode);
 
             final BigDecimal nominalAnnualInterestRate = rs.getBigDecimal("nominalAnnualInterestRate");
 
-            final EnumOptionData interestCompoundingPeriodType = SavingsEnumerations
-                    .compoundingInterestPeriodType(SavingsCompoundingInterestPeriodType.fromInt(JdbcSupport.getInteger(rs,
-                            "interestCompoundingPeriodType")));
+            final EnumOptionData interestCompoundingPeriodType = SavingsEnumerations.compoundingInterestPeriodType(
+                    SavingsCompoundingInterestPeriodType.fromInt(JdbcSupport.getInteger(rs, "interestCompoundingPeriodType")));
 
-            final EnumOptionData interestPostingPeriodType = SavingsEnumerations.interestPostingPeriodType(SavingsPostingInterestPeriodType
-                    .fromInt(JdbcSupport.getInteger(rs, "interestPostingPeriodType")));
+            final EnumOptionData interestPostingPeriodType = SavingsEnumerations.interestPostingPeriodType(
+                    SavingsPostingInterestPeriodType.fromInt(JdbcSupport.getInteger(rs, "interestPostingPeriodType")));
 
-            final EnumOptionData interestCalculationType = SavingsEnumerations.interestCalculationType(SavingsInterestCalculationType
-                    .fromInt(JdbcSupport.getInteger(rs, "interestCalculationType")));
+            final EnumOptionData interestCalculationType = SavingsEnumerations
+                    .interestCalculationType(SavingsInterestCalculationType.fromInt(JdbcSupport.getInteger(rs, "interestCalculationType")));
 
-            final EnumOptionData interestCalculationDaysInYearType = SavingsEnumerations
-                    .interestCalculationDaysInYearType(SavingsInterestCalculationDaysInYearType.fromInt(JdbcSupport.getInteger(rs,
-                            "interestCalculationDaysInYearType")));
+            final EnumOptionData interestCalculationDaysInYearType = SavingsEnumerations.interestCalculationDaysInYearType(
+                    SavingsInterestCalculationDaysInYearType.fromInt(JdbcSupport.getInteger(rs, "interestCalculationDaysInYearType")));
 
             final BigDecimal minRequiredOpeningBalance = JdbcSupport.getBigDecimalDefaultToNullIfZero(rs, "minRequiredOpeningBalance");
 
@@ -735,7 +739,7 @@ public class DepositAccountReadPlatformServiceImpl implements DepositAccountRead
             final BigDecimal totalPenaltyCharge = JdbcSupport.getBigDecimalDefaultToNullIfZero(rs, "totalPenaltyCharge");
             final BigDecimal totalWithholdTax = JdbcSupport.getBigDecimalDefaultToNullIfZero(rs, "totalWithholdTax");
             final BigDecimal totalOverdraftInterestDerived = null;
-            
+
             final boolean withHoldTax = rs.getBoolean("withHoldTax");
             final Long taxGroupId = JdbcSupport.getLong(rs, "taxGroupId");
             final String taxGroupName = rs.getString("taxGroupName");
@@ -761,7 +765,7 @@ public class DepositAccountReadPlatformServiceImpl implements DepositAccountRead
 
         private final String schemaSql;
 
-        public FixedDepositAccountMapper() {
+        FixedDepositAccountMapper() {
             final StringBuilder sqlBuilder = new StringBuilder(400);
             sqlBuilder.append(super.selectFieldsSql());
 
@@ -780,7 +784,8 @@ public class DepositAccountReadPlatformServiceImpl implements DepositAccountRead
             sqlBuilder.append("datp.deposit_period as depositPeriod, ");
             sqlBuilder.append("datp.deposit_period_frequency_enum as depositPeriodFrequencyTypeId, ");
             sqlBuilder.append("datp.on_account_closure_enum as onAccountClosureId, ");
-            sqlBuilder.append("datp.transfer_interest_to_linked_account as transferInterestToSavings ");
+            sqlBuilder.append("datp.transfer_interest_to_linked_account as transferInterestToSavings, ");
+            sqlBuilder.append("datp.transfer_to_savings_account_id as transferToSavingsId ");
 
             sqlBuilder.append(super.selectTablesSql());
 
@@ -799,39 +804,41 @@ public class DepositAccountReadPlatformServiceImpl implements DepositAccountRead
             final boolean preClosurePenalApplicable = rs.getBoolean("preClosurePenalApplicable");
             final BigDecimal preClosurePenalInterest = JdbcSupport.getBigDecimalDefaultToNullIfZero(rs, "preClosurePenalInterest");
             final Integer preClosurePenalInterestOnTypeId = JdbcSupport.getInteger(rs, "preClosurePenalInterestOnId");
-            final EnumOptionData preClosurePenalInterestOnType = (preClosurePenalInterestOnTypeId == null) ? null : SavingsEnumerations
-                    .preClosurePenaltyInterestOnType(preClosurePenalInterestOnTypeId);
+            final EnumOptionData preClosurePenalInterestOnType = (preClosurePenalInterestOnTypeId == null) ? null
+                    : SavingsEnumerations.preClosurePenaltyInterestOnType(preClosurePenalInterestOnTypeId);
 
             final Integer minDepositTerm = JdbcSupport.getInteger(rs, "minDepositTerm");
             final Integer maxDepositTerm = JdbcSupport.getInteger(rs, "maxDepositTerm");
             final Integer minDepositTermTypeId = JdbcSupport.getInteger(rs, "minDepositTermTypeId");
-            final EnumOptionData minDepositTermType = (minDepositTermTypeId == null) ? null : SavingsEnumerations
-                    .depositTermFrequencyType(minDepositTermTypeId);
+            final EnumOptionData minDepositTermType = (minDepositTermTypeId == null) ? null
+                    : SavingsEnumerations.depositTermFrequencyType(minDepositTermTypeId);
             final Integer maxDepositTermTypeId = JdbcSupport.getInteger(rs, "maxDepositTermTypeId");
-            final EnumOptionData maxDepositTermType = (maxDepositTermTypeId == null) ? null : SavingsEnumerations
-                    .depositTermFrequencyType(maxDepositTermTypeId);
+            final EnumOptionData maxDepositTermType = (maxDepositTermTypeId == null) ? null
+                    : SavingsEnumerations.depositTermFrequencyType(maxDepositTermTypeId);
             final Integer inMultiplesOfDepositTerm = JdbcSupport.getInteger(rs, "inMultiplesOfDepositTerm");
             final Integer inMultiplesOfDepositTermTypeId = JdbcSupport.getInteger(rs, "inMultiplesOfDepositTermTypeId");
-            final EnumOptionData inMultiplesOfDepositTermType = (inMultiplesOfDepositTermTypeId == null) ? null : SavingsEnumerations
-                    .depositTermFrequencyType(inMultiplesOfDepositTermTypeId);
+            final EnumOptionData inMultiplesOfDepositTermType = (inMultiplesOfDepositTermTypeId == null) ? null
+                    : SavingsEnumerations.depositTermFrequencyType(inMultiplesOfDepositTermTypeId);
 
             final BigDecimal depositAmount = JdbcSupport.getBigDecimalDefaultToNullIfZero(rs, "depositAmount");
             final BigDecimal maturityAmount = JdbcSupport.getBigDecimalDefaultToNullIfZero(rs, "maturityAmount");
             final LocalDate maturityDate = JdbcSupport.getLocalDate(rs, "maturityDate");
             final Integer depositPeriod = JdbcSupport.getInteger(rs, "depositPeriod");
             final Integer depositPeriodFrequencyTypeId = JdbcSupport.getInteger(rs, "depositPeriodFrequencyTypeId");
-            final EnumOptionData depositPeriodFrequencyType = (depositPeriodFrequencyTypeId == null) ? null : SavingsEnumerations
-                    .depositPeriodFrequency(depositPeriodFrequencyTypeId);
+            final EnumOptionData depositPeriodFrequencyType = (depositPeriodFrequencyTypeId == null) ? null
+                    : SavingsEnumerations.depositPeriodFrequency(depositPeriodFrequencyTypeId);
 
             final Integer onAccountClosureId = JdbcSupport.getInteger(rs, "onAccountClosureId");
-            final EnumOptionData onAccountClosureType = (onAccountClosureId == null) ? null : SavingsEnumerations
-                    .depositAccountOnClosureType(onAccountClosureId);
+            final EnumOptionData onAccountClosureType = (onAccountClosureId == null) ? null
+                    : SavingsEnumerations.depositAccountOnClosureType(onAccountClosureId);
             final Boolean transferInterestToSavings = rs.getBoolean("transferInterestToSavings");
+
+            final Long transferToSavingsId = JdbcSupport.getLong(rs, "transferToSavingsId");
 
             return FixedDepositAccountData.instance(depositAccountData, preClosurePenalApplicable, preClosurePenalInterest,
                     preClosurePenalInterestOnType, minDepositTerm, maxDepositTerm, minDepositTermType, maxDepositTermType,
                     inMultiplesOfDepositTerm, inMultiplesOfDepositTermType, depositAmount, maturityAmount, maturityDate, depositPeriod,
-                    depositPeriodFrequencyType, onAccountClosureType, transferInterestToSavings);
+                    depositPeriodFrequencyType, onAccountClosureType, transferInterestToSavings, transferToSavingsId);
         }
     }
 
@@ -839,7 +846,7 @@ public class DepositAccountReadPlatformServiceImpl implements DepositAccountRead
 
         private final String schemaSql;
 
-        public RecurringDepositAccountMapper() {
+        RecurringDepositAccountMapper() {
             final StringBuilder sqlBuilder = new StringBuilder(400);
             sqlBuilder.append(this.selectFieldsSql());
 
@@ -886,28 +893,28 @@ public class DepositAccountReadPlatformServiceImpl implements DepositAccountRead
             final boolean preClosurePenalApplicable = rs.getBoolean("preClosurePenalApplicable");
             final BigDecimal preClosurePenalInterest = JdbcSupport.getBigDecimalDefaultToNullIfZero(rs, "preClosurePenalInterest");
             final Integer preClosurePenalInterestOnTypeId = JdbcSupport.getInteger(rs, "preClosurePenalInterestOnId");
-            final EnumOptionData preClosurePenalInterestOnType = (preClosurePenalInterestOnTypeId == null) ? null : SavingsEnumerations
-                    .preClosurePenaltyInterestOnType(preClosurePenalInterestOnTypeId);
+            final EnumOptionData preClosurePenalInterestOnType = (preClosurePenalInterestOnTypeId == null) ? null
+                    : SavingsEnumerations.preClosurePenaltyInterestOnType(preClosurePenalInterestOnTypeId);
             final Integer minDepositTerm = JdbcSupport.getInteger(rs, "minDepositTerm");
             final Integer maxDepositTerm = JdbcSupport.getInteger(rs, "maxDepositTerm");
             final Integer minDepositTermTypeId = JdbcSupport.getInteger(rs, "minDepositTermTypeId");
-            final EnumOptionData minDepositTermType = (minDepositTermTypeId == null) ? null : SavingsEnumerations
-                    .depositTermFrequencyType(minDepositTermTypeId);
+            final EnumOptionData minDepositTermType = (minDepositTermTypeId == null) ? null
+                    : SavingsEnumerations.depositTermFrequencyType(minDepositTermTypeId);
             final Integer maxDepositTermTypeId = JdbcSupport.getInteger(rs, "maxDepositTermTypeId");
-            final EnumOptionData maxDepositTermType = (maxDepositTermTypeId == null) ? null : SavingsEnumerations
-                    .depositTermFrequencyType(maxDepositTermTypeId);
+            final EnumOptionData maxDepositTermType = (maxDepositTermTypeId == null) ? null
+                    : SavingsEnumerations.depositTermFrequencyType(maxDepositTermTypeId);
             final Integer inMultiplesOfDepositTerm = JdbcSupport.getInteger(rs, "inMultiplesOfDepositTerm");
             final Integer inMultiplesOfDepositTermTypeId = JdbcSupport.getInteger(rs, "inMultiplesOfDepositTermTypeId");
-            final EnumOptionData inMultiplesOfDepositTermType = (inMultiplesOfDepositTermTypeId == null) ? null : SavingsEnumerations
-                    .depositTermFrequencyType(inMultiplesOfDepositTermTypeId);
+            final EnumOptionData inMultiplesOfDepositTermType = (inMultiplesOfDepositTermTypeId == null) ? null
+                    : SavingsEnumerations.depositTermFrequencyType(inMultiplesOfDepositTermTypeId);
 
             final BigDecimal depositAmount = JdbcSupport.getBigDecimalDefaultToNullIfZero(rs, "depositAmount");
             final BigDecimal maturityAmount = JdbcSupport.getBigDecimalDefaultToNullIfZero(rs, "maturityAmount");
             final LocalDate maturityDate = JdbcSupport.getLocalDate(rs, "maturityDate");
             final Integer depositPeriod = JdbcSupport.getInteger(rs, "depositPeriod");
             final Integer depositPeriodFrequencyTypeId = JdbcSupport.getInteger(rs, "depositPeriodFrequencyTypeId");
-            final EnumOptionData depositPeriodFrequencyType = (depositPeriodFrequencyTypeId == null) ? null : SavingsEnumerations
-                    .depositPeriodFrequency(depositPeriodFrequencyTypeId);
+            final EnumOptionData depositPeriodFrequencyType = (depositPeriodFrequencyTypeId == null) ? null
+                    : SavingsEnumerations.depositPeriodFrequency(depositPeriodFrequencyTypeId);
             final BigDecimal mandatoryRecommendedDepositAmount = JdbcSupport.getBigDecimalDefaultToNullIfZero(rs,
                     "mandatoryRecommendedDepositAmount");
             final BigDecimal totalOverdueAmount = JdbcSupport.getBigDecimalDefaultToNullIfZero(rs, "totalOverdueAmount");
@@ -918,8 +925,8 @@ public class DepositAccountReadPlatformServiceImpl implements DepositAccountRead
             final boolean isCalendarInherited = rs.getBoolean("isCalendarInherited");
 
             final Integer onAccountClosureId = JdbcSupport.getInteger(rs, "onAccountClosureId");
-            final EnumOptionData onAccountClosureType = (onAccountClosureId == null) ? null : SavingsEnumerations
-                    .depositAccountOnClosureType(onAccountClosureId);
+            final EnumOptionData onAccountClosureType = (onAccountClosureId == null) ? null
+                    : SavingsEnumerations.depositAccountOnClosureType(onAccountClosureId);
             final LocalDate expectedFirstDepositOnDate = JdbcSupport.getLocalDate(rs, "expectedFirstDepositOnDate");
 
             return RecurringDepositAccountData.instance(depositAccountData, preClosurePenalApplicable, preClosurePenalInterest,
@@ -953,7 +960,9 @@ public class DepositAccountReadPlatformServiceImpl implements DepositAccountRead
     private DepositAccountMapper getDepositAccountMapper(final DepositAccountType depositAccountType) {
         if (depositAccountType.isFixedDeposit()) {
             return this.fixedDepositAccountRowMapper;
-        } else if (depositAccountType.isRecurringDeposit()) { return this.recurringDepositAccountRowMapper; }
+        } else if (depositAccountType.isRecurringDeposit()) {
+            return this.recurringDepositAccountRowMapper;
+        }
         return null;
     }
 
@@ -961,7 +970,7 @@ public class DepositAccountReadPlatformServiceImpl implements DepositAccountRead
 
         private final String schemaSql;
 
-        public SavingsAccountTransactionsMapper() {
+        SavingsAccountTransactionsMapper() {
 
             final StringBuilder sqlBuilder = new StringBuilder(400);
             sqlBuilder.append("tr.id as transactionId, tr.transaction_type_enum as transactionType, ");
@@ -977,8 +986,8 @@ public class DepositAccountReadPlatformServiceImpl implements DepositAccountRead
             sqlBuilder.append(" au.username as submittedByUsername, ");
             sqlBuilder.append("pd.payment_type_id as paymentType,pd.account_number as accountNumber,pd.check_number as checkNumber, ");
             sqlBuilder.append("pd.receipt_number as receiptNumber, pd.bank_number as bankNumber,pd.routing_code as routingCode, ");
-            sqlBuilder
-                    .append("sa.currency_code as currencyCode, sa.currency_digits as currencyDigits, sa.currency_multiplesof as inMultiplesOf, ");
+            sqlBuilder.append(
+                    "sa.currency_code as currencyCode, sa.currency_digits as currencyDigits, sa.currency_multiplesof as inMultiplesOf, ");
             sqlBuilder.append("curr.name as currencyName, curr.internationalized_name_code as currencyNameCode, ");
             sqlBuilder.append("curr.display_symbol as currencyDisplaySymbol, ");
             sqlBuilder.append("pt.value as paymentTypeName ");
@@ -1034,8 +1043,8 @@ public class DepositAccountReadPlatformServiceImpl implements DepositAccountRead
             final String currencyDisplaySymbol = rs.getString("currencyDisplaySymbol");
             final Integer currencyDigits = JdbcSupport.getInteger(rs, "currencyDigits");
             final Integer inMultiplesOf = JdbcSupport.getInteger(rs, "inMultiplesOf");
-            final CurrencyData currency = new CurrencyData(currencyCode, currencyName, currencyDigits, inMultiplesOf,
-                    currencyDisplaySymbol, currencyNameCode);
+            final CurrencyData currency = new CurrencyData(currencyCode, currencyName, currencyDigits, inMultiplesOf, currencyDisplaySymbol,
+                    currencyNameCode);
 
             AccountTransferData transfer = null;
             final Long fromTransferId = JdbcSupport.getLong(rs, "fromTransferId");
@@ -1059,13 +1068,13 @@ public class DepositAccountReadPlatformServiceImpl implements DepositAccountRead
             }
             final boolean postInterestAsOn = false;
             final String submittedByUsername = rs.getString("submittedByUsername");
-            final String note = null ;
+            final String note = null;
             return SavingsAccountTransactionData.create(id, transactionType, paymentDetailData, savingsId, accountNo, date, currency,
                     amount, outstandingChargeAmount, runningBalance, reversed, transfer, postInterestAsOn, submittedByUsername, note);
         }
     }
 
-    private static abstract class DepositAccountTemplateMapper implements RowMapper<DepositAccountData> {
+    private abstract static class DepositAccountTemplateMapper implements RowMapper<DepositAccountData> {
 
         private final String selectFieldsSql;
         private final String selectTablesSql;
@@ -1073,14 +1082,14 @@ public class DepositAccountReadPlatformServiceImpl implements DepositAccountRead
         private final ClientData client;
         private final GroupGeneralData group;
 
-        public DepositAccountTemplateMapper(final ClientData client, final GroupGeneralData group) {
+        protected DepositAccountTemplateMapper(final ClientData client, final GroupGeneralData group) {
             this.client = client;
             this.group = group;
 
             final StringBuilder selectFieldsSqlBuilder = new StringBuilder(400);
             selectFieldsSqlBuilder.append("sa.id as productId, sa.name as productName, ");
-            selectFieldsSqlBuilder
-                    .append("sa.currency_code as currencyCode, sa.currency_digits as currencyDigits, sa.currency_multiplesof as inMultiplesOf, ");
+            selectFieldsSqlBuilder.append(
+                    "sa.currency_code as currencyCode, sa.currency_digits as currencyDigits, sa.currency_multiplesof as inMultiplesOf, ");
             selectFieldsSqlBuilder.append("curr.name as currencyName, curr.internationalized_name_code as currencyNameCode, ");
             selectFieldsSqlBuilder.append("curr.display_symbol as currencyDisplaySymbol, ");
             selectFieldsSqlBuilder.append("sa.nominal_annual_interest_rate as nominalAnnualIterestRate, ");
@@ -1104,7 +1113,6 @@ public class DepositAccountReadPlatformServiceImpl implements DepositAccountRead
             selectTablesSqlBuilder.append("left join m_deposit_product_term_and_preclosure dptp on sa.id = dptp.savings_product_id ");
             selectTablesSqlBuilder.append("join m_currency curr on curr.code = sa.currency_code ");
             selectTablesSqlBuilder.append("left join m_tax_group tg on tg.id = sa.tax_group_id  ");
-            
 
             this.selectTablesSql = selectTablesSqlBuilder.toString();
         }
@@ -1120,7 +1128,7 @@ public class DepositAccountReadPlatformServiceImpl implements DepositAccountRead
         public abstract String schema();
 
         @Override
-        public abstract DepositAccountData mapRow(final ResultSet rs, final int rowNum) throws SQLException;
+        public abstract DepositAccountData mapRow(ResultSet rs, int rowNum) throws SQLException;
 
         public DepositAccountData mapRow(final ResultSet rs) throws SQLException {
 
@@ -1135,24 +1143,22 @@ public class DepositAccountReadPlatformServiceImpl implements DepositAccountRead
             final String currencyDisplaySymbol = rs.getString("currencyDisplaySymbol");
             final Integer currencyDigits = JdbcSupport.getInteger(rs, "currencyDigits");
             final Integer inMultiplesOf = JdbcSupport.getInteger(rs, "inMultiplesOf");
-            final CurrencyData currency = new CurrencyData(currencyCode, currencyName, currencyDigits, inMultiplesOf,
-                    currencyDisplaySymbol, currencyNameCode);
+            final CurrencyData currency = new CurrencyData(currencyCode, currencyName, currencyDigits, inMultiplesOf, currencyDisplaySymbol,
+                    currencyNameCode);
 
             final BigDecimal nominalAnnualIterestRate = rs.getBigDecimal("nominalAnnualIterestRate");
 
-            final EnumOptionData interestCompoundingPeriodType = SavingsEnumerations
-                    .compoundingInterestPeriodType(SavingsCompoundingInterestPeriodType.fromInt(JdbcSupport.getInteger(rs,
-                            "interestCompoundingPeriodType")));
+            final EnumOptionData interestCompoundingPeriodType = SavingsEnumerations.compoundingInterestPeriodType(
+                    SavingsCompoundingInterestPeriodType.fromInt(JdbcSupport.getInteger(rs, "interestCompoundingPeriodType")));
 
-            final EnumOptionData interestPostingPeriodType = SavingsEnumerations.interestPostingPeriodType(SavingsPostingInterestPeriodType
-                    .fromInt(JdbcSupport.getInteger(rs, "interestPostingPeriodType")));
+            final EnumOptionData interestPostingPeriodType = SavingsEnumerations.interestPostingPeriodType(
+                    SavingsPostingInterestPeriodType.fromInt(JdbcSupport.getInteger(rs, "interestPostingPeriodType")));
 
-            final EnumOptionData interestCalculationType = SavingsEnumerations.interestCalculationType(SavingsInterestCalculationType
-                    .fromInt(JdbcSupport.getInteger(rs, "interestCalculationType")));
+            final EnumOptionData interestCalculationType = SavingsEnumerations
+                    .interestCalculationType(SavingsInterestCalculationType.fromInt(JdbcSupport.getInteger(rs, "interestCalculationType")));
 
-            final EnumOptionData interestCalculationDaysInYearType = SavingsEnumerations
-                    .interestCalculationDaysInYearType(SavingsInterestCalculationDaysInYearType.fromInt(JdbcSupport.getInteger(rs,
-                            "interestCalculationDaysInYearType")));
+            final EnumOptionData interestCalculationDaysInYearType = SavingsEnumerations.interestCalculationDaysInYearType(
+                    SavingsInterestCalculationDaysInYearType.fromInt(JdbcSupport.getInteger(rs, "interestCalculationDaysInYearType")));
 
             final BigDecimal minRequiredOpeningBalance = JdbcSupport.getBigDecimalDefaultToNullIfZero(rs, "minRequiredOpeningBalance");
 
@@ -1187,7 +1193,7 @@ public class DepositAccountReadPlatformServiceImpl implements DepositAccountRead
             final SavingsAccountStatusEnumData status = null;
             final SavingsAccountSummaryData summary = null;
             final SavingsAccountApplicationTimelineData timeline = SavingsAccountApplicationTimelineData.templateDefault();
-            
+
             final boolean withHoldTax = rs.getBoolean("withHoldTax");
             final Long taxGroupId = JdbcSupport.getLong(rs, "taxGroupId");
             final String taxGroupName = rs.getString("taxGroupName");
@@ -1208,7 +1214,7 @@ public class DepositAccountReadPlatformServiceImpl implements DepositAccountRead
 
         private final String schemaSql;
 
-        public FixedDepositAccountTemplateMapper(final ClientData client, final GroupGeneralData group) {
+        FixedDepositAccountTemplateMapper(final ClientData client, final GroupGeneralData group) {
             super(client, group);
             final StringBuilder sqlBuilder = new StringBuilder(400);
             sqlBuilder.append(super.selectFieldsSql());
@@ -1241,21 +1247,21 @@ public class DepositAccountReadPlatformServiceImpl implements DepositAccountRead
             final boolean preClosurePenalApplicable = rs.getBoolean("preClosurePenalApplicable");
             final BigDecimal preClosurePenalInterest = JdbcSupport.getBigDecimalDefaultToNullIfZero(rs, "preClosurePenalInterest");
             final Integer preClosurePenalInterestOnTypeId = JdbcSupport.getInteger(rs, "preClosurePenalInterestOnId");
-            final EnumOptionData preClosurePenalInterestOnType = (preClosurePenalInterestOnTypeId == null) ? null : SavingsEnumerations
-                    .preClosurePenaltyInterestOnType(preClosurePenalInterestOnTypeId);
+            final EnumOptionData preClosurePenalInterestOnType = (preClosurePenalInterestOnTypeId == null) ? null
+                    : SavingsEnumerations.preClosurePenaltyInterestOnType(preClosurePenalInterestOnTypeId);
 
             final Integer minDepositTerm = JdbcSupport.getInteger(rs, "minDepositTerm");
             final Integer maxDepositTerm = JdbcSupport.getInteger(rs, "maxDepositTerm");
             final Integer minDepositTermTypeId = JdbcSupport.getInteger(rs, "minDepositTermTypeId");
-            final EnumOptionData minDepositTermType = (minDepositTermTypeId == null) ? null : SavingsEnumerations
-                    .depositTermFrequencyType(minDepositTermTypeId);
+            final EnumOptionData minDepositTermType = (minDepositTermTypeId == null) ? null
+                    : SavingsEnumerations.depositTermFrequencyType(minDepositTermTypeId);
             final Integer maxDepositTermTypeId = JdbcSupport.getInteger(rs, "maxDepositTermTypeId");
-            final EnumOptionData maxDepositTermType = (maxDepositTermTypeId == null) ? null : SavingsEnumerations
-                    .depositTermFrequencyType(maxDepositTermTypeId);
+            final EnumOptionData maxDepositTermType = (maxDepositTermTypeId == null) ? null
+                    : SavingsEnumerations.depositTermFrequencyType(maxDepositTermTypeId);
             final Integer inMultiplesOfDepositTerm = JdbcSupport.getInteger(rs, "inMultiplesOfDepositTerm");
             final Integer inMultiplesOfDepositTermTypeId = JdbcSupport.getInteger(rs, "inMultiplesOfDepositTermTypeId");
-            final EnumOptionData inMultiplesOfDepositTermType = (inMultiplesOfDepositTermTypeId == null) ? null : SavingsEnumerations
-                    .depositTermFrequencyType(inMultiplesOfDepositTermTypeId);
+            final EnumOptionData inMultiplesOfDepositTermType = (inMultiplesOfDepositTermTypeId == null) ? null
+                    : SavingsEnumerations.depositTermFrequencyType(inMultiplesOfDepositTermTypeId);
 
             final BigDecimal depositAmount = null;
             final BigDecimal maturityAmount = null;
@@ -1268,7 +1274,7 @@ public class DepositAccountReadPlatformServiceImpl implements DepositAccountRead
             return FixedDepositAccountData.instance(depositAccountData, preClosurePenalApplicable, preClosurePenalInterest,
                     preClosurePenalInterestOnType, minDepositTerm, maxDepositTerm, minDepositTermType, maxDepositTermType,
                     inMultiplesOfDepositTerm, inMultiplesOfDepositTermType, depositAmount, maturityAmount, maturityDate, depositPeriod,
-                    depositPeriodFrequencyType, onAccountClosureType, transferInterestToSavings);
+                    depositPeriodFrequencyType, onAccountClosureType, transferInterestToSavings, null);
         }
     }
 
@@ -1276,7 +1282,7 @@ public class DepositAccountReadPlatformServiceImpl implements DepositAccountRead
 
         private final String schemaSql;
 
-        public RecurringDepositAccountTemplateMapper(final ClientData client, final GroupGeneralData group) {
+        RecurringDepositAccountTemplateMapper(final ClientData client, final GroupGeneralData group) {
             super(client, group);
             final StringBuilder sqlBuilder = new StringBuilder(400);
             sqlBuilder.append(this.selectFieldsSql());
@@ -1313,21 +1319,21 @@ public class DepositAccountReadPlatformServiceImpl implements DepositAccountRead
             final boolean preClosurePenalApplicable = rs.getBoolean("preClosurePenalApplicable");
             final BigDecimal preClosurePenalInterest = JdbcSupport.getBigDecimalDefaultToNullIfZero(rs, "preClosurePenalInterest");
             final Integer preClosurePenalInterestOnTypeId = JdbcSupport.getInteger(rs, "preClosurePenalInterestOnId");
-            final EnumOptionData preClosurePenalInterestOnType = (preClosurePenalInterestOnTypeId == null) ? null : SavingsEnumerations
-                    .preClosurePenaltyInterestOnType(preClosurePenalInterestOnTypeId);
+            final EnumOptionData preClosurePenalInterestOnType = (preClosurePenalInterestOnTypeId == null) ? null
+                    : SavingsEnumerations.preClosurePenaltyInterestOnType(preClosurePenalInterestOnTypeId);
 
             final Integer minDepositTerm = JdbcSupport.getInteger(rs, "minDepositTerm");
             final Integer maxDepositTerm = JdbcSupport.getInteger(rs, "maxDepositTerm");
             final Integer minDepositTermTypeId = JdbcSupport.getInteger(rs, "minDepositTermTypeId");
-            final EnumOptionData minDepositTermType = (minDepositTermTypeId == null) ? null : SavingsEnumerations
-                    .depositTermFrequencyType(minDepositTermTypeId);
+            final EnumOptionData minDepositTermType = (minDepositTermTypeId == null) ? null
+                    : SavingsEnumerations.depositTermFrequencyType(minDepositTermTypeId);
             final Integer maxDepositTermTypeId = JdbcSupport.getInteger(rs, "maxDepositTermTypeId");
-            final EnumOptionData maxDepositTermType = (maxDepositTermTypeId == null) ? null : SavingsEnumerations
-                    .depositTermFrequencyType(maxDepositTermTypeId);
+            final EnumOptionData maxDepositTermType = (maxDepositTermTypeId == null) ? null
+                    : SavingsEnumerations.depositTermFrequencyType(maxDepositTermTypeId);
             final Integer inMultiplesOfDepositTerm = JdbcSupport.getInteger(rs, "inMultiplesOfDepositTerm");
             final Integer inMultiplesOfDepositTermTypeId = JdbcSupport.getInteger(rs, "inMultiplesOfDepositTermTypeId");
-            final EnumOptionData inMultiplesOfDepositTermType = (inMultiplesOfDepositTermTypeId == null) ? null : SavingsEnumerations
-                    .depositTermFrequencyType(inMultiplesOfDepositTermTypeId);
+            final EnumOptionData inMultiplesOfDepositTermType = (inMultiplesOfDepositTermTypeId == null) ? null
+                    : SavingsEnumerations.depositTermFrequencyType(inMultiplesOfDepositTermTypeId);
             final boolean isMandatoryDeposit = rs.getBoolean("isMandatoryDeposit");
             final boolean allowWithdrawal = rs.getBoolean("allowWithdrawal");
             final boolean adjustAdvanceTowardsFuturePayments = rs.getBoolean("adjustAdvanceTowardsFuturePayments");
@@ -1357,7 +1363,9 @@ public class DepositAccountReadPlatformServiceImpl implements DepositAccountRead
             GroupGeneralData group) {
         if (depositAccountType.isFixedDeposit()) {
             return new FixedDepositAccountTemplateMapper(client, group);
-        } else if (depositAccountType.isRecurringDeposit()) { return new RecurringDepositAccountTemplateMapper(client, group); }
+        } else if (depositAccountType.isRecurringDeposit()) {
+            return new RecurringDepositAccountTemplateMapper(client, group);
+        }
         return null;
     }
 
@@ -1374,7 +1382,7 @@ public class DepositAccountReadPlatformServiceImpl implements DepositAccountRead
 
         private final String schemaSql;
 
-        public DepositAccountForMaturityMapper() {
+        DepositAccountForMaturityMapper() {
             final StringBuilder sqlBuilder = new StringBuilder(200);
             sqlBuilder.append("da.id as id, ");
             sqlBuilder.append("da.account_no as accountNumber, ");
@@ -1406,11 +1414,11 @@ public class DepositAccountReadPlatformServiceImpl implements DepositAccountRead
 
         private final String schemaSql;
 
-        public RecurringAccountDepositTransactionTemplateMapper() {
+        RecurringAccountDepositTransactionTemplateMapper() {
             final StringBuilder sqlBuilder = new StringBuilder(400);
             sqlBuilder.append("sa.id as id, sa.account_no as accountNo, ");
-            sqlBuilder
-                    .append("sa.currency_code as currencyCode, sa.currency_digits as currencyDigits, sa.currency_multiplesof as inMultiplesOf, ");
+            sqlBuilder.append(
+                    "sa.currency_code as currencyCode, sa.currency_digits as currencyDigits, sa.currency_multiplesof as inMultiplesOf, ");
             sqlBuilder.append("curr.name as currencyName, curr.internationalized_name_code as currencyNameCode, ");
             sqlBuilder.append("curr.display_symbol as currencyDisplaySymbol, ");
             sqlBuilder.append("sa.account_balance_derived as runningBalance, ");
@@ -1448,29 +1456,30 @@ public class DepositAccountReadPlatformServiceImpl implements DepositAccountRead
             final String currencyDisplaySymbol = rs.getString("currencyDisplaySymbol");
             final Integer currencyDigits = JdbcSupport.getInteger(rs, "currencyDigits");
             final Integer inMultiplesOf = JdbcSupport.getInteger(rs, "inMultiplesOf");
-            final CurrencyData currency = new CurrencyData(currencyCode, currencyName, currencyDigits, inMultiplesOf,
-                    currencyDisplaySymbol, currencyNameCode);
+            final CurrencyData currency = new CurrencyData(currencyCode, currencyName, currencyDigits, inMultiplesOf, currencyDisplaySymbol,
+                    currencyNameCode);
             final SavingsAccountTransactionEnumData transactionType = SavingsEnumerations
                     .transactionType(SavingsAccountTransactionType.DEPOSIT.getValue());
             final PaymentDetailData paymentDetailData = null;
             final AccountTransferData transfer = null;
             final BigDecimal runningBalance = JdbcSupport.getBigDecimalDefaultToNullIfZero(rs, "runningBalance");
             final boolean postInterestAsOn = false;
-            final String submittedByUsername = null ;
-            final String note = null ;
+            final String submittedByUsername = null;
+            final String note = null;
             return SavingsAccountTransactionData.create(savingsId, transactionType, paymentDetailData, savingsId, accountNo, duedate,
-                    currency, dueamount, outstandingChargeAmount, runningBalance, false, transfer, postInterestAsOn, submittedByUsername, note);
+                    currency, dueamount, outstandingChargeAmount, runningBalance, false, transfer, postInterestAsOn, submittedByUsername,
+                    note);
         }
     }
 
-    private class AccountTransferMapper implements RowMapper<AccountTransferDTO> {
+    private static class AccountTransferMapper implements RowMapper<AccountTransferDTO> {
 
         private final String schemaSql;
 
-        public AccountTransferMapper() {
+        AccountTransferMapper() {
             final StringBuilder sqlBuilder = new StringBuilder(400);
-            sqlBuilder
-                    .append("sa.id as fromAcc ,aa.linked_savings_account_id as toAcc,st.amount as amount, st.transaction_date as transactionDate ")
+            sqlBuilder.append(
+                    "sa.id as fromAcc ,aa.linked_savings_account_id as toAcc,st.amount as amount, st.transaction_date as transactionDate ")
                     .append(" from m_deposit_account_term_and_preclosure da ")
                     .append(" inner join m_savings_account sa on da.savings_account_id = sa.id")
                     .append(" inner join m_savings_account_transaction st on st.savings_account_id = sa.id")

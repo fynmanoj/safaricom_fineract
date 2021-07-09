@@ -20,14 +20,17 @@ package org.apache.fineract.accounting.common;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.apache.fineract.accounting.glaccount.domain.GLAccountType;
 import org.apache.fineract.accounting.glaccount.domain.GLAccountUsage;
 import org.apache.fineract.accounting.journalentry.domain.JournalEntryType;
 import org.apache.fineract.accounting.producttoaccountmapping.domain.PortfolioProductType;
 import org.apache.fineract.infrastructure.core.data.EnumOptionData;
 
-public class AccountingEnumerations {
+public final class AccountingEnumerations {
+
+    private AccountingEnumerations() {
+
+    }
 
     public static EnumOptionData gLAccountType(final int id) {
         return gLAccountType(GLAccountType.fromInt(id));

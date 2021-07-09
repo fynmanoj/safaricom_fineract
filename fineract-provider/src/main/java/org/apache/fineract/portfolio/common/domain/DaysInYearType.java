@@ -22,9 +22,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 
- * People typically use either of the following settings when calculating there
- * interest using the daily method:
+ *
+ * People typically use either of the following settings when calculating there interest using the daily method:
  * <ul>
  * <li>Actual or</li>
  * <li>360 or</li>
@@ -43,7 +42,7 @@ public enum DaysInYearType {
     private final Integer value;
     private final String code;
 
-    private DaysInYearType(final Integer value, final String code) {
+    DaysInYearType(final Integer value, final String code) {
         this.value = value;
         this.code = code;
     }

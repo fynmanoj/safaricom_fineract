@@ -18,12 +18,11 @@
  */
 package org.apache.fineract.portfolio.savings;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.fineract.portfolio.savings.domain.SavingsAccount;
 
 /**
- * An enumeration of different transactions that can occur on a
- * {@link SavingsAccount}.
+ * An enumeration of different transactions that can occur on a {@link SavingsAccount}.
  */
 public enum DepositAccountType {
 
@@ -37,7 +36,7 @@ public enum DepositAccountType {
     private final String code;
     private static final String SPACE = " ";
 
-    private DepositAccountType(final Integer value, final String code) {
+    DepositAccountType(final Integer value, final String code) {
         this.value = value;
         this.code = code;
     }
@@ -52,7 +51,9 @@ public enum DepositAccountType {
 
     public static DepositAccountType fromInt(final Integer transactionType) {
 
-        if (transactionType == null) { return DepositAccountType.INVALID; }
+        if (transactionType == null) {
+            return DepositAccountType.INVALID;
+        }
 
         DepositAccountType depositAccountType = DepositAccountType.INVALID;
         switch (transactionType) {

@@ -24,7 +24,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.apache.fineract.infrastructure.core.service.RoutingDataSource;
 import org.apache.fineract.infrastructure.creditbureau.data.CreditBureauConfigurationData;
 import org.apache.fineract.infrastructure.security.service.PlatformSecurityContext;
@@ -36,67 +35,65 @@ import org.springframework.stereotype.Service;
 @Service
 public class CreditBureauReadConfigurationServiceImpl implements CreditBureauReadConfigurationService {
 
-	private final JdbcTemplate jdbcTemplate;
-	private final PlatformSecurityContext context;
+    private final JdbcTemplate jdbcTemplate;
+    private final PlatformSecurityContext context;
 
-	@Autowired
-	public CreditBureauReadConfigurationServiceImpl(final PlatformSecurityContext context,
-			final RoutingDataSource dataSource) {
-		this.context = context;
-		this.jdbcTemplate = new JdbcTemplate(dataSource);
-	}
+    @Autowired
+    public CreditBureauReadConfigurationServiceImpl(final PlatformSecurityContext context, final RoutingDataSource dataSource) {
+        this.context = context;
+        this.jdbcTemplate = new JdbcTemplate(dataSource);
+    }
 
-	private static final class CbConfigMapper implements RowMapper<CreditBureauConfigurationData> {
-		public String schema() {
+    private static final class CbConfigMapper implements RowMapper<CreditBureauConfigurationData> {
 
-			return "cbconfig.id as configId,cbconfig.configkey,cbconfig.value as configValue,"
-					+ "cbconfig.organisation_creditbureau_id as orgCBId,cbconfig.description as description from m_creditbureau_configuration cbconfig ";
+        public String schema() {
 
-		}
+            return "cbconfig.id as configId,cbconfig.configkey,cbconfig.value as configValue,"
+                    + "cbconfig.organisation_creditbureau_id as orgCBId,cbconfig.description as description from m_creditbureau_configuration cbconfig ";
 
-		@Override
-		public CreditBureauConfigurationData mapRow(final ResultSet rs, @SuppressWarnings("unused") final int rowNum)
-				throws SQLException {
-			final long configId = rs.getLong("configId");
-			final String configkey = rs.getString("configkey");
-			final String configValue = rs.getString("configValue");
-			final long orgCBId = rs.getLong("orgCBId");
-			final String desc = rs.getString("description");
+        }
 
-			return CreditBureauConfigurationData.instance(configId, configkey, configValue, orgCBId, desc);
+        @Override
+        public CreditBureauConfigurationData mapRow(final ResultSet rs, @SuppressWarnings("unused") final int rowNum) throws SQLException {
+            final long configId = rs.getLong("configId");
+            final String configkey = rs.getString("configkey");
+            final String configValue = rs.getString("configValue");
+            final long orgCBId = rs.getLong("orgCBId");
+            final String desc = rs.getString("description");
 
-		}
-	}
+            return CreditBureauConfigurationData.instance(configId, configkey, configValue, orgCBId, desc);
 
-	@Override
-	public Collection<CreditBureauConfigurationData> readConfigurationByOrganisationCreditBureauId(long id) {
+        }
+    }
 
-		this.context.authenticatedUser();
+    @Override
+    public Collection<CreditBureauConfigurationData> readConfigurationByOrganisationCreditBureauId(long id) {
 
-		final CbConfigMapper rm = new CbConfigMapper();
-		final String sql = "select " + rm.schema() + " where cbconfig.organisation_creditbureau_id=?";
+        this.context.authenticatedUser();
 
-		return this.jdbcTemplate.query(sql, rm, new Object[] { id });
+        final CbConfigMapper rm = new CbConfigMapper();
+        final String sql = "select " + rm.schema() + " where cbconfig.organisation_creditbureau_id=?";
 
-	}
+        return this.jdbcTemplate.query(sql, rm, new Object[] { id });
 
-	@Override
-	public Map<String, String> retrieveConfigMap(long id) {
-		this.context.authenticatedUser();
+    }
 
-		final CbConfigMapper rm = new CbConfigMapper();
-		final String sql = "select " + rm.schema() + " where cbconfig.organisation_creditbureau_id= ?";
+    @Override
+    public Map<String, String> retrieveConfigMap(long id) {
+        this.context.authenticatedUser();
 
-		List<CreditBureauConfigurationData> config = (List<CreditBureauConfigurationData>) this.jdbcTemplate.query(sql,
-				rm, new Object[] {id});
-		Map<String, String> configuration = new HashMap<String, String>();
-		for (CreditBureauConfigurationData data : config) {
-			configuration.put(data.getConfigurationKey(), data.getValue());
+        final CbConfigMapper rm = new CbConfigMapper();
+        final String sql = "select " + rm.schema() + " where cbconfig.organisation_creditbureau_id= ?";
 
-		}
+        List<CreditBureauConfigurationData> config = this.jdbcTemplate.query(sql, rm, new Object[] { id });
+        Map<String, String> configuration = new HashMap<String, String>();
+        for (CreditBureauConfigurationData data : config) {
+            configuration.put(data.getConfigurationKey(), data.getValue());
 
-		return configuration;
+        }
 
-	}
+        return configuration;
+
+    }
 
 }

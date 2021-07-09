@@ -20,40 +20,41 @@ package org.apache.fineract.infrastructure.reportmailingjob.data;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.fineract.infrastructure.core.data.EnumOptionData;
 
 public enum ReportMailingJobStretchyReportParamDateOption {
-    INVALID(0, "ReportMailingJobStretchyReportParamDateOption.INVALID", "Invalid"),
-    TODAY(1, "ReportMailingJobStretchyReportParamDateOption.TODAY", "Today"),
-    YESTERDAY(2, "ReportMailingJobStretchyReportParamDateOption.YESTERDAY", "Yesterday"),
-    TOMORROW(3, "ReportMailingJobStretchyReportParamDateOption.TOMORROW", "Tomorrow");
-    
-    private String code;
-    private String value;
-    private Integer id;
-    
+
+    INVALID(0, "ReportMailingJobStretchyReportParamDateOption.INVALID", "Invalid"), TODAY(1,
+            "ReportMailingJobStretchyReportParamDateOption.TODAY", "Today"), YESTERDAY(2,
+                    "ReportMailingJobStretchyReportParamDateOption.YESTERDAY",
+                    "Yesterday"), TOMORROW(3, "ReportMailingJobStretchyReportParamDateOption.TOMORROW", "Tomorrow");
+
+    private final String code;
+    private final String value;
+    private final Integer id;
+
     /**
      * @param id
      * @param code
      * @param value
      */
-    private ReportMailingJobStretchyReportParamDateOption(final Integer id, final String code, final String value) {
+    ReportMailingJobStretchyReportParamDateOption(final Integer id, final String code, final String value) {
         this.value = value;
         this.code = code;
         this.id = id;
     }
-    
+
     /**
      * Creates a new {@link ReportMailingJobStretchyReportParamDateOption} object
-     * 
-     * @param value value of the enum constant
+     *
+     * @param value
+     *            value of the enum constant
      * @return {@link ReportMailingJobStretchyReportParamDateOption} object
      */
     public static ReportMailingJobStretchyReportParamDateOption newInstance(final String value) {
         ReportMailingJobStretchyReportParamDateOption reportMailingJobStretchyReportParamDateOption = INVALID;
-        
+
         if (StringUtils.equalsIgnoreCase(value, TODAY.value)) {
             reportMailingJobStretchyReportParamDateOption = TODAY;
         } else if (StringUtils.equalsIgnoreCase(value, YESTERDAY.value)) {
@@ -61,30 +62,31 @@ public enum ReportMailingJobStretchyReportParamDateOption {
         } else if (StringUtils.equalsIgnoreCase(value, TOMORROW.value)) {
             reportMailingJobStretchyReportParamDateOption = TOMORROW;
         }
-        
+
         return reportMailingJobStretchyReportParamDateOption;
     }
-    
+
     /**
      * Creates a new {@link ReportMailingJobStretchyReportParamDateOption} object
-     * 
-     * @param id id of the enum constant
+     *
+     * @param id
+     *            id of the enum constant
      * @return {@link ReportMailingJobStretchyReportParamDateOption} object
      */
     public static ReportMailingJobStretchyReportParamDateOption newInstance(final Integer id) {
         ReportMailingJobStretchyReportParamDateOption reportMailingJobStretchyReportParamDateOption = INVALID;
-        
-        if (id == TODAY.id) {
+
+        if (id.equals(TODAY.id)) {
             reportMailingJobStretchyReportParamDateOption = TODAY;
-        } else if (id == YESTERDAY.id) {
+        } else if (id.equals(YESTERDAY.id)) {
             reportMailingJobStretchyReportParamDateOption = YESTERDAY;
-        } else if (id == TOMORROW.id) {
+        } else if (id.equals(TOMORROW.id)) {
             reportMailingJobStretchyReportParamDateOption = TOMORROW;
         }
-        
+
         return reportMailingJobStretchyReportParamDateOption;
     }
-    
+
     /**
      * @return the code
      */
@@ -105,62 +107,63 @@ public enum ReportMailingJobStretchyReportParamDateOption {
     public Integer getId() {
         return id;
     }
-    
-    /** 
+
+    /**
      * @return true if the enum is equals to "INVALID"
      */
     public boolean isInvalid() {
         return this.equals(INVALID);
     }
-    
+
     /**
      * @return true if the enum is not equals to "INVALID"
      */
     public boolean isValid() {
         return !this.isInvalid();
     }
-    
-    /** 
+
+    /**
      * @return list of valid ReportMailingJobStretchyReportParamDateOption values
      **/
     public static Object[] validValues() {
         List<Object> validValues = new ArrayList<>();
-        
-        for (ReportMailingJobStretchyReportParamDateOption constant :  ReportMailingJobStretchyReportParamDateOption.values()) {
+
+        for (ReportMailingJobStretchyReportParamDateOption constant : ReportMailingJobStretchyReportParamDateOption.values()) {
             if (constant.isValid()) {
                 validValues.add(constant.value);
             }
         }
-        
+
         return validValues.toArray();
     }
-    
+
     /**
      * get a {@link EnumOptionData} representation of the {@link ReportMailingJobStretchyReportParamDateOption} object
-     * 
+     *
      * @return {@link EnumOptionData} object
      */
     public EnumOptionData toEnumOptionData() {
         // get the long value of the enum id
         final Long id = (this.id != null) ? this.id.longValue() : null;
-        
+
         return new EnumOptionData(id, code, value);
     }
-    
+
     /**
-     * get the {@link EnumOptionData} representation of all valid {@link ReportMailingJobStretchyReportParamDateOption} objects
-     * 
+     * get the {@link EnumOptionData} representation of all valid {@link ReportMailingJobStretchyReportParamDateOption}
+     * objects
+     *
      * @return List of {@link EnumOptionData} objects
      */
     public static List<EnumOptionData> validOptions() {
         List<EnumOptionData> options = new ArrayList<>();
-        
+
         for (ReportMailingJobStretchyReportParamDateOption constant : ReportMailingJobStretchyReportParamDateOption.values()) {
             if (constant.isValid()) {
                 options.add(constant.toEnumOptionData());
             }
         }
-        
+
         return options;
     }
 }

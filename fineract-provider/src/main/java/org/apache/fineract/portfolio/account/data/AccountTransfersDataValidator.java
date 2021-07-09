@@ -18,16 +18,18 @@
  */
 package org.apache.fineract.portfolio.account.data;
 
+import com.google.gson.JsonElement;
+import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.fineract.infrastructure.core.api.JsonCommand;
 import org.apache.fineract.infrastructure.core.data.ApiParameterError;
 import org.apache.fineract.infrastructure.core.data.DataValidatorBuilder;
@@ -36,27 +38,21 @@ import org.apache.fineract.infrastructure.core.exception.PlatformApiDataValidati
 import org.apache.fineract.infrastructure.core.serialization.FromJsonHelper;
 import org.apache.fineract.portfolio.account.AccountDetailConstants;
 import org.apache.fineract.portfolio.account.api.AccountTransfersApiConstants;
-import org.joda.time.LocalDate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import com.google.gson.JsonElement;
-import com.google.gson.reflect.TypeToken;
 
 @Component
 public class AccountTransfersDataValidator {
 
     private final FromJsonHelper fromApiJsonHelper;
     private final AccountTransfersDetailDataValidator accountTransfersDetailDataValidator;
-	private static final Set<String> REQUEST_DATA_PARAMETERS = new HashSet<>(Arrays.asList(
-			AccountDetailConstants.localeParamName, AccountDetailConstants.dateFormatParamName,
-			AccountDetailConstants.fromOfficeIdParamName, AccountDetailConstants.fromClientIdParamName,
-			AccountDetailConstants.fromAccountTypeParamName, AccountDetailConstants.fromAccountIdParamName,
-			AccountDetailConstants.toOfficeIdParamName, AccountDetailConstants.toClientIdParamName,
-			AccountDetailConstants.toAccountTypeParamName, AccountDetailConstants.toAccountIdParamName,
-			AccountTransfersApiConstants.transferDateParamName, AccountTransfersApiConstants.transferAmountParamName,
-			AccountTransfersApiConstants.transferDescriptionParamName));
-
+    private static final Set<String> REQUEST_DATA_PARAMETERS = new HashSet<>(Arrays.asList(AccountDetailConstants.localeParamName,
+            AccountDetailConstants.dateFormatParamName, AccountDetailConstants.fromOfficeIdParamName,
+            AccountDetailConstants.fromClientIdParamName, AccountDetailConstants.fromAccountTypeParamName,
+            AccountDetailConstants.fromAccountIdParamName, AccountDetailConstants.toOfficeIdParamName,
+            AccountDetailConstants.toClientIdParamName, AccountDetailConstants.toAccountTypeParamName,
+            AccountDetailConstants.toAccountIdParamName, AccountTransfersApiConstants.transferDateParamName,
+            AccountTransfersApiConstants.transferAmountParamName, AccountTransfersApiConstants.transferDescriptionParamName));
 
     @Autowired
     public AccountTransfersDataValidator(final FromJsonHelper fromApiJsonHelper,
@@ -69,7 +65,9 @@ public class AccountTransfersDataValidator {
 
         final String json = command.json();
 
-        if (StringUtils.isBlank(json)) { throw new InvalidJsonException(); }
+        if (StringUtils.isBlank(json)) {
+            throw new InvalidJsonException();
+        }
 
         final Type typeOfMap = new TypeToken<Map<String, Object>>() {}.getType();
         this.fromApiJsonHelper.checkForUnsupportedParameters(typeOfMap, json, REQUEST_DATA_PARAMETERS);
@@ -82,26 +80,26 @@ public class AccountTransfersDataValidator {
 
         this.accountTransfersDetailDataValidator.validate(command, baseDataValidator);
 
-		final LocalDate transactionDate = this.fromApiJsonHelper
-				.extractLocalDateNamed(AccountTransfersApiConstants.transferDateParamName, element);
-        baseDataValidator.reset().parameter(AccountTransfersApiConstants.transferDateParamName).value
-                (transactionDate).notNull();
+        final LocalDate transactionDate = this.fromApiJsonHelper.extractLocalDateNamed(AccountTransfersApiConstants.transferDateParamName,
+                element);
+        baseDataValidator.reset().parameter(AccountTransfersApiConstants.transferDateParamName).value(transactionDate).notNull();
 
-        final BigDecimal transactionAmount = this.fromApiJsonHelper.extractBigDecimalWithLocaleNamed
-                (AccountTransfersApiConstants.transferAmountParamName, element);
-        baseDataValidator.reset().parameter(AccountTransfersApiConstants.transferAmountParamName).value
-                (transactionAmount).notNull().positiveAmount();
+        final BigDecimal transactionAmount = this.fromApiJsonHelper
+                .extractBigDecimalWithLocaleNamed(AccountTransfersApiConstants.transferAmountParamName, element);
+        baseDataValidator.reset().parameter(AccountTransfersApiConstants.transferAmountParamName).value(transactionAmount).notNull()
+                .positiveAmount();
 
-        final String transactionDescription = this.fromApiJsonHelper.extractStringNamed(AccountTransfersApiConstants
-                .transferDescriptionParamName, element);
-        baseDataValidator.reset().parameter(AccountTransfersApiConstants.transferDescriptionParamName).value
-                (transactionDescription).notBlank()
-                .notExceedingLengthOf(200);
+        final String transactionDescription = this.fromApiJsonHelper
+                .extractStringNamed(AccountTransfersApiConstants.transferDescriptionParamName, element);
+        baseDataValidator.reset().parameter(AccountTransfersApiConstants.transferDescriptionParamName).value(transactionDescription)
+                .notBlank().notExceedingLengthOf(200);
 
         throwExceptionIfValidationWarningsExist(dataValidationErrors);
     }
 
     private void throwExceptionIfValidationWarningsExist(final List<ApiParameterError> dataValidationErrors) {
-        if (!dataValidationErrors.isEmpty()) { throw new PlatformApiDataValidationException(dataValidationErrors); }
+        if (!dataValidationErrors.isEmpty()) {
+            throw new PlatformApiDataValidationException(dataValidationErrors);
+        }
     }
 }

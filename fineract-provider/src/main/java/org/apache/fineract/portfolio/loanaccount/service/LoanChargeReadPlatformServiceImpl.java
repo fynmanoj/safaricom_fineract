@@ -21,12 +21,12 @@ package org.apache.fineract.portfolio.loanaccount.service;
 import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.apache.fineract.accounting.glaccount.data.GLAccountData;
 import org.apache.fineract.infrastructure.core.data.EnumOptionData;
 import org.apache.fineract.infrastructure.core.domain.JdbcSupport;
@@ -42,7 +42,6 @@ import org.apache.fineract.portfolio.loanaccount.data.LoanChargePaidByData;
 import org.apache.fineract.portfolio.loanaccount.data.LoanInstallmentChargeData;
 import org.apache.fineract.portfolio.loanaccount.domain.LoanTransactionType;
 import org.apache.fineract.portfolio.tax.data.TaxGroupData;
-import org.joda.time.LocalDate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -157,8 +156,8 @@ public class LoanChargeReadPlatformServiceImpl implements LoanChargeReadPlatform
         final List<EnumOptionData> feeFrequencyOptions = this.dropdownReadPlatformService.retrievePeriodFrequencyTypeOptions();
         // this field is applicable only for client charges
         final Map<String, List<GLAccountData>> incomeOrLiabilityAccountOptions = null;
-        final List<EnumOptionData> shareChargeCalculationTypeOptions = null ;
-        final List<EnumOptionData> shareChargeTimeTypeOptions = null ;
+        final List<EnumOptionData> shareChargeCalculationTypeOptions = null;
+        final List<EnumOptionData> shareChargeTimeTypeOptions = null;
         final Collection<TaxGroupData> taxGroupOptions = null;
         return ChargeData.template(null, allowedChargeCalculationTypeOptions, null, allowedChargeTimeOptions, null,
                 loansChargeCalculationTypeOptions, loansChargeTimeTypeOptions, savingsChargeCalculationTypeOptions,
@@ -301,7 +300,7 @@ public class LoanChargeReadPlatformServiceImpl implements LoanChargeReadPlatform
 
         private final String schemaSql;
 
-        public LoanChargeAccrualMapper() {
+        LoanChargeAccrualMapper() {
             StringBuilder sb = new StringBuilder(50);
             sb.append("lc.id as id, lc.charge_id as chargeId, ");
             sb.append("lc.amount as amountDue, ");
@@ -361,7 +360,7 @@ public class LoanChargeReadPlatformServiceImpl implements LoanChargeReadPlatform
         private final String schemaSql;
         private final Map<Long, LoanChargeData> chargeDataMap;
 
-        public LoanChargeUnRecognizedIncomeMapper(final Collection<LoanChargeData> datas) {
+        LoanChargeUnRecognizedIncomeMapper(final Collection<LoanChargeData> datas) {
             this.chargeDataMap = new HashMap<>();
             for (LoanChargeData chargeData : datas) {
                 this.chargeDataMap.put(chargeData.getId(), chargeData);
@@ -398,7 +397,8 @@ public class LoanChargeReadPlatformServiceImpl implements LoanChargeReadPlatform
 
     private Collection<LoanInstallmentChargeData> retrieveInstallmentLoanChargesForAccrual(Long loanChargeId) {
         final LoanInstallmentChargeAccrualMapper rm = new LoanInstallmentChargeAccrualMapper();
-        String sql = "select " + rm.schema() + " where lic.loan_charge_id= ?  group by lsi.installment, lsi.duedate, lic.amount_outstanding_derived, lic.amount, lic.is_paid_derived, lic.amount_waived_derived, lic.waived";
+        String sql = "select " + rm.schema()
+                + " where lic.loan_charge_id= ?  group by lsi.installment, lsi.duedate, lic.amount_outstanding_derived, lic.amount, lic.is_paid_derived, lic.amount_waived_derived, lic.waived";
         Collection<LoanInstallmentChargeData> chargeDatas = this.jdbcTemplate.query(sql, rm,
                 new Object[] { LoanTransactionType.ACCRUAL.getValue(), loanChargeId });
         final Map<Integer, LoanInstallmentChargeData> installmentChargeDatas = new HashMap<>();
@@ -417,7 +417,7 @@ public class LoanChargeReadPlatformServiceImpl implements LoanChargeReadPlatform
 
         private final String schemaSql;
 
-        public LoanInstallmentChargeAccrualMapper() {
+        LoanInstallmentChargeAccrualMapper() {
             StringBuilder sb = new StringBuilder(50);
             sb.append(" lsi.installment as installmentNumber, lsi.duedate as dueAsOfDate, ");
             sb.append("lic.amount_outstanding_derived as amountOutstanding,");
@@ -469,7 +469,7 @@ public class LoanChargeReadPlatformServiceImpl implements LoanChargeReadPlatform
         private final String schemaSql;
         private final Map<Integer, LoanInstallmentChargeData> installmentChargeDatas;
 
-        public LoanInstallmentChargeUnRecognizedIncomeMapper(final Map<Integer, LoanInstallmentChargeData> installmentChargeDatas) {
+        LoanInstallmentChargeUnRecognizedIncomeMapper(final Map<Integer, LoanInstallmentChargeData> installmentChargeDatas) {
             this.installmentChargeDatas = installmentChargeDatas;
             StringBuilder sb = new StringBuilder(50);
             sb.append(" cpb.installment_number as installmentNumber, ");
@@ -520,7 +520,7 @@ public class LoanChargeReadPlatformServiceImpl implements LoanChargeReadPlatform
 
         private final String schemaSql;
 
-        public LoanChargesPaidByMapper() {
+        LoanChargesPaidByMapper() {
             StringBuilder sb = new StringBuilder(100);
             sb.append("lcp.id as id, lcp.loan_charge_id as chargeId, ");
             sb.append("lcp.amount as amount, ");

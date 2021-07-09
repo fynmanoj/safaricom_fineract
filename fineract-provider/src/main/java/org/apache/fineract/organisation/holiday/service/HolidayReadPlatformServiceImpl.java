@@ -22,11 +22,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-
 import org.apache.fineract.infrastructure.core.data.EnumOptionData;
 import org.apache.fineract.infrastructure.core.domain.JdbcSupport;
 import org.apache.fineract.infrastructure.core.service.RoutingDataSource;
@@ -34,7 +34,6 @@ import org.apache.fineract.infrastructure.security.service.PlatformSecurityConte
 import org.apache.fineract.organisation.holiday.data.HolidayData;
 import org.apache.fineract.organisation.holiday.domain.RescheduleType;
 import org.apache.fineract.organisation.holiday.exception.HolidayNotFoundException;
-import org.joda.time.LocalDate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -57,10 +56,11 @@ public class HolidayReadPlatformServiceImpl implements HolidayReadPlatformServic
 
         private final String schema;
 
-        public HolidayMapper() {
+        HolidayMapper() {
             final StringBuilder sqlBuilder = new StringBuilder(200);
             sqlBuilder.append("h.id as id, h.name as name, h.description as description, h.from_date as fromDate, h.to_date as toDate, ");
-            sqlBuilder.append("h.repayments_rescheduled_to as repaymentsScheduleTO, h.rescheduling_type as reschedulingType, h.status_enum as statusEnum ");
+            sqlBuilder.append(
+                    "h.repayments_rescheduled_to as repaymentsScheduleTO, h.rescheduling_type as reschedulingType, h.status_enum as statusEnum ");
             sqlBuilder.append("from m_holiday h ");
             this.schema = sqlBuilder.toString();
         }
@@ -133,13 +133,13 @@ public class HolidayReadPlatformServiceImpl implements HolidayReadPlatformServic
 
             return this.jdbcTemplate.queryForObject(sql, rm, new Object[] { holidayId });
         } catch (final EmptyResultDataAccessException e) {
-            throw new HolidayNotFoundException(holidayId);
+            throw new HolidayNotFoundException(holidayId, e);
         }
     }
-    
+
     @Override
-    public List<EnumOptionData> retrieveRepaymentScheduleUpdationTyeOptions(){
-        
+    public List<EnumOptionData> retrieveRepaymentScheduleUpdationTyeOptions() {
+
         final List<EnumOptionData> repSchUpdationTypeOptions = Arrays.asList(
                 HolidayEnumerations.rescheduleType(RescheduleType.RESCHEDULETOSPECIFICDATE),
                 HolidayEnumerations.rescheduleType(RescheduleType.RESCHEDULETONEXTREPAYMENTDATE));

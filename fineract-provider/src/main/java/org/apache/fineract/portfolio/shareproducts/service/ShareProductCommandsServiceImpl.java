@@ -18,6 +18,7 @@
  */
 package org.apache.fineract.portfolio.shareproducts.service;
 
+import com.google.gson.JsonElement;
 import org.apache.fineract.infrastructure.core.api.JsonCommand;
 import org.apache.fineract.infrastructure.core.data.CommandProcessingResult;
 import org.apache.fineract.infrastructure.core.serialization.FromJsonHelper;
@@ -25,8 +26,6 @@ import org.apache.fineract.portfolio.products.service.ProductCommandsService;
 import org.apache.fineract.portfolio.shareproducts.constants.ShareProductApiConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import com.google.gson.JsonElement;
 
 @Service(value = "SHAREPRODUCT_COMMANDSERVICE")
 public class ShareProductCommandsServiceImpl implements ProductCommandsService {
@@ -38,20 +37,20 @@ public class ShareProductCommandsServiceImpl implements ProductCommandsService {
         this.fromApiJsonHelper = fromApiJsonHelper;
     }
 
-
     public CommandProcessingResult postDividends(Long productId, JsonCommand jsonCommand) {
-        return null ;
+        return null;
     }
 
     @Override
     public Object handleCommand(Long productId, String command, String jsonBody) {
         final JsonElement parsedCommand = this.fromApiJsonHelper.parse(jsonBody);
         final JsonCommand jsonCommand = JsonCommand.from(jsonBody, parsedCommand, this.fromApiJsonHelper, null, null, null, null, null,
-                null, null, null, null, null,null,null);
+                null, null, null, null, null, null, null);
         if (ShareProductApiConstants.PREIEW_DIVIDENDS_COMMAND_STRING.equals(command)) {
-            return null ;
-        } else if (ShareProductApiConstants.POST_DIVIDENdS_COMMAND_STRING.equals(command)) { return postDividends(productId,
-                jsonCommand); }
+            return null;
+        } else if (ShareProductApiConstants.POST_DIVIDENdS_COMMAND_STRING.equals(command)) {
+            return postDividends(productId, jsonCommand);
+        }
         // throw unknow commandexception
         return CommandProcessingResult.empty();
     }

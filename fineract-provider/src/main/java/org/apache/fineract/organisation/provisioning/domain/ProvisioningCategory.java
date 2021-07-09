@@ -20,18 +20,16 @@ package org.apache.fineract.organisation.provisioning.domain;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
-
 import org.apache.fineract.infrastructure.core.api.JsonCommand;
 import org.apache.fineract.infrastructure.core.domain.AbstractPersistableCustom;
 
 @Entity
 @Table(name = "m_provision_category", uniqueConstraints = { @UniqueConstraint(columnNames = { "category_name" }, name = "category_name") })
-public class ProvisioningCategory extends AbstractPersistableCustom<Long> {
+public class ProvisioningCategory extends AbstractPersistableCustom {
 
     @Column(name = "category_name", nullable = false, unique = true)
     private String categoryName;
@@ -82,9 +80,15 @@ public class ProvisioningCategory extends AbstractPersistableCustom<Long> {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) { return false; }
-        if (obj == this) { return true; }
-        if (obj.getClass() != getClass()) { return false; }
+        if (obj == null) {
+            return false;
+        }
+        if (obj == this) {
+            return true;
+        }
+        if (!(obj instanceof ProvisioningCategory)) {
+            return false;
+        }
         ProvisioningCategory pc = (ProvisioningCategory) obj;
         return pc.getCategoryName().equals(this.categoryName);
     }

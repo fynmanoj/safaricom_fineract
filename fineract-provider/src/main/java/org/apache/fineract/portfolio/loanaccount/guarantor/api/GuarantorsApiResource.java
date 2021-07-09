@@ -18,13 +18,15 @@
  */
 package org.apache.fineract.portfolio.loanaccount.guarantor.api;
 
+import com.sun.jersey.core.header.FormDataContentDisposition;
+import com.sun.jersey.multipart.FormDataParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -38,9 +40,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
-
-import com.sun.jersey.core.header.FormDataContentDisposition;
-import com.sun.jersey.multipart.FormDataParam;
 import org.apache.fineract.commands.domain.CommandWrapper;
 import org.apache.fineract.commands.service.CommandWrapperBuilder;
 import org.apache.fineract.commands.service.PortfolioCommandSourceWritePlatformService;
@@ -74,17 +73,17 @@ import org.springframework.stereotype.Component;
 @Path("/loans/{loanId}/guarantors")
 @Component
 @Scope("singleton")
+@Tag(name = "Guarantors", description = "")
 public class GuarantorsApiResource {
 
-    private static final Set<String> RESPONSE_DATA_PARAMETERS = new HashSet<>(Arrays.asList("id", "loanId",
-            "clientRelationshipType",
-            "guarantorType", "firstname", "lastname", "entityId", "externalId", "officeName", "joinedDate", "addressLine1", "addressLine2",
-            "city", "state", "zip", "country", "mobileNumber", "housePhoneNumber", "comment", "dob", "guarantorTypeOptions",
-            "allowedClientRelationshipTypes"));
+    private static final Set<String> RESPONSE_DATA_PARAMETERS = new HashSet<>(
+            Arrays.asList("id", "loanId", "clientRelationshipType", "guarantorType", "firstname", "lastname", "entityId", "externalId",
+                    "officeName", "joinedDate", "addressLine1", "addressLine2", "city", "state", "zip", "country", "mobileNumber",
+                    "housePhoneNumber", "comment", "dob", "guarantorTypeOptions", "allowedClientRelationshipTypes"));
 
-	private static final Set<String> ACCOUNT_TRANSFER_API_RESPONSE_DATA_PARAMETERS = new HashSet<>(
-			Arrays.asList(AccountDetailConstants.idParamName, AccountTransfersApiConstants.transferDescriptionParamName,
-					AccountTransfersApiConstants.currencyParamName));
+    private static final Set<String> ACCOUNT_TRANSFER_API_RESPONSE_DATA_PARAMETERS = new HashSet<>(
+            Arrays.asList(AccountDetailConstants.idParamName, AccountTransfersApiConstants.transferDescriptionParamName,
+                    AccountTransfersApiConstants.currencyParamName));
 
     private final String resourceNameForPermission = "GUARANTOR";
 
@@ -99,15 +98,13 @@ public class GuarantorsApiResource {
     private final BulkImportWorkbookService bulkImportWorkbookService;
     private final BulkImportWorkbookPopulatorService bulkImportWorkbookPopulatorService;
 
-
     @Autowired
     public GuarantorsApiResource(final PlatformSecurityContext context, final GuarantorReadPlatformService guarantorReadPlatformService,
             final DefaultToApiJsonSerializer<GuarantorData> toApiJsonSerializer, final ApiRequestParameterHelper apiRequestParameterHelper,
             final PortfolioCommandSourceWritePlatformService commandsSourceWritePlatformService,
             final CodeValueReadPlatformService codeValueReadPlatformService,
             final PortfolioAccountReadPlatformService portfolioAccountReadPlatformService,
-            final LoanReadPlatformService loanReadPlatformService,
-            final BulkImportWorkbookService bulkImportWorkbookService,
+            final LoanReadPlatformService loanReadPlatformService, final BulkImportWorkbookService bulkImportWorkbookService,
             final BulkImportWorkbookPopulatorService bulkImportWorkbookPopulatorService) {
         this.context = context;
         this.apiRequestParameterHelper = apiRequestParameterHelper;
@@ -117,15 +114,15 @@ public class GuarantorsApiResource {
         this.codeValueReadPlatformService = codeValueReadPlatformService;
         this.portfolioAccountReadPlatformService = portfolioAccountReadPlatformService;
         this.loanReadPlatformService = loanReadPlatformService;
-        this.bulkImportWorkbookService=bulkImportWorkbookService;
-        this.bulkImportWorkbookPopulatorService=bulkImportWorkbookPopulatorService;
+        this.bulkImportWorkbookService = bulkImportWorkbookService;
+        this.bulkImportWorkbookPopulatorService = bulkImportWorkbookPopulatorService;
     }
 
     @GET
     @Path("template")
     @Consumes({ MediaType.APPLICATION_JSON })
     @Produces({ MediaType.APPLICATION_JSON })
-    public String newGuarantorTemplate(@Context final UriInfo uriInfo) {
+    public String newGuarantorTemplate(@Context final UriInfo uriInfo, @PathParam("loanId") final Long loanId) {
         this.context.authenticatedUser().validateHasReadPermission(this.resourceNameForPermission);
 
         final List<EnumOptionData> guarantorTypeOptions = GuarantorEnumerations.guarantorType(GuarantorType.values());
@@ -236,18 +233,19 @@ public class GuarantorsApiResource {
     @GET
     @Path("downloadtemplate")
     @Produces("application/vnd.ms-excel")
-    public Response getGuarantorTemplate(@QueryParam("officeId") final Long officeId,@QueryParam("dateFormat") final String dateFormat) {
-        return bulkImportWorkbookPopulatorService.getTemplate(GlobalEntityType.GUARANTORS.toString(), officeId,null,dateFormat);
+    public Response getGuarantorTemplate(@QueryParam("officeId") final Long officeId, @QueryParam("dateFormat") final String dateFormat,
+            @PathParam("loanId") final Long loanId) {
+        return bulkImportWorkbookPopulatorService.getTemplate(GlobalEntityType.GUARANTORS.toString(), officeId, null, dateFormat);
     }
 
     @POST
     @Path("uploadtemplate")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     public String postGuarantorTemplate(@FormDataParam("file") InputStream uploadedInputStream,
-            @FormDataParam("file") FormDataContentDisposition fileDetail,@FormDataParam("locale") final String locale,
-            @FormDataParam("dateFormat") final String dateFormat){
-        final Long importDocumentId =this.bulkImportWorkbookService.importWorkbook(GlobalEntityType.GUARANTORS.toString(),
-                uploadedInputStream,fileDetail,locale,dateFormat);
+            @FormDataParam("file") FormDataContentDisposition fileDetail, @FormDataParam("locale") final String locale,
+            @FormDataParam("dateFormat") final String dateFormat, @PathParam("loanId") final Long loanId) {
+        final Long importDocumentId = this.bulkImportWorkbookService.importWorkbook(GlobalEntityType.GUARANTORS.toString(),
+                uploadedInputStream, fileDetail, locale, dateFormat);
         return this.apiJsonSerializerService.serialize(importDocumentId);
     }
 }

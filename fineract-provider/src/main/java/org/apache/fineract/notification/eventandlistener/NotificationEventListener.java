@@ -18,6 +18,13 @@
  */
 package org.apache.fineract.notification.eventandlistener;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import javax.jms.JMSException;
+import javax.jms.Message;
+import javax.jms.ObjectMessage;
+import javax.jms.Session;
 import org.apache.fineract.infrastructure.core.domain.FineractPlatformTenant;
 import org.apache.fineract.infrastructure.core.service.ThreadLocalContextUtil;
 import org.apache.fineract.infrastructure.security.service.BasicAuthTenantDetailsService;
@@ -28,14 +35,6 @@ import org.apache.fineract.useradministration.domain.AppUserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jms.listener.SessionAwareMessageListener;
 import org.springframework.stereotype.Service;
-
-import javax.jms.JMSException;
-import javax.jms.Message;
-import javax.jms.ObjectMessage;
-import javax.jms.Session;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
 
 @Service
 public class NotificationEventListener implements SessionAwareMessageListener {
@@ -48,8 +47,7 @@ public class NotificationEventListener implements SessionAwareMessageListener {
 
     @Autowired
     public NotificationEventListener(BasicAuthTenantDetailsService basicAuthTenantDetailsService,
-                                     NotificationWritePlatformService notificationWritePlatformService,
-                                     AppUserRepository appUserRepository) {
+            NotificationWritePlatformService notificationWritePlatformService, AppUserRepository appUserRepository) {
         this.basicAuthTenantDetailsService = basicAuthTenantDetailsService;
         this.notificationWritePlatformService = notificationWritePlatformService;
         this.appUserRepository = appUserRepository;
@@ -60,8 +58,8 @@ public class NotificationEventListener implements SessionAwareMessageListener {
         if (message instanceof ObjectMessage) {
             NotificationData notificationData = (NotificationData) ((ObjectMessage) message).getObject();
 
-            final FineractPlatformTenant tenant = this.basicAuthTenantDetailsService
-                    .loadTenantById(notificationData.getTenantIdentifier(), false);
+            final FineractPlatformTenant tenant = this.basicAuthTenantDetailsService.loadTenantById(notificationData.getTenantIdentifier(),
+                    false);
             ThreadLocalContextUtil.setTenant(tenant);
 
             Long appUserId = notificationData.getActor();
@@ -71,7 +69,7 @@ public class NotificationEventListener implements SessionAwareMessageListener {
             if (notificationData.getOfficeId() != null) {
                 List<Long> tempUserIds = new ArrayList<>(userIds);
                 for (Long userId : tempUserIds) {
-                    AppUser appUser = appUserRepository.findOne(userId);
+                    AppUser appUser = appUserRepository.findById(userId).get();
                     if (!Objects.equals(appUser.getOffice().getId(), notificationData.getOfficeId())) {
                         userIds.remove(userId);
                     }
@@ -82,15 +80,9 @@ public class NotificationEventListener implements SessionAwareMessageListener {
                 userIds.remove(appUserId);
             }
 
-            notificationWritePlatformService.notify(
-                    userIds,
-                    notificationData.getObjectType(),
-                    notificationData.getObjectIdentfier(),
-                    notificationData.getAction(),
-                    notificationData.getActor(),
-                    notificationData.getContent(),
-                    notificationData.isSystemGenerated()
-            );
+            notificationWritePlatformService.notify(userIds, notificationData.getObjectType(), notificationData.getObjectIdentfier(),
+                    notificationData.getAction(), notificationData.getActor(), notificationData.getContent(),
+                    notificationData.isSystemGenerated());
         }
     }
 }

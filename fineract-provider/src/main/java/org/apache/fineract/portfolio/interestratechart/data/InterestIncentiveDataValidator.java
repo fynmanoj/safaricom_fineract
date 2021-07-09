@@ -27,6 +27,9 @@ import static org.apache.fineract.portfolio.interestratechart.InterestIncentiveA
 import static org.apache.fineract.portfolio.interestratechart.InterestIncentiveApiConstants.incentiveTypeparamName;
 import static org.apache.fineract.portfolio.interestratechart.InterestRateChartApiConstants.descriptionParamName;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -36,8 +39,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.fineract.infrastructure.core.data.ApiParameterError;
 import org.apache.fineract.infrastructure.core.data.DataValidatorBuilder;
 import org.apache.fineract.infrastructure.core.exception.InvalidJsonException;
@@ -51,22 +53,18 @@ import org.apache.fineract.portfolio.interestratechart.incentive.InterestIncenti
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.reflect.TypeToken;
-
 @Component
 public class InterestIncentiveDataValidator {
 
     private final FromJsonHelper fromApiJsonHelper;
 
-	private static final Set<String> INTERESTRATE_INCENTIVE_CREATE_REQUEST_DATA_PARAMETERS = new HashSet<>(
-			Arrays.asList(InterestIncentiveApiConstants.idParamName, entityTypeParamName, attributeNameParamName,
-					conditionTypeParamName, attributeValueParamName, incentiveTypeparamName, amountParamName));
+    private static final Set<String> INTERESTRATE_INCENTIVE_CREATE_REQUEST_DATA_PARAMETERS = new HashSet<>(
+            Arrays.asList(InterestIncentiveApiConstants.idParamName, entityTypeParamName, attributeNameParamName, conditionTypeParamName,
+                    attributeValueParamName, incentiveTypeparamName, amountParamName));
 
-	private static final Set<String> INTERESTRATE_INCENTIVE_UPDATE_REQUEST_DATA_PARAMETERS = new HashSet<>(
-			Arrays.asList(InterestIncentiveApiConstants.idParamName, entityTypeParamName, attributeNameParamName,
-					conditionTypeParamName, attributeValueParamName, incentiveTypeparamName, amountParamName));
+    private static final Set<String> INTERESTRATE_INCENTIVE_UPDATE_REQUEST_DATA_PARAMETERS = new HashSet<>(
+            Arrays.asList(InterestIncentiveApiConstants.idParamName, entityTypeParamName, attributeNameParamName, conditionTypeParamName,
+                    attributeValueParamName, incentiveTypeparamName, amountParamName));
 
     @Autowired
     public InterestIncentiveDataValidator(final FromJsonHelper fromApiJsonHelper) {
@@ -74,7 +72,9 @@ public class InterestIncentiveDataValidator {
     }
 
     public void validateCreate(final String json) {
-        if (StringUtils.isBlank(json)) { throw new InvalidJsonException(); }
+        if (StringUtils.isBlank(json)) {
+            throw new InvalidJsonException();
+        }
 
         final Type typeOfMap = new TypeToken<Map<String, Object>>() {}.getType();
         this.fromApiJsonHelper.checkForUnsupportedParameters(typeOfMap, json, INTERESTRATE_INCENTIVE_CREATE_REQUEST_DATA_PARAMETERS);
@@ -117,7 +117,9 @@ public class InterestIncentiveDataValidator {
     }
 
     public void validateUpdate(final String json) {
-        if (StringUtils.isBlank(json)) { throw new InvalidJsonException(); }
+        if (StringUtils.isBlank(json)) {
+            throw new InvalidJsonException();
+        }
 
         final Type typeOfMap = new TypeToken<Map<String, Object>>() {}.getType();
         this.fromApiJsonHelper.checkForUnsupportedParameters(typeOfMap, json, INTERESTRATE_INCENTIVE_UPDATE_REQUEST_DATA_PARAMETERS);
@@ -177,7 +179,9 @@ public class InterestIncentiveDataValidator {
     }
 
     private void throwExceptionIfValidationWarningsExist(final List<ApiParameterError> dataValidationErrors) {
-        if (!dataValidationErrors.isEmpty()) { throw new PlatformApiDataValidationException(dataValidationErrors); }
+        if (!dataValidationErrors.isEmpty()) {
+            throw new PlatformApiDataValidationException(dataValidationErrors);
+        }
     }
 
 }

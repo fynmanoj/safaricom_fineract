@@ -18,15 +18,14 @@
  */
 package org.apache.fineract.batch.service;
 
+import com.google.gson.Gson;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
-
 import org.apache.fineract.batch.command.CommandContext;
 import org.apache.fineract.batch.command.CommandStrategy;
 import org.apache.fineract.batch.command.CommandStrategyProvider;
@@ -44,15 +43,12 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import com.google.gson.Gson;
-
 /**
- * Implementation for {@link BatchApiService} to iterate through all the
- * incoming requests and obtain the appropriate CommandStrategy from
- * CommandStrategyProvider.
- * 
+ * Implementation for {@link BatchApiService} to iterate through all the incoming requests and obtain the appropriate
+ * CommandStrategy from CommandStrategyProvider.
+ *
  * @author Rishabh Shukla
- * 
+ *
  * @see org.apache.fineract.batch.domain.BatchRequest
  * @see org.apache.fineract.batch.domain.BatchResponse
  * @see org.apache.fineract.batch.command.CommandStrategyProvider
@@ -63,12 +59,11 @@ public class BatchApiServiceImpl implements BatchApiService {
     private final CommandStrategyProvider strategyProvider;
     private final ResolutionHelper resolutionHelper;
     private final TransactionTemplate transactionTemplate;
-    private List<BatchResponse> checkList = new ArrayList<>();
 
     /**
      * Constructs a 'BatchApiServiceImpl' with an argument of
      * {@link org.apache.fineract.batch.command.CommandStrategyProvider} type.
-     * 
+     *
      * @param strategyProvider
      * @param resolutionHelper
      * @param transactionTemplate
@@ -82,32 +77,30 @@ public class BatchApiServiceImpl implements BatchApiService {
     }
 
     /**
-     * Returns the response list by getting a proper
-     * {@link org.apache.fineract.batch.command.CommandStrategy}. execute() method
-     * of acquired commandStrategy is then provided with the separate Request.
-     * 
+     * Returns the response list by getting a proper {@link org.apache.fineract.batch.command.CommandStrategy}.
+     * execute() method of acquired commandStrategy is then provided with the separate Request.
+     *
      * @param requestList
      * @param uriInfo
-     * @return List<BatchResponse>
+     * @return {@code List<BatchResponse>}
      */
     private List<BatchResponse> handleBatchRequests(final List<BatchRequest> requestList, final UriInfo uriInfo) {
 
         final List<BatchResponse> responseList = new ArrayList<>(requestList.size());
 
         final List<BatchRequestNode> batchRequestNodes = this.resolutionHelper.getDependingRequests(requestList);
-        checkList.clear();
-        if(batchRequestNodes.isEmpty()) {
-        	 final BatchResponse response = new BatchResponse();
-        	 ErrorInfo ex = ErrorHandler.handler(new ClientDetailsNotFoundException());
-             response.setStatusCode(500);
-             response.setBody(ex.getMessage());
-             responseList.add(response) ;
-             return responseList ;
+        if (batchRequestNodes.isEmpty()) {
+            final BatchResponse response = new BatchResponse();
+            ErrorInfo ex = ErrorHandler.handler(new ClientDetailsNotFoundException());
+            response.setStatusCode(500);
+            response.setBody(ex.getMessage());
+            responseList.add(response);
+            return responseList;
         }
         for (BatchRequestNode rootNode : batchRequestNodes) {
             final BatchRequest rootRequest = rootNode.getRequest();
-            final CommandStrategy commandStrategy = this.strategyProvider.getCommandStrategy(CommandContext
-                    .resource(rootRequest.getRelativeUrl()).method(rootRequest.getMethod()).build());
+            final CommandStrategy commandStrategy = this.strategyProvider
+                    .getCommandStrategy(CommandContext.resource(rootRequest.getRelativeUrl()).method(rootRequest.getMethod()).build());
             final BatchResponse rootResponse = commandStrategy.execute(rootRequest, uriInfo);
 
             responseList.add(rootResponse);
@@ -122,7 +115,6 @@ public class BatchApiServiceImpl implements BatchApiService {
             }
         });
 
-        checkList = responseList;
         return responseList;
 
     }
@@ -141,8 +133,8 @@ public class BatchApiServiceImpl implements BatchApiService {
 
                     if (rootResponse.getStatusCode().equals(200)) {
                         childRequest = this.resolutionHelper.resoluteRequest(childRequest, rootResponse);
-                        final CommandStrategy commandStrategy = this.strategyProvider.getCommandStrategy(CommandContext
-                                .resource(childRequest.getRelativeUrl()).method(childRequest.getMethod()).build());
+                        final CommandStrategy commandStrategy = this.strategyProvider.getCommandStrategy(
+                                CommandContext.resource(childRequest.getRelativeUrl()).method(childRequest.getMethod()).build());
 
                         childResponse = commandStrategy.execute(childRequest, uriInfo);
 
@@ -154,8 +146,8 @@ public class BatchApiServiceImpl implements BatchApiService {
                         childResponse.setStatusCode(Status.CONFLICT.getStatusCode());
 
                         // Some detail information about the error
-                        final ErrorInfo conflictError = new ErrorInfo(Status.CONFLICT.getStatusCode(), 8001, "Parent request with id "
-                                + rootResponse.getRequestId() + " was erroneous!");
+                        final ErrorInfo conflictError = new ErrorInfo(Status.CONFLICT.getStatusCode(), 8001,
+                                "Parent request with id " + rootResponse.getRequestId() + " was erroneous!");
                         childResponse.setBody(conflictError.getMessage());
                     }
                     childResponses.addAll(this.processChildRequests(childNode, childResponse, uriInfo));
@@ -183,14 +175,15 @@ public class BatchApiServiceImpl implements BatchApiService {
 
     @Override
     public List<BatchResponse> handleBatchRequestsWithEnclosingTransaction(final List<BatchRequest> requestList, final UriInfo uriInfo) {
-
+        List<BatchResponse> responseList = new ArrayList<>();
         try {
             return this.transactionTemplate.execute(new TransactionCallback<List<BatchResponse>>() {
 
                 @Override
                 public List<BatchResponse> doInTransaction(TransactionStatus status) {
                     try {
-                        return handleBatchRequests(requestList, uriInfo);
+                        responseList.addAll(handleBatchRequests(requestList, uriInfo));
+                        return responseList;
                     } catch (RuntimeException ex) {
 
                         ErrorInfo e = ErrorHandler.handler(ex);
@@ -212,34 +205,32 @@ public class BatchApiServiceImpl implements BatchApiService {
             BatchResponse errResponse = new BatchResponse();
             errResponse.setStatusCode(e.getStatusCode());
 
-            for (BatchResponse res : checkList) {
+            for (BatchResponse res : responseList) {
                 if (!res.getStatusCode().equals(200)) {
                     errResponse.setBody("Transaction is being rolled back. First erroneous request: \n" + new Gson().toJson(res));
                     break;
                 }
             }
 
-            checkList.clear();
             List<BatchResponse> errResponseList = new ArrayList<>();
             errResponseList.add(errResponse);
 
             return errResponseList;
-        }catch (final NonTransientDataAccessException ex) {
-        	 ErrorInfo e = ErrorHandler.handler(ex);
-             BatchResponse errResponse = new BatchResponse();
-             errResponse.setStatusCode(e.getStatusCode());
+        } catch (final NonTransientDataAccessException ex) {
+            ErrorInfo e = ErrorHandler.handler(ex);
+            BatchResponse errResponse = new BatchResponse();
+            errResponse.setStatusCode(e.getStatusCode());
 
-             for (BatchResponse res : checkList) {
-                 if (!res.getStatusCode().equals(200)) {
-                     errResponse.setBody("Transaction is being rolled back. First erroneous request: \n" + new Gson().toJson(res));
-                     break;
-                 }
-             }
-             checkList.clear();
-             List<BatchResponse> errResponseList = new ArrayList<>();
-             errResponseList.add(errResponse);
+            for (BatchResponse res : responseList) {
+                if (!res.getStatusCode().equals(200)) {
+                    errResponse.setBody("Transaction is being rolled back. First erroneous request: \n" + new Gson().toJson(res));
+                    break;
+                }
+            }
+            List<BatchResponse> errResponseList = new ArrayList<>();
+            errResponseList.add(errResponse);
 
-             return errResponseList;
+            return errResponseList;
         }
     }
 }

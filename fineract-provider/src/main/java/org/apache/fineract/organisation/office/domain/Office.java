@@ -18,12 +18,13 @@
  */
 package org.apache.fineract.organisation.office.domain;
 
+import java.io.Serializable;
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -34,22 +35,21 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.UniqueConstraint;
-
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.fineract.infrastructure.core.api.JsonCommand;
 import org.apache.fineract.infrastructure.core.domain.AbstractPersistableCustom;
+import org.apache.fineract.infrastructure.core.service.DateUtils;
 import org.apache.fineract.organisation.office.exception.CannotUpdateOfficeWithParentOfficeSameAsSelf;
 import org.apache.fineract.organisation.office.exception.RootOfficeParentCannotBeUpdated;
-import org.joda.time.LocalDate;
 
 @Entity
 @Table(name = "m_office", uniqueConstraints = { @UniqueConstraint(columnNames = { "name" }, name = "name_org"),
         @UniqueConstraint(columnNames = { "external_id" }, name = "externalid_org") })
-public class Office extends AbstractPersistableCustom<Long> {
+public class Office extends AbstractPersistableCustom implements Serializable {
 
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
-    private List<Office> children = new LinkedList<>();
+    private List<Office> children = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
@@ -89,7 +89,7 @@ public class Office extends AbstractPersistableCustom<Long> {
 
     private Office(final Office parent, final String name, final LocalDate openingDate, final String externalId) {
         this.parent = parent;
-        this.openingDate = openingDate.toDateTimeAtStartOfDay().toDate();
+        this.openingDate = Date.from(openingDate.atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant());
         if (parent != null) {
             this.parent.addChild(this);
         }
@@ -119,7 +119,9 @@ public class Office extends AbstractPersistableCustom<Long> {
 
         final String parentIdParamName = "parentId";
 
-        if (command.parameterExists(parentIdParamName) && this.parent == null) { throw new RootOfficeParentCannotBeUpdated(); }
+        if (command.parameterExists(parentIdParamName) && this.parent == null) {
+            throw new RootOfficeParentCannotBeUpdated();
+        }
 
         if (this.parent != null && command.isChangeInLongParameterNamed(parentIdParamName, this.parent.getId())) {
             final Long newValue = command.longValueOfParameterNamed(parentIdParamName);
@@ -134,7 +136,7 @@ public class Office extends AbstractPersistableCustom<Long> {
             actualChanges.put("locale", localeAsInput);
 
             final LocalDate newValue = command.localDateValueOfParameterNamed(openingDateParamName);
-            this.openingDate = newValue.toDate();
+            this.openingDate = Date.from(newValue.atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant());
         }
 
         final String nameParamName = "name";
@@ -165,16 +167,20 @@ public class Office extends AbstractPersistableCustom<Long> {
     public LocalDate getOpeningLocalDate() {
         LocalDate openingLocalDate = null;
         if (this.openingDate != null) {
-            openingLocalDate = LocalDate.fromDateFields(this.openingDate);
+            openingLocalDate = LocalDate.ofInstant(this.openingDate.toInstant(), DateUtils.getDateTimeZoneOfTenant());
         }
         return openingLocalDate;
     }
 
     public void update(final Office newParent) {
 
-        if (this.parent == null) { throw new RootOfficeParentCannotBeUpdated(); }
+        if (this.parent == null) {
+            throw new RootOfficeParentCannotBeUpdated();
+        }
 
-        if (identifiedBy(newParent.getId())) { throw new CannotUpdateOfficeWithParentOfficeSameAsSelf(getId(), newParent.getId()); }
+        if (identifiedBy(newParent.getId())) {
+            throw new CannotUpdateOfficeWithParentOfficeSameAsSelf(getId(), newParent.getId());
+        }
 
         this.parent = newParent;
         generateHierarchy();
@@ -206,9 +212,9 @@ public class Office extends AbstractPersistableCustom<Long> {
     }
 
     public Office getParent() {
-    	return this.parent;
+        return this.parent;
     }
-    
+
     public boolean hasParentOf(final Office office) {
         boolean isParent = false;
         if (this.parent != null) {
@@ -242,8 +248,8 @@ public class Office extends AbstractPersistableCustom<Long> {
 
         return match;
     }
-    
+
     public void loadLazyCollections() {
-        this.children.size() ;
+        this.children.size();
     }
 }

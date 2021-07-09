@@ -19,24 +19,21 @@
 package org.apache.fineract.portfolio.savings.domain;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
-
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.Transient;
-
 import org.apache.fineract.infrastructure.core.service.DateUtils;
 import org.apache.fineract.organisation.monetary.domain.MonetaryCurrency;
 import org.apache.fineract.organisation.monetary.domain.Money;
 import org.apache.fineract.portfolio.savings.domain.interest.PostingPeriod;
-import org.joda.time.LocalDate;
 
 /**
- * {@link SavingsAccountSummary} encapsulates all the summary details of a
- * {@link SavingsAccount}.
+ * {@link SavingsAccountSummary} encapsulates all the summary details of a {@link SavingsAccount}.
  */
 @Embeddable
 public final class SavingsAccountSummary {
@@ -80,12 +77,12 @@ public final class SavingsAccountSummary {
 
     @Column(name = "total_withhold_tax_derived", scale = 6, precision = 19)
     private BigDecimal totalWithholdTax;
-    
+
     @Temporal(TemporalType.DATE)
     @Column(name = "last_interest_calculation_date")
     private Date lastInterestCalculationDate;
 
-    protected SavingsAccountSummary() {
+    SavingsAccountSummary() {
         //
     }
 
@@ -103,7 +100,6 @@ public final class SavingsAccountSummary {
         this.totalPenaltyChargesWaived = wrapper.calculateTotalPenaltyChargeWaived(currency, transactions);
         this.totalOverdraftInterestDerived = wrapper.calculateTotalOverdraftInterest(currency, transactions);
         this.totalWithholdTax = wrapper.calculateTotalWithholdTaxWithdrawal(currency, transactions);
-        
 
         this.accountBalance = Money.of(currency, this.totalDeposits).plus(this.totalInterestPosted).minus(this.totalWithdrawals)
                 .minus(this.totalWithdrawalFees).minus(this.totalAnnualFees).minus(this.totalFeeCharge).minus(this.totalPenaltyCharge)
@@ -119,7 +115,7 @@ public final class SavingsAccountSummary {
             interestEarned = interestEarned == null ? Money.zero(currency) : interestEarned;
             totalEarned = totalEarned.plus(interestEarned);
         }
-        this.lastInterestCalculationDate = interestCalculationDate.toDate();
+        this.lastInterestCalculationDate = Date.from(interestCalculationDate.atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant());
         this.totalInterestEarned = totalEarned.getAmount();
     }
 

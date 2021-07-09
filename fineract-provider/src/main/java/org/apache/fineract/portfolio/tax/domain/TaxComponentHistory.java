@@ -19,21 +19,19 @@
 package org.apache.fineract.portfolio.tax.domain;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Date;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-
 import org.apache.fineract.infrastructure.core.domain.AbstractAuditableCustom;
-import org.apache.fineract.useradministration.domain.AppUser;
-import org.joda.time.LocalDate;
+import org.apache.fineract.infrastructure.core.service.DateUtils;
 
 @Entity
 @Table(name = "m_tax_component_history")
-public class TaxComponentHistory extends AbstractAuditableCustom<AppUser, Long> {
+public class TaxComponentHistory extends AbstractAuditableCustom {
 
     @Column(name = "percentage", scale = 6, precision = 19, nullable = false)
     private BigDecimal percentage;
@@ -52,39 +50,38 @@ public class TaxComponentHistory extends AbstractAuditableCustom<AppUser, Long> 
 
     private TaxComponentHistory(final BigDecimal percentage, final LocalDate startDate, final LocalDate endDate) {
         this.percentage = percentage;
-        this.startDate = startDate.toDate();
-        this.endDate = endDate.toDate();
+        this.startDate = Date.from(startDate.atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant());
+        this.endDate = Date.from(endDate.atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant());
     }
 
     public static TaxComponentHistory createTaxComponentHistory(final BigDecimal percentage, final LocalDate startDate,
             final LocalDate endDate) {
         return new TaxComponentHistory(percentage, startDate, endDate);
     }
-    
-    public LocalDate startDate(){
+
+    public LocalDate startDate() {
         LocalDate startDate = null;
-        if(this.startDate != null){
-            startDate = new LocalDate(this.startDate);
+        if (this.startDate != null) {
+            startDate = LocalDate.ofInstant(this.startDate.toInstant(), DateUtils.getDateTimeZoneOfTenant());
         }
         return startDate;
     }
-    
-    public LocalDate endDate(){
+
+    public LocalDate endDate() {
         LocalDate endDate = null;
-        if(this.endDate != null){
-            endDate = new LocalDate(this.endDate);
+        if (this.endDate != null) {
+            endDate = LocalDate.ofInstant(this.endDate.toInstant(), DateUtils.getDateTimeZoneOfTenant());
         }
         return endDate;
     }
-    
+
     public boolean occursOnDayFromAndUpToAndIncluding(final LocalDate target) {
-        if(this.endDate == null){
+        if (this.endDate == null) {
             return target != null && target.isAfter(startDate());
         }
         return target != null && target.isAfter(startDate()) && !target.isAfter(endDate());
     }
 
-    
     public BigDecimal getPercentage() {
         return this.percentage;
     }

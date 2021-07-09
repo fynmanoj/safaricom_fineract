@@ -18,7 +18,22 @@
  */
 package org.apache.fineract.portfolio.account.api;
 
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.Date;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.UriInfo;
 import org.apache.fineract.accounting.journalentry.api.DateParam;
 import org.apache.fineract.infrastructure.core.api.ApiRequestParameterHelper;
 import org.apache.fineract.infrastructure.core.serialization.ApiRequestJsonSerializationSettings;
@@ -33,16 +48,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.UriInfo;
-import java.util.Date;
-
 @Path("/standinginstructionrunhistory")
 @Component
 @Scope("singleton")
-@Api(value = "Standing Instructions History", description = "The list capability of history can support pagination and sorting.")
+@Tag(name = "Standing Instructions History", description = "The list capability of history can support pagination and sorting.")
 public class StandingInstructionHistoryApiResource {
 
     private final PlatformSecurityContext context;
@@ -64,16 +73,27 @@ public class StandingInstructionHistoryApiResource {
     @GET
     @Consumes({ MediaType.APPLICATION_JSON })
     @Produces({ MediaType.APPLICATION_JSON })
-    @ApiOperation(value = "Standing Instructions Logged History", httpMethod = "GET", notes = "The list capability of history can support pagination and sorting \n\n" +"Example Requests :\n" + "\n" + "standinginstructionrunhistory\n" + "\n" + "standinginstructionrunhistory?orderBy=name&sortOrder=DESC\n" + "\n" + "standinginstructionrunhistory?offset=10&limit=50")
-    @ApiResponses({@ApiResponse(code = 200, message = "OK", response = StandingInstructionHistoryApiResourceSwagger.GetStandingInstructionRunHistoryResponse.class)})
-    public String retrieveAll(@Context final UriInfo uriInfo, @QueryParam("sqlSearch") @ApiParam(value = "sqlSearch") final String sqlSearch,
-            @QueryParam("externalId") @ApiParam(value = "externalId") final String externalId, @QueryParam("offset") @ApiParam(value = "offset") final Integer offset,
-            @QueryParam("limit") @ApiParam(value = "limit") final Integer limit, @QueryParam("orderBy") @ApiParam(value = "orderBy") final String orderBy,
-            @QueryParam("sortOrder") @ApiParam(value = "sortOrder") final String sortOrder, @QueryParam("transferType") @ApiParam(value = "transferType") final Integer transferType,
-            @QueryParam("clientName") @ApiParam(value = "clientName") final String clientName, @QueryParam("clientId") @ApiParam(value = "clientId") final Long clientId,
-            @QueryParam("fromAccountId") @ApiParam(value = "fromAccountId") final Long fromAccount, @QueryParam("fromAccountType") @ApiParam(value = "fromAccountType") final Integer fromAccountType,
-            @QueryParam("locale") @ApiParam(value = "locale") final String locale, @QueryParam("dateFormat") @ApiParam(value = "dateFormat") final String dateFormat,
-            @QueryParam("fromDate") @ApiParam(value = "fromDate") final DateParam fromDateParam, @QueryParam("toDate") @ApiParam(value = "toDate") final DateParam toDateParam) {
+    @Operation(summary = "Standing Instructions Logged History", description = "The list capability of history can support pagination and sorting \n\n"
+            + "Example Requests :\n" + "\n" + "standinginstructionrunhistory\n" + "\n"
+            + "standinginstructionrunhistory?orderBy=name&sortOrder=DESC\n" + "\n" + "standinginstructionrunhistory?offset=10&limit=50")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = StandingInstructionHistoryApiResourceSwagger.GetStandingInstructionRunHistoryResponse.class))) })
+    public String retrieveAll(@Context final UriInfo uriInfo,
+            @QueryParam("sqlSearch") @Parameter(description = "sqlSearch") final String sqlSearch,
+            @QueryParam("externalId") @Parameter(description = "externalId") final String externalId,
+            @QueryParam("offset") @Parameter(description = "offset") final Integer offset,
+            @QueryParam("limit") @Parameter(description = "limit") final Integer limit,
+            @QueryParam("orderBy") @Parameter(description = "orderBy") final String orderBy,
+            @QueryParam("sortOrder") @Parameter(description = "sortOrder") final String sortOrder,
+            @QueryParam("transferType") @Parameter(description = "transferType") final Integer transferType,
+            @QueryParam("clientName") @Parameter(description = "clientName") final String clientName,
+            @QueryParam("clientId") @Parameter(description = "clientId") final Long clientId,
+            @QueryParam("fromAccountId") @Parameter(description = "fromAccountId") final Long fromAccount,
+            @QueryParam("fromAccountType") @Parameter(description = "fromAccountType") final Integer fromAccountType,
+            @QueryParam("locale") @Parameter(description = "locale") final String locale,
+            @QueryParam("dateFormat") @Parameter(description = "dateFormat") final String dateFormat,
+            @QueryParam("fromDate") @Parameter(description = "fromDate") final DateParam fromDateParam,
+            @QueryParam("toDate") @Parameter(description = "toDate") final DateParam toDateParam) {
 
         this.context.authenticatedUser().validateHasReadPermission(StandingInstructionApiConstants.STANDING_INSTRUCTION_RESOURCE_NAME);
 

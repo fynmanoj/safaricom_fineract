@@ -22,7 +22,6 @@ import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
-
 import org.apache.fineract.infrastructure.codes.data.CodeValueData;
 import org.apache.fineract.infrastructure.core.data.EnumOptionData;
 import org.apache.fineract.organisation.monetary.data.CurrencyData;
@@ -32,7 +31,7 @@ import org.apache.fineract.portfolio.interestratechart.data.InterestRateChartSla
 /**
  * Immutable data object representing deposit accounts Interest rate Slabs.
  */
-public class DepositAccountInterestRateChartSlabData {
+public final class DepositAccountInterestRateChartSlabData {
 
     private final Long id;
     private final String description;
@@ -65,9 +64,9 @@ public class DepositAccountInterestRateChartSlabData {
     @SuppressWarnings("unused")
     private final Collection<CodeValueData> clientClassificationOptions;
 
-    public static DepositAccountInterestRateChartSlabData instance(final Long id, final String description,
-            final EnumOptionData periodType, final Integer fromPeriod, final Integer toPeriod, final BigDecimal amountRangeFrom,
-            final BigDecimal amountRangeTo, final BigDecimal annualInterestRate, final CurrencyData currency) {
+    public static DepositAccountInterestRateChartSlabData instance(final Long id, final String description, final EnumOptionData periodType,
+            final Integer fromPeriod, final Integer toPeriod, final BigDecimal amountRangeFrom, final BigDecimal amountRangeTo,
+            final BigDecimal annualInterestRate, final CurrencyData currency) {
         final Collection<EnumOptionData> periodTypes = null;
         final Collection<EnumOptionData> entityTypeOptions = null;
         final Collection<EnumOptionData> attributeNameOptions = null;

@@ -18,31 +18,29 @@
  */
 package org.apache.fineract.infrastructure.core.serialization;
 
-import java.lang.reflect.Type;
-import java.math.BigDecimal;
-import java.security.InvalidParameterException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.fineract.infrastructure.core.exception.InvalidJsonException;
-import org.apache.fineract.infrastructure.core.exception.UnsupportedParameterException;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.joda.time.MonthDay;
-import org.springframework.context.annotation.Primary;
-import org.springframework.stereotype.Component;
-
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import java.lang.reflect.Type;
+import java.math.BigDecimal;
+import java.security.InvalidParameterException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.MonthDay;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.fineract.infrastructure.core.exception.InvalidJsonException;
+import org.apache.fineract.infrastructure.core.exception.UnsupportedParameterException;
+import org.springframework.context.annotation.Primary;
+import org.springframework.stereotype.Component;
 
 @Primary
 @Component
@@ -50,12 +48,10 @@ public class FromJsonHelper {
 
     private final Gson gsonConverter;
     private final JsonParserHelper helperDelegator;
-    private final JsonParser parser;
 
     public FromJsonHelper() {
         this.gsonConverter = new Gson();
         this.helperDelegator = new JsonParserHelper();
-        this.parser = new JsonParser();
     }
 
     public Map<String, Boolean> extractMap(final Type typeOfMap, final String json) {
@@ -82,8 +78,10 @@ public class FromJsonHelper {
         return this.gsonConverter.toJson(object);
     }
 
-    public void checkForUnsupportedParameters(final Type typeOfMap, final String json, final Set<String> supportedParams) {
-        if (StringUtils.isBlank(json)) { throw new InvalidJsonException(); }
+    public void checkForUnsupportedParameters(final Type typeOfMap, final String json, final Collection<String> supportedParams) {
+        if (StringUtils.isBlank(json)) {
+            throw new InvalidJsonException();
+        }
 
         final Map<String, Object> requestMap = this.gsonConverter.fromJson(json, typeOfMap);
 
@@ -94,33 +92,39 @@ public class FromJsonHelper {
             }
         }
 
-        if (!unsupportedParameterList.isEmpty()) { throw new UnsupportedParameterException(unsupportedParameterList); }
+        if (!unsupportedParameterList.isEmpty()) {
+            throw new UnsupportedParameterException(unsupportedParameterList);
+        }
     }
 
-    public void checkForUnsupportedParameters(final JsonObject object, final Set<String> supportedParams) {
-        if (object == null) { throw new InvalidParameterException(); }
+    public void checkForUnsupportedParameters(final JsonObject object, final Collection<String> supportedParams) {
+        if (object == null) {
+            throw new InvalidParameterException();
+        }
 
-        final Set<Entry<String, JsonElement>> entries = object.entrySet();
+        final Set<Map.Entry<String, JsonElement>> entries = object.entrySet();
         final List<String> unsupportedParameterList = new ArrayList<>();
 
-        for (final Entry<String, JsonElement> providedParameter : entries) {
+        for (final Map.Entry<String, JsonElement> providedParameter : entries) {
             if (!supportedParams.contains(providedParameter.getKey())) {
                 unsupportedParameterList.add(providedParameter.getKey());
             }
         }
 
-        if (!unsupportedParameterList.isEmpty()) { throw new UnsupportedParameterException(unsupportedParameterList); }
+        if (!unsupportedParameterList.isEmpty()) {
+            throw new UnsupportedParameterException(unsupportedParameterList);
+        }
     }
 
     /**
      * @param parentPropertyName
-     *            The full json path to this property,the value is appended to
-     *            the parameter name while generating an error message <br>
-     *            Ex: property "name" in Object "person" would be named as
-     *            "person.name"
+     *            The full json path to this property,the value is appended to the parameter name while generating an
+     *            error message <br>
+     *            Ex: property "name" in Object "person" would be named as "person.name"
      * @param object
      * @param supportedParams
      */
+    @SuppressWarnings("AvoidHidingCauseException")
     public void checkForUnsupportedNestedParameters(final String parentPropertyName, final JsonObject object,
             final Set<String> supportedParams) {
         try {
@@ -141,7 +145,7 @@ public class FromJsonHelper {
 
         JsonElement parsedElement = null;
         if (StringUtils.isNotBlank(json)) {
-            parsedElement = this.parser.parse(json);
+            parsedElement = JsonParser.parseString(json);
         }
         return parsedElement;
     }
@@ -196,17 +200,25 @@ public class FromJsonHelper {
     }
 
     public LocalDate extractLocalDateNamed(final String parameterName, final JsonElement element) {
-        return this.helperDelegator.extractLocalDateNamed(parameterName, element, new HashSet<String>());
+        return this.helperDelegator.extractLocalDateNamed(parameterName, element, new HashSet<>());
     }
-    
+
     public LocalDateTime extractLocalTimeNamed(final String parameterName, final JsonElement element) {
-        return this.helperDelegator.extractLocalTimeNamed(parameterName, element, new HashSet<String>());
+        return this.helperDelegator.extractLocalTimeNamed(parameterName, element, new HashSet<>());
     }
-    
+
+    public LocalDateTime extractLocalTimeNamed(final String parameterName, final JsonElement element, final String dateFormat,
+            final Locale locale) {
+        return this.helperDelegator.extractLocalTimeNamed(parameterName, element, dateFormat, locale, new HashSet<>());
+    }
+
+    public LocalDateTime extractLocalTimeNamed(final String parameterName, final JsonElement element, String timeFormat) {
+        return this.helperDelegator.extractLocalTimeNamed(parameterName, element, timeFormat, new HashSet<>());
+    }
+
     public LocalDate extractLocalDateNamed(final String parameterName, final JsonElement element, final String dateFormat,
             final Locale locale) {
-        return this.helperDelegator.extractLocalDateNamed(parameterName, element.getAsJsonObject(), dateFormat, locale,
-                new HashSet<String>());
+        return this.helperDelegator.extractLocalDateNamed(parameterName, element.getAsJsonObject(), dateFormat, locale, new HashSet<>());
     }
 
     public LocalDate extractLocalDateNamed(final String parameterName, final JsonElement element,

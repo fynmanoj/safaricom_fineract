@@ -22,7 +22,6 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
-
 import org.apache.fineract.infrastructure.configuration.data.ExternalServicesData;
 import org.apache.fineract.infrastructure.configuration.domain.ExternalServicesProperties;
 import org.apache.fineract.infrastructure.configuration.domain.ExternalServicesPropertiesRepository;
@@ -42,7 +41,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class ExternalServiceWritePlatformServiceJpaRepositoryImpl implements ExternalServiceWritePlatformService {
 
     @SuppressWarnings("unused")
-    private final static Logger logger = LoggerFactory.getLogger(ExternalServiceWritePlatformServiceJpaRepositoryImpl.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ExternalServiceWritePlatformServiceJpaRepositoryImpl.class);
 
     private final PlatformSecurityContext context;
     private final ExternalServicesPropertiesRepositoryWrapper repositoryWrapper;

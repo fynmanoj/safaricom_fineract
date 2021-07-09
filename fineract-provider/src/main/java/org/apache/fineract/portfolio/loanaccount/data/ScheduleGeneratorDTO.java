@@ -18,13 +18,13 @@
  */
 package org.apache.fineract.portfolio.loanaccount.data;
 
+import java.time.LocalDate;
 import org.apache.fineract.organisation.monetary.domain.ApplicationCurrency;
 import org.apache.fineract.portfolio.calendar.data.CalendarHistoryDataWrapper;
 import org.apache.fineract.portfolio.calendar.domain.Calendar;
 import org.apache.fineract.portfolio.calendar.domain.CalendarInstance;
 import org.apache.fineract.portfolio.floatingrates.data.FloatingRateDTO;
 import org.apache.fineract.portfolio.loanaccount.loanschedule.domain.LoanScheduleGeneratorFactory;
-import org.joda.time.LocalDate;
 
 public class ScheduleGeneratorDTO {
 
@@ -43,16 +43,18 @@ public class ScheduleGeneratorDTO {
     final Integer numberOfdays;
     final boolean isSkipRepaymentOnFirstDayofMonth;
     final Boolean isChangeEmiIfRepaymentDateSameAsDisbursementDateEnabled;
-
+    final boolean isFirstRepaymentDateAllowedOnHoliday;
+    final boolean isInterestToBeAppropriatedEquallyWhenGreaterThanEMI;
 
     public ScheduleGeneratorDTO(final LoanScheduleGeneratorFactory loanScheduleFactory, final ApplicationCurrency applicationCurrency,
             final LocalDate calculatedRepaymentsStartingFromDate, final HolidayDetailDTO holidayDetailDTO,
             final CalendarInstance calendarInstanceForInterestRecalculation, final CalendarInstance compoundingCalendarInstance,
             final LocalDate recalculateFrom, final Long overdurPenaltyWaitPeriod, final FloatingRateDTO floatingRateDTO,
-            final Calendar calendar, final CalendarHistoryDataWrapper calendarHistoryDataWrapper, 
-            final Boolean isInterestChargedFromDateAsDisbursementDateEnabled, final Integer numberOfdays, final boolean isSkipRepaymentOnFirstDayofMonth,
-            final Boolean isChangeEmiIfRepaymentDateSameAsDisbursementDateEnabled) {
-    	
+            final Calendar calendar, final CalendarHistoryDataWrapper calendarHistoryDataWrapper,
+            final Boolean isInterestChargedFromDateAsDisbursementDateEnabled, final Integer numberOfdays,
+            final boolean isSkipRepaymentOnFirstDayofMonth, final Boolean isChangeEmiIfRepaymentDateSameAsDisbursementDateEnabled,
+            final boolean isFirstRepaymentDateAllowedOnHoliday, final boolean isInterestToBeAppropriatedEquallyWhenGreaterThanEMI) {
+
         this.loanScheduleFactory = loanScheduleFactory;
         this.applicationCurrency = applicationCurrency;
         this.calculatedRepaymentsStartingFromDate = calculatedRepaymentsStartingFromDate;
@@ -63,11 +65,13 @@ public class ScheduleGeneratorDTO {
         this.holidayDetailDTO = holidayDetailDTO;
         this.floatingRateDTO = floatingRateDTO;
         this.calendar = calendar;
-        this.calendarHistoryDataWrapper  = calendarHistoryDataWrapper;
+        this.calendarHistoryDataWrapper = calendarHistoryDataWrapper;
         this.isInterestChargedFromDateAsDisbursementDateEnabled = isInterestChargedFromDateAsDisbursementDateEnabled;
         this.numberOfdays = numberOfdays;
         this.isSkipRepaymentOnFirstDayofMonth = isSkipRepaymentOnFirstDayofMonth;
         this.isChangeEmiIfRepaymentDateSameAsDisbursementDateEnabled = isChangeEmiIfRepaymentDateSameAsDisbursementDateEnabled;
+        this.isFirstRepaymentDateAllowedOnHoliday = isFirstRepaymentDateAllowedOnHoliday;
+        this.isInterestToBeAppropriatedEquallyWhenGreaterThanEMI = isInterestToBeAppropriatedEquallyWhenGreaterThanEMI;
     }
 
     public LoanScheduleGeneratorFactory getLoanScheduleFactory() {
@@ -117,16 +121,16 @@ public class ScheduleGeneratorDTO {
     public FloatingRateDTO getFloatingRateDTO() {
         return this.floatingRateDTO;
     }
-    
-    public Calendar getCalendar(){
-    	return this.calendar;
+
+    public Calendar getCalendar() {
+        return this.calendar;
     }
-    
-    public CalendarHistoryDataWrapper getCalendarHistoryDataWrapper(){
+
+    public CalendarHistoryDataWrapper getCalendarHistoryDataWrapper() {
         return this.calendarHistoryDataWrapper;
     }
-    
-    public Boolean isInterestChargedFromDateAsDisbursementDateEnabled(){
+
+    public Boolean isInterestChargedFromDateAsDisbursementDateEnabled() {
         return this.isInterestChargedFromDateAsDisbursementDateEnabled;
     }
 
@@ -137,9 +141,16 @@ public class ScheduleGeneratorDTO {
     public boolean isSkipRepaymentOnFirstDayofMonth() {
         return isSkipRepaymentOnFirstDayofMonth;
     }
-    
+
     public Boolean isChangeEmiIfRepaymentDateSameAsDisbursementDateEnabled() {
         return this.isChangeEmiIfRepaymentDateSameAsDisbursementDateEnabled;
     }
 
+    public boolean isFirstRepaymentDateAllowedOnHoliday() {
+        return isFirstRepaymentDateAllowedOnHoliday;
+    }
+
+    public boolean isInterestToBeAppropriatedEquallyWhenGreaterThanEMI() {
+        return isInterestToBeAppropriatedEquallyWhenGreaterThanEMI;
+    }
 }

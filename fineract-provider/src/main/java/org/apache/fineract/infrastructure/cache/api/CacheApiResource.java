@@ -18,11 +18,19 @@
  */
 package org.apache.fineract.infrastructure.cache.api;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
-
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
@@ -31,8 +39,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
-
-import io.swagger.annotations.*;
 import org.apache.fineract.commands.domain.CommandWrapper;
 import org.apache.fineract.commands.service.CommandWrapperBuilder;
 import org.apache.fineract.commands.service.PortfolioCommandSourceWritePlatformService;
@@ -53,10 +59,12 @@ import org.springframework.stereotype.Component;
 @Produces({ MediaType.APPLICATION_JSON })
 @Component
 @Scope("singleton")
-@Api(value = "Cache", description = "The following settings are possible for cache:\n" + "\n" + "No Caching: caching turned off\n" + "Single node: caching on for single instance deployments of platorm (works for multiple tenants but only one tomcat)\n" + "By default caching is set to No Caching. Switching between caches results in the cache been clear e.g. from Single node to No cache and back again would clear down the single node cache.")
+@Tag(name = "Cache", description = "The following settings are possible for cache:\n" + "\n" + "No Caching: caching turned off\n"
+        + "Single node: caching on for single instance deployments of platorm (works for multiple tenants but only one tomcat)\n"
+        + "By default caching is set to No Caching. Switching between caches results in the cache been clear e.g. from Single node to No cache and back again would clear down the single node cache.")
 public class CacheApiResource {
 
-    private final Set<String> RESPONSE_DATA_PARAMETERS = new HashSet<>(Arrays.asList("id"));
+    private static final Set<String> RESPONSE_DATA_PARAMETERS = new HashSet<>(Arrays.asList("id"));
     private final String resourceNameForPermissions = "CACHE";
 
     private final PlatformSecurityContext context;
@@ -78,8 +86,10 @@ public class CacheApiResource {
     }
 
     @GET
-    @ApiOperation(value = "Retrieve Cache Types", notes = "Returns the list of caches.\n" + "\n" + "Example Requests:\n" + "\n" + "caches")
-    @ApiResponses({@ApiResponse(code = 200, message = "", response = CacheApiResourceSwagger.GetCachesResponse.class, responseContainer = "list")})
+    @Operation(summary = "Retrieve Cache Types", description = "Returns the list of caches.\n" + "\n" + "Example Requests:\n" + "\n"
+            + "caches")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "OK", content = @Content(array = @ArraySchema(schema = @Schema(implementation = CacheApiResourceSwagger.GetCachesResponse.class)))) })
     public String retrieveAll(@Context final UriInfo uriInfo) {
 
         this.context.authenticatedUser().validateHasReadPermission(this.resourceNameForPermissions);
@@ -87,14 +97,15 @@ public class CacheApiResource {
         final Collection<CacheData> codes = this.cacheService.retrieveAll();
 
         final ApiRequestJsonSerializationSettings settings = this.apiRequestParameterHelper.process(uriInfo.getQueryParameters());
-        return this.toApiJsonSerializer.serialize(settings, codes, this.RESPONSE_DATA_PARAMETERS);
+        return this.toApiJsonSerializer.serialize(settings, codes, RESPONSE_DATA_PARAMETERS);
     }
 
     @PUT
-    @ApiOperation(value = "Switch Cache", notes = "Switches the cache to chosen one.")
-    @ApiImplicitParams({@ApiImplicitParam(value = "body", required = true, paramType = "body", dataType = "body", format = "body", dataTypeClass = CacheApiResourceSwagger.PutCachesRequest.class )})
-    @ApiResponses({@ApiResponse(code = 200, message = "", response = CacheApiResourceSwagger.PutCachesResponse.class)})
-    public String switchCache(@ApiParam(hidden = true) final String apiRequestBodyAsJson) {
+    @Operation(summary = "Switch Cache", description = "Switches the cache to chosen one.")
+    @RequestBody(required = true, content = @Content(schema = @Schema(implementation = CacheApiResourceSwagger.PutCachesRequest.class)))
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = CacheApiResourceSwagger.PutCachesResponse.class))) })
+    public String switchCache(@Parameter(hidden = true) final String apiRequestBodyAsJson) {
 
         final CommandWrapper commandRequest = new CommandWrapperBuilder().updateCache().withJson(apiRequestBodyAsJson).build();
 

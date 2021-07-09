@@ -19,7 +19,6 @@
 package org.apache.fineract.portfolio.loanaccount;
 
 import java.math.BigDecimal;
-
 import org.apache.fineract.organisation.monetary.domain.MonetaryCurrency;
 import org.apache.fineract.organisation.monetary.domain.Money;
 
@@ -38,7 +37,7 @@ public class MoneyBuilder {
     }
 
     public MoneyBuilder with(final String withAmount) {
-        this.newAmount = BigDecimal.valueOf(Double.valueOf(withAmount));
+        this.newAmount = BigDecimal.valueOf(Double.parseDouble(withAmount));
         return this;
     }
 }

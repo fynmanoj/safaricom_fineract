@@ -20,7 +20,6 @@ package org.apache.fineract.portfolio.savings.domain;
 
 import java.util.HashSet;
 import java.util.Set;
-
 import javax.persistence.CascadeType;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
@@ -29,7 +28,6 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
-
 import org.apache.fineract.infrastructure.core.domain.AbstractPersistableCustom;
 import org.apache.fineract.portfolio.interestratechart.domain.InterestIncentives;
 import org.apache.fineract.portfolio.interestratechart.domain.InterestRateChartSlab;
@@ -37,7 +35,7 @@ import org.apache.fineract.portfolio.interestratechart.domain.InterestRateChartS
 
 @Entity
 @Table(name = "m_savings_account_interest_rate_slab")
-public class DepositAccountInterestRateChartSlabs extends AbstractPersistableCustom<Long> {
+public class DepositAccountInterestRateChartSlabs extends AbstractPersistableCustom {
 
     @Embedded
     private InterestRateChartSlabFields slabFields;
@@ -46,7 +44,7 @@ public class DepositAccountInterestRateChartSlabs extends AbstractPersistableCus
     @JoinColumn(name = "savings_account_interest_rate_chart_id", referencedColumnName = "id", nullable = false)
     private DepositAccountInterestRateChart depositAccountInterestRateChart;
 
-    @OneToMany(mappedBy = "depositAccountInterestRateChartSlabs", cascade = CascadeType.ALL, orphanRemoval = true, fetch=FetchType.EAGER)
+    @OneToMany(mappedBy = "depositAccountInterestRateChartSlabs", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private Set<DepositAccountInterestIncentives> interestIncentives = new HashSet<>();
 
     protected DepositAccountInterestRateChartSlabs() {
@@ -54,7 +52,8 @@ public class DepositAccountInterestRateChartSlabs extends AbstractPersistableCus
     }
 
     private DepositAccountInterestRateChartSlabs(InterestRateChartSlabFields slabFields,
-            DepositAccountInterestRateChart depositAccountInterestRateChart, final Set<DepositAccountInterestIncentives> interestIncentives) {
+            DepositAccountInterestRateChart depositAccountInterestRateChart,
+            final Set<DepositAccountInterestIncentives> interestIncentives) {
         this.slabFields = slabFields;
         this.depositAccountInterestRateChart = depositAccountInterestRateChart;
         this.interestIncentives = interestIncentives;

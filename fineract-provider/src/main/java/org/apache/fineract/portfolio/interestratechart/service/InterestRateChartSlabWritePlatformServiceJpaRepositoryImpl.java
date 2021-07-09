@@ -21,15 +21,14 @@ package org.apache.fineract.portfolio.interestratechart.service;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
-
 import org.apache.fineract.infrastructure.core.api.JsonCommand;
 import org.apache.fineract.infrastructure.core.data.CommandProcessingResult;
 import org.apache.fineract.infrastructure.core.data.CommandProcessingResultBuilder;
 import org.apache.fineract.infrastructure.security.service.PlatformSecurityContext;
-import org.apache.fineract.portfolio.interestratechart.data.InterestRateChartRepositoryWrapper;
 import org.apache.fineract.portfolio.interestratechart.data.InterestRateChartSlabDataValidator;
-import org.apache.fineract.portfolio.interestratechart.data.InterestRateChartSlabRepository;
+import org.apache.fineract.portfolio.interestratechart.domain.InterestRateChartRepositoryWrapper;
 import org.apache.fineract.portfolio.interestratechart.domain.InterestRateChartSlab;
+import org.apache.fineract.portfolio.interestratechart.domain.InterestRateChartSlabRepository;
 import org.apache.fineract.portfolio.savings.domain.SavingsProductRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +40,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class InterestRateChartSlabWritePlatformServiceJpaRepositoryImpl implements InterestRateChartSlabWritePlatformService {
 
     @SuppressWarnings("unused")
-    private final static Logger logger = LoggerFactory.getLogger(InterestRateChartSlabWritePlatformServiceJpaRepositoryImpl.class);
+    private static final Logger LOG = LoggerFactory.getLogger(InterestRateChartSlabWritePlatformServiceJpaRepositoryImpl.class);
     @SuppressWarnings("unused")
     private final PlatformSecurityContext context;
     private final InterestRateChartSlabDataValidator interestRateChartSlabDataValidator;
@@ -92,10 +91,9 @@ public class InterestRateChartSlabWritePlatformServiceJpaRepositoryImpl implemen
     public CommandProcessingResult update(Long chartSlabId, Long interestRateChartId, JsonCommand command) {
         this.interestRateChartSlabDataValidator.validateUpdate(command.json());
         final Map<String, Object> changes = new LinkedHashMap<>(20);
-        final InterestRateChartSlab updateChartSlabs = this.interestRateChartSlabAssembler.assembleFrom(chartSlabId,
-                interestRateChartId);
+        final InterestRateChartSlab updateChartSlabs = this.interestRateChartSlabAssembler.assembleFrom(chartSlabId, interestRateChartId);
         final Locale locale = command.extractLocale();
-        updateChartSlabs.update(command, changes,locale);
+        updateChartSlabs.update(command, changes, locale);
 
         this.chartSlabRepository.saveAndFlush(updateChartSlabs);
 
@@ -108,8 +106,7 @@ public class InterestRateChartSlabWritePlatformServiceJpaRepositoryImpl implemen
     @Override
     @Transactional
     public CommandProcessingResult deleteChartSlab(Long chartSlabId, Long interestRateChartId) {
-        final InterestRateChartSlab deleteChartSlabs = this.interestRateChartSlabAssembler.assembleFrom(chartSlabId,
-                interestRateChartId);
+        final InterestRateChartSlab deleteChartSlabs = this.interestRateChartSlabAssembler.assembleFrom(chartSlabId, interestRateChartId);
         this.chartSlabRepository.delete(deleteChartSlabs);
         return new CommandProcessingResultBuilder() //
                 .withEntityId(chartSlabId) //

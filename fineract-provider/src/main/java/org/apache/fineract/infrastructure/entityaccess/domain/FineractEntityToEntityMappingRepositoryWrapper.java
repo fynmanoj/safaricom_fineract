@@ -28,14 +28,13 @@ public class FineractEntityToEntityMappingRepositoryWrapper {
     private final FineractEntityToEntityMappingRepository fineractEntityToEntityMappingRepository;
 
     @Autowired
-    public FineractEntityToEntityMappingRepositoryWrapper(final FineractEntityToEntityMappingRepository fineractEntityToEntityMappingRepository) {
+    public FineractEntityToEntityMappingRepositoryWrapper(
+            final FineractEntityToEntityMappingRepository fineractEntityToEntityMappingRepository) {
         this.fineractEntityToEntityMappingRepository = fineractEntityToEntityMappingRepository;
     }
 
     public FineractEntityToEntityMapping findOneWithNotFoundDetection(final Long id) {
-        final FineractEntityToEntityMapping fineractEntityToEntityMapping = this.fineractEntityToEntityMappingRepository.findOne(id);
-        if (fineractEntityToEntityMapping == null) { throw new FineractEntityAccessNotFoundException(id); }
-        return fineractEntityToEntityMapping;
+        return this.fineractEntityToEntityMappingRepository.findById(id).orElseThrow(() -> new FineractEntityAccessNotFoundException(id));
     }
 
     public void delete(final FineractEntityToEntityMapping mapId) {

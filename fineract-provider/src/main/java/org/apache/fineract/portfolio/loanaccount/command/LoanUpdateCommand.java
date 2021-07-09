@@ -18,13 +18,12 @@
  */
 package org.apache.fineract.portfolio.loanaccount.command;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.apache.fineract.infrastructure.core.data.ApiParameterError;
 import org.apache.fineract.infrastructure.core.data.DataValidatorBuilder;
 import org.apache.fineract.infrastructure.core.exception.PlatformApiDataValidationException;
-import org.joda.time.LocalDate;
 
 /**
  * Immutable command for loan transactions.
@@ -45,7 +44,9 @@ public class LoanUpdateCommand {
 
         baseDataValidator.reset().parameter("unassignedDate").value(this.unassignedDate).notNull();
 
-        if (!dataValidationErrors.isEmpty()) { throw new PlatformApiDataValidationException("validation.msg.validation.errors.exist",
-                "Validation errors exist.", dataValidationErrors); }
+        if (!dataValidationErrors.isEmpty()) {
+            throw new PlatformApiDataValidationException("validation.msg.validation.errors.exist", "Validation errors exist.",
+                    dataValidationErrors);
+        }
     }
 }

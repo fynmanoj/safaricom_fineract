@@ -20,7 +20,8 @@ package org.apache.fineract.organisation.workingdays.service;
 
 import java.text.ParseException;
 import java.util.Map;
-
+import net.fortuna.ical4j.model.property.RRule;
+import net.fortuna.ical4j.validate.ValidationException;
 import org.apache.fineract.infrastructure.core.api.JsonCommand;
 import org.apache.fineract.infrastructure.core.data.CommandProcessingResult;
 import org.apache.fineract.infrastructure.core.data.CommandProcessingResultBuilder;
@@ -32,9 +33,6 @@ import org.apache.fineract.organisation.workingdays.domain.WorkingDaysRepository
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import net.fortuna.ical4j.model.ValidationException;
-import net.fortuna.ical4j.model.property.RRule;
 
 @Service
 public class WorkingDaysWritePlatformServiceJpaRepositoryImpl implements WorkingDaysWritePlatformService {
@@ -68,10 +66,10 @@ public class WorkingDaysWritePlatformServiceJpaRepositoryImpl implements Working
                     .build();
         } catch (final ValidationException e) {
             throw new PlatformDataIntegrityException("error.msg.invalid.recurring.rule",
-                    "The Recurring Rule value: " + recurrence + " is not valid.", "recurrence", recurrence);
+                    "The Recurring Rule value: " + recurrence + " is not valid.", "recurrence", recurrence, e);
         } catch (final IllegalArgumentException | ParseException e) {
             throw new PlatformDataIntegrityException("error.msg.recurring.rule.parsing.error",
-                    "Error in passing the Recurring Rule value: " + recurrence, "recurrence", e.getMessage());
+                    "Error in passing the Recurring Rule value: " + recurrence, "recurrence", e.getMessage(), e);
         }
     }
 

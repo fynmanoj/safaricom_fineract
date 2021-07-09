@@ -27,10 +27,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import javax.persistence.PersistenceException;
-
-import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.fineract.accounting.producttoaccountmapping.service.ProductToGLAccountMappingWritePlatformService;
 import org.apache.fineract.infrastructure.core.api.JsonCommand;
 import org.apache.fineract.infrastructure.core.data.ApiParameterError;
@@ -60,7 +58,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class SavingsProductWritePlatformServiceJpaRepositoryImpl implements SavingsProductWritePlatformService {
 
-    private final Logger logger;
+    private static final Logger LOG = LoggerFactory.getLogger(SavingsProductWritePlatformServiceJpaRepositoryImpl.class);
     private final PlatformSecurityContext context;
     private final SavingsProductRepository savingProductRepository;
     private final SavingsProductDataValidator fromApiJsonDataValidator;
@@ -78,27 +76,25 @@ public class SavingsProductWritePlatformServiceJpaRepositoryImpl implements Savi
         this.savingProductRepository = savingProductRepository;
         this.fromApiJsonDataValidator = fromApiJsonDataValidator;
         this.savingsProductAssembler = savingsProductAssembler;
-        this.logger = LoggerFactory.getLogger(SavingsProductWritePlatformServiceJpaRepositoryImpl.class);
         this.accountMappingWritePlatformService = accountMappingWritePlatformService;
         this.fineractEntityAccessUtil = fineractEntityAccessUtil;
     }
 
     /*
-     * Guaranteed to throw an exception no matter what the data integrity issue
-     * is.
+     * Guaranteed to throw an exception no matter what the data integrity issue is.
      */
     private void handleDataIntegrityIssues(final JsonCommand command, final Throwable realCause, final Exception dae) {
 
         if (realCause.getMessage().contains("sp_unq_name")) {
 
             final String name = command.stringValueOfParameterNamed("name");
-            throw new PlatformDataIntegrityException("error.msg.product.savings.duplicate.name", "Savings product with name `" + name
-                    + "` already exists", "name", name);
+            throw new PlatformDataIntegrityException("error.msg.product.savings.duplicate.name",
+                    "Savings product with name `" + name + "` already exists", "name", name);
         } else if (realCause.getMessage().contains("sp_unq_short_name")) {
 
             final String shortName = command.stringValueOfParameterNamed("shortName");
-            throw new PlatformDataIntegrityException("error.msg.product.savings.duplicate.short.name", "Savings product with short name `"
-                    + shortName + "` already exists", "shortName", shortName);
+            throw new PlatformDataIntegrityException("error.msg.product.savings.duplicate.short.name",
+                    "Savings product with short name `" + shortName + "` already exists", "shortName", shortName);
         }
 
         logAsErrorUnexpectedDataIntegrityException(dae);
@@ -107,7 +103,7 @@ public class SavingsProductWritePlatformServiceJpaRepositoryImpl implements Savi
     }
 
     private void logAsErrorUnexpectedDataIntegrityException(final Exception dae) {
-        this.logger.error(dae.getMessage(), dae);
+        LOG.error("Error occured.", dae);
     }
 
     @Transactional
@@ -137,10 +133,10 @@ public class SavingsProductWritePlatformServiceJpaRepositoryImpl implements Savi
         } catch (final DataAccessException e) {
             handleDataIntegrityIssues(command, e.getMostSpecificCause(), e);
             return CommandProcessingResult.empty();
-        }catch (final PersistenceException dve) {
-        	Throwable throwable = ExceptionUtils.getRootCause(dve.getCause()) ;
-        	handleDataIntegrityIssues(command, throwable, dve);
-        	return CommandProcessingResult.empty();
+        } catch (final PersistenceException dve) {
+            Throwable throwable = ExceptionUtils.getRootCause(dve.getCause());
+            handleDataIntegrityIssues(command, throwable, dve);
+            return CommandProcessingResult.empty();
         }
     }
 
@@ -150,16 +146,16 @@ public class SavingsProductWritePlatformServiceJpaRepositoryImpl implements Savi
 
         try {
             this.context.authenticatedUser();
-            final SavingsProduct product = this.savingProductRepository.findOne(productId);
-            if (product == null) { throw new SavingsProductNotFoundException(productId); }
+            final SavingsProduct product = this.savingProductRepository.findById(productId)
+                    .orElseThrow(() -> new SavingsProductNotFoundException(productId));
 
             this.fromApiJsonDataValidator.validateForUpdate(command.json(), product);
 
             final Map<String, Object> changes = product.update(command);
 
             if (changes.containsKey(chargesParamName)) {
-                final Set<Charge> savingsProductCharges = this.savingsProductAssembler.assembleListOfSavingsProductCharges(command, product
-                        .currency().getCode());
+                final Set<Charge> savingsProductCharges = this.savingsProductAssembler.assembleListOfSavingsProductCharges(command,
+                        product.currency().getCode());
                 final boolean updated = product.update(savingsProductCharges);
                 if (!updated) {
                     changes.remove(chargesParamName);
@@ -196,10 +192,10 @@ public class SavingsProductWritePlatformServiceJpaRepositoryImpl implements Savi
         } catch (final DataAccessException e) {
             handleDataIntegrityIssues(command, e.getMostSpecificCause(), e);
             return CommandProcessingResult.empty();
-        }catch (final PersistenceException dve) {
-        	Throwable throwable = ExceptionUtils.getRootCause(dve.getCause()) ;
-        	handleDataIntegrityIssues(command, throwable, dve);
-        	return CommandProcessingResult.empty();
+        } catch (final PersistenceException dve) {
+            Throwable throwable = ExceptionUtils.getRootCause(dve.getCause());
+            handleDataIntegrityIssues(command, throwable, dve);
+            return CommandProcessingResult.empty();
         }
     }
 
@@ -208,8 +204,8 @@ public class SavingsProductWritePlatformServiceJpaRepositoryImpl implements Savi
     public CommandProcessingResult delete(final Long productId) {
 
         this.context.authenticatedUser();
-        final SavingsProduct product = this.savingProductRepository.findOne(productId);
-        if (product == null) { throw new SavingsProductNotFoundException(productId); }
+        final SavingsProduct product = this.savingProductRepository.findById(productId)
+                .orElseThrow(() -> new SavingsProductNotFoundException(productId));
 
         this.savingProductRepository.delete(product);
 

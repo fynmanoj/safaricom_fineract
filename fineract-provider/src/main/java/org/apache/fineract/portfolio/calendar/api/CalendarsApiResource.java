@@ -18,13 +18,14 @@
  */
 package org.apache.fineract.portfolio.calendar.api;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
@@ -38,7 +39,6 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
-
 import org.apache.fineract.commands.domain.CommandWrapper;
 import org.apache.fineract.commands.service.CommandWrapperBuilder;
 import org.apache.fineract.commands.service.PortfolioCommandSourceWritePlatformService;
@@ -56,7 +56,6 @@ import org.apache.fineract.portfolio.calendar.exception.CalendarEntityTypeNotSup
 import org.apache.fineract.portfolio.calendar.service.CalendarDropdownReadPlatformService;
 import org.apache.fineract.portfolio.calendar.service.CalendarReadPlatformService;
 import org.apache.fineract.portfolio.calendar.service.CalendarUtils;
-import org.joda.time.LocalDate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -64,17 +63,17 @@ import org.springframework.stereotype.Component;
 @Path("/{entityType}/{entityId}/calendars")
 @Component
 @Scope("singleton")
+@Tag(name = "Calendar", description = "")
 public class CalendarsApiResource {
 
     /**
      * The set of parameters that are supported in response for {@link Calendar}
      */
-    private final Set<String> RESPONSE_DATA_PARAMETERS = new HashSet<>(Arrays.asList("id", "entityId", "entityType", "title",
-            "description", "location", "startDate", "endDate", "duration", "type", "repeating", "recurrence", "frequency", "interval",
-            "repeatsOnDay", "remindBy", "firstReminder", "secondReminder", "humanReadable", "createdDate", "lastUpdatedDate",
-            "createdByUserId", "createdByUsername", "lastUpdatedByUserId", "lastUpdatedByUsername", "recurringDates",
-            "nextTenRecurringDates", "entityTypeOptions", "calendarTypeOptions", "remindByOptions", "frequencyOptions",
-            "repeatsOnDayOptions"));
+    private final Set<String> responseDataParameters = new HashSet<>(Arrays.asList("id", "entityId", "entityType", "title", "description",
+            "location", "startDate", "endDate", "duration", "type", "repeating", "recurrence", "frequency", "interval", "repeatsOnDay",
+            "remindBy", "firstReminder", "secondReminder", "humanReadable", "createdDate", "lastUpdatedDate", "createdByUserId",
+            "createdByUsername", "lastUpdatedByUserId", "lastUpdatedByUsername", "recurringDates", "nextTenRecurringDates",
+            "entityTypeOptions", "calendarTypeOptions", "remindByOptions", "frequencyOptions", "repeatsOnDayOptions"));
     private final String resourceNameForPermissions = "CALENDAR";
 
     private final PlatformSecurityContext context;
@@ -120,7 +119,7 @@ public class CalendarsApiResource {
         if (settings.isTemplate()) {
             calendarData = handleTemplate(calendarData);
         }
-        return this.toApiJsonSerializer.serialize(settings, calendarData, this.RESPONSE_DATA_PARAMETERS);
+        return this.toApiJsonSerializer.serialize(settings, calendarData, this.responseDataParameters);
     }
 
     /**
@@ -158,14 +157,15 @@ public class CalendarsApiResource {
         calendarsData = this.readPlatformService.updateWithRecurringDates(calendarsData);
 
         final ApiRequestJsonSerializationSettings settings = this.apiRequestParameterHelper.process(uriInfo.getQueryParameters());
-        return this.toApiJsonSerializer.serialize(settings, calendarsData, this.RESPONSE_DATA_PARAMETERS);
+        return this.toApiJsonSerializer.serialize(settings, calendarsData, this.responseDataParameters);
     }
 
     @GET
     @Path("template")
     @Consumes({ MediaType.APPLICATION_JSON })
     @Produces({ MediaType.APPLICATION_JSON })
-    public String retrieveNewCalendarDetails(@Context final UriInfo uriInfo) {
+    public String retrieveNewCalendarDetails(@Context final UriInfo uriInfo, @PathParam("entityType") final String entityType,
+            @PathParam("entityId") final Long entityId) {
 
         this.context.authenticatedUser().validateHasReadPermission(this.resourceNameForPermissions);
 
@@ -173,7 +173,7 @@ public class CalendarsApiResource {
         calendarData = handleTemplate(calendarData);
 
         final ApiRequestJsonSerializationSettings settings = this.apiRequestParameterHelper.process(uriInfo.getQueryParameters());
-        return this.toApiJsonSerializer.serialize(settings, calendarData, this.RESPONSE_DATA_PARAMETERS);
+        return this.toApiJsonSerializer.serialize(settings, calendarData, this.responseDataParameters);
     }
 
     @POST
@@ -183,7 +183,9 @@ public class CalendarsApiResource {
             final String apiRequestBodyAsJson) {
 
         final CalendarEntityType calendarEntityType = CalendarEntityType.getEntityType(entityType);
-        if (calendarEntityType == null) { throw new CalendarEntityTypeNotSupportedException(entityType); }
+        if (calendarEntityType == null) {
+            throw new CalendarEntityTypeNotSupportedException(entityType);
+        }
 
         final CommandWrapper resourceDetails = getResourceDetails(calendarEntityType, entityId);
         final CommandWrapper commandRequest = new CommandWrapperBuilder().createCalendar(resourceDetails, entityType, entityId)
@@ -230,7 +232,8 @@ public class CalendarsApiResource {
         final List<EnumOptionData> remindByOptions = this.dropdownReadPlatformService.retrieveCalendarRemindByOptions();
         final List<EnumOptionData> frequencyOptions = this.dropdownReadPlatformService.retrieveCalendarFrequencyTypeOptions();
         final List<EnumOptionData> repeatsOnDayOptions = this.dropdownReadPlatformService.retrieveCalendarWeekDaysTypeOptions();
-        final List<EnumOptionData> frequencyNthDayTypeOptions = this.dropdownReadPlatformService.retrieveCalendarFrequencyNthDayTypeOptions();
+        final List<EnumOptionData> frequencyNthDayTypeOptions = this.dropdownReadPlatformService
+                .retrieveCalendarFrequencyNthDayTypeOptions();
         return CalendarData.withTemplateOptions(calendarData, entityTypeOptions, calendarTypeOptions, remindByOptions, frequencyOptions,
                 repeatsOnDayOptions, frequencyNthDayTypeOptions);
     }

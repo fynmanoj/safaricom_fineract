@@ -19,16 +19,14 @@
 package org.apache.fineract.portfolio.loanaccount.loanschedule.domain;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Set;
-
 import org.apache.fineract.organisation.monetary.domain.Money;
 import org.apache.fineract.portfolio.loanaccount.domain.LoanInterestRecalcualtionAdditionalDetails;
 import org.apache.fineract.portfolio.loanaccount.loanschedule.data.LoanSchedulePeriodData;
-import org.joda.time.LocalDate;
 
 /**
- * Domain representation of a Loan Schedule Disbursement Period (not used for
- * persistence)
+ * Domain representation of a Loan Schedule Disbursement Period (not used for persistence)
  */
 public final class LoanScheduleModelDisbursementPeriod implements LoanScheduleModelPeriod {
 
@@ -37,6 +35,7 @@ public final class LoanScheduleModelDisbursementPeriod implements LoanScheduleMo
     private final LocalDate disbursementDate;
     private final Money principalDisbursed;
     private final BigDecimal chargesDueAtTimeOfDisbursement;
+    private boolean isEMIFixedSpecificToInstallment = false;
 
     public static LoanScheduleModelDisbursementPeriod disbursement(final LoanApplicationTerms loanApplicationTerms,
             final BigDecimal chargesDueAtTimeOfDisbursement) {
@@ -124,8 +123,29 @@ public final class LoanScheduleModelDisbursementPeriod implements LoanScheduleMo
     public void addInterestAmount(@SuppressWarnings("unused") Money principalDue) {
         return;
     }
+
     @Override
     public Set<LoanInterestRecalcualtionAdditionalDetails> getLoanCompoundingDetails() {
         return null;
+    }
+
+    @Override
+    public void setEMIFixedSpecificToInstallmentTrue() {
+        this.isEMIFixedSpecificToInstallment = true;
+    }
+
+    @Override
+    public boolean isEMIFixedSpecificToInstallment() {
+        return isEMIFixedSpecificToInstallment;
+    }
+
+    @Override
+    public BigDecimal rescheduleInterestPortion() {
+        return null;
+    }
+
+    @Override
+    public void setRescheduleInterestPortion(BigDecimal rescheduleInterestPortion) {
+        return;
     }
 }

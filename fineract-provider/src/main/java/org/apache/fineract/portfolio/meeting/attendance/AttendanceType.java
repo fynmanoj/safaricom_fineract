@@ -35,7 +35,7 @@ public enum AttendanceType {
     private final Integer value;
     private final String code;
 
-    private AttendanceType(final Integer value, final String code) {
+    AttendanceType(final Integer value, final String code) {
         this.value = value;
         this.code = code;
     }
@@ -50,7 +50,9 @@ public enum AttendanceType {
 
     public static AttendanceType fromInt(final Integer attendanceTypeId) {
 
-        if (attendanceTypeId == null) { return AttendanceType.INVALID; }
+        if (attendanceTypeId == null) {
+            return AttendanceType.INVALID;
+        }
 
         AttendanceType attendanceType = AttendanceType.INVALID;
         switch (attendanceTypeId) {

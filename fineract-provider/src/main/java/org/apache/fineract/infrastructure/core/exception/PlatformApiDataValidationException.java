@@ -19,37 +19,41 @@
 package org.apache.fineract.infrastructure.core.exception;
 
 import java.util.List;
-
 import org.apache.fineract.infrastructure.core.data.ApiParameterError;
+import org.apache.fineract.infrastructure.core.data.DataValidatorBuilder;
 
 /**
  * Exception thrown when problem with an API request to the platform.
  */
-public class PlatformApiDataValidationException extends RuntimeException {
+public class PlatformApiDataValidationException extends AbstractPlatformException {
 
-    private final String globalisationMessageCode;
-    private final String defaultUserMessage;
     private final List<ApiParameterError> errors;
 
-    public PlatformApiDataValidationException(final List<ApiParameterError> errors) {
-        this.globalisationMessageCode = "validation.msg.validation.errors.exist";
-        this.defaultUserMessage = "Validation errors exist.";
+    /**
+     * Constructor. Consider simply using {@link DataValidatorBuilder#throwValidationErrors()} directly.
+     *
+     * @param errors
+     *            list of {@link ApiParameterError} to throw
+     */
+    public PlatformApiDataValidationException(List<ApiParameterError> errors) {
+        super("validation.msg.validation.errors.exist", "Validation errors exist.");
         this.errors = errors;
     }
 
-    public PlatformApiDataValidationException(final String globalisationMessageCode, final String defaultUserMessage,
-            final List<ApiParameterError> errors) {
-        this.globalisationMessageCode = globalisationMessageCode;
-        this.defaultUserMessage = defaultUserMessage;
+    public PlatformApiDataValidationException(final List<ApiParameterError> errors, Throwable cause) {
+        super("validation.msg.validation.errors.exist", "Validation errors exist.", cause);
         this.errors = errors;
     }
 
-    public String getGlobalisationMessageCode() {
-        return this.globalisationMessageCode;
+    public PlatformApiDataValidationException(String globalisationMessageCode, String defaultUserMessage, List<ApiParameterError> errors) {
+        super(globalisationMessageCode, defaultUserMessage);
+        this.errors = errors;
     }
 
-    public String getDefaultUserMessage() {
-        return this.defaultUserMessage;
+    public PlatformApiDataValidationException(String globalisationMessageCode, String defaultUserMessage, List<ApiParameterError> errors,
+            Throwable cause) {
+        super(globalisationMessageCode, defaultUserMessage, cause);
+        this.errors = errors;
     }
 
     public List<ApiParameterError> getErrors() {

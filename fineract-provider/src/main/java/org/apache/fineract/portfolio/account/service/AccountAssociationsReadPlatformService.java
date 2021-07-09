@@ -19,17 +19,18 @@
 package org.apache.fineract.portfolio.account.service;
 
 import java.util.Collection;
-
 import org.apache.fineract.portfolio.account.data.AccountAssociationsData;
 import org.apache.fineract.portfolio.account.data.PortfolioAccountData;
 
 public interface AccountAssociationsReadPlatformService {
 
-    public PortfolioAccountData retriveLoanLinkedAssociation(final Long loanId);
+    PortfolioAccountData retriveLoanLinkedAssociation(Long loanId);
 
-    public boolean isLinkedWithAnyActiveAccount(final Long savingsId);
+    boolean isLinkedWithAnyActiveAccount(Long savingsId);
 
-    public PortfolioAccountData retriveSavingsLinkedAssociation(final Long savingsId);
+    PortfolioAccountData retriveSavingsLinkedAssociation(Long savingsId);
 
-    public Collection<AccountAssociationsData> retriveLoanAssociations(Long loanId, Integer associationType);
+    Collection<AccountAssociationsData> retriveLoanAssociations(Long loanId, Integer associationType);
+
+    PortfolioAccountData retriveSavingsAccount(Long savingsId);
 }

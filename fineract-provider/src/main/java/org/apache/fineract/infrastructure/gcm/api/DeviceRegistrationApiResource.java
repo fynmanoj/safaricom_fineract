@@ -18,9 +18,11 @@
  */
 package org.apache.fineract.infrastructure.gcm.api;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.Collection;
 import java.util.HashMap;
-
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -32,7 +34,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
-
 import org.apache.fineract.infrastructure.core.serialization.DefaultToApiJsonSerializer;
 import org.apache.fineract.infrastructure.gcm.domain.DeviceRegistration;
 import org.apache.fineract.infrastructure.gcm.domain.DeviceRegistrationData;
@@ -43,12 +44,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-
 @Path("/self/device/registration")
 @Component
 @Scope("singleton")
+@Tag(name = "Device Registration", description = "")
 public class DeviceRegistrationApiResource {
 
     private final PlatformSecurityContext context;
@@ -144,14 +143,14 @@ public class DeviceRegistrationApiResource {
     @Consumes({ MediaType.APPLICATION_JSON })
     @Produces({ MediaType.APPLICATION_JSON })
     public String delete(@PathParam("id") final Long id) {
-        
+
         this.context.authenticatedUser();
         this.deviceRegistrationWritePlatformService.deleteDeviceRegistration(id);
         return responseMap(id);
-        
+
     }
-    
-    public String responseMap(Long id){
+
+    public String responseMap(Long id) {
         HashMap<String, Object> responseMap = new HashMap<>();
         responseMap.put("resource", id);
         return new Gson().toJson(responseMap);

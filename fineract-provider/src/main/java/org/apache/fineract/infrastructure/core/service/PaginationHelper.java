@@ -19,20 +19,19 @@
 package org.apache.fineract.infrastructure.core.service;
 
 import java.util.List;
-
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 
 public class PaginationHelper<E> {
 
-    public Page<E> fetchPage(final JdbcTemplate jt, final String sqlCountRows, final String sqlFetchRows, final Object args[],
+    public Page<E> fetchPage(final JdbcTemplate jt, final String sqlCountRows, final String sqlFetchRows, final Object[] args,
             final RowMapper<E> rowMapper) {
 
         final List<E> items = jt.query(sqlFetchRows, args, rowMapper);
 
         // determine how many rows are available
-        @SuppressWarnings("deprecation")
-        final int totalFilteredRecords = jt.queryForInt(sqlCountRows);
+        final int totalFilteredRecords = jt.queryForObject(sqlCountRows, Integer.class);
 
         return new Page<>(items, totalFilteredRecords);
     }
@@ -41,9 +40,8 @@ public class PaginationHelper<E> {
         final List<Long> items = jdbcTemplate.queryForList(sql, type);
 
         // determine how many rows are available
-        @SuppressWarnings("deprecation")
-        final int totalFilteredRecords = jdbcTemplate.queryForInt(sqlCountRows);
+        Integer totalFilteredRecords = jdbcTemplate.queryForObject(sqlCountRows, Integer.class);
 
-        return new Page<>(items, totalFilteredRecords);
+        return new Page<>(items, ObjectUtils.defaultIfNull(totalFilteredRecords, 0));
     }
 }

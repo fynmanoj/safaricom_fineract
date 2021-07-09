@@ -19,9 +19,9 @@
 package org.apache.fineract.infrastructure.core.serialization;
 
 /**
- * 
+ *
  */
 public interface FromApiJsonDeserializer<T> {
 
-    T commandFromApiJson(final String json);
+    T commandFromApiJson(String json);
 }

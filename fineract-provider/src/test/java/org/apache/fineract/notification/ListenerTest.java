@@ -18,24 +18,23 @@
  */
 package org.apache.fineract.notification;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
-
 import javax.jms.JMSException;
 import javax.jms.Session;
 import javax.jms.TextMessage;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ListenerTest {
 
     private Listener listener;
     private Session session;
     private TextMessage textMessageMock;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         listener = new Listener();
         session = Mockito.mock(Session.class);

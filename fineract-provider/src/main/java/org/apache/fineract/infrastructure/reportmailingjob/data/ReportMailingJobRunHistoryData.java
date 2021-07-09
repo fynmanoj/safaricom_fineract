@@ -18,25 +18,26 @@
  */
 package org.apache.fineract.infrastructure.reportmailingjob.data;
 
-import org.joda.time.DateTime;
+import java.time.ZonedDateTime;
 
-/** 
- * Immutable data object representing report mailing job run history data. 
+/**
+ * Immutable data object representing report mailing job run history data.
  **/
-public class ReportMailingJobRunHistoryData {
+public final class ReportMailingJobRunHistoryData {
+
     private final Long id;
     private final Long reportMailingJobId;
-    private final DateTime startDateTime;
-    private final DateTime endDateTime;
+    private final ZonedDateTime startDateTime;
+    private final ZonedDateTime endDateTime;
     private final String status;
     private final String errorMessage;
     private final String errorLog;
-    
-    /** 
-     * ReportMailingJobRunHistoryData private constructor 
+
+    /**
+     * ReportMailingJobRunHistoryData private constructor
      **/
-    private ReportMailingJobRunHistoryData(Long id, Long reportMailingJobId, DateTime startDateTime,
-            DateTime endDateTime, String status, String errorMessage, String errorLog) {
+    private ReportMailingJobRunHistoryData(Long id, Long reportMailingJobId, ZonedDateTime startDateTime, ZonedDateTime endDateTime,
+            String status, String errorMessage, String errorLog) {
         this.id = id;
         this.reportMailingJobId = reportMailingJobId;
         this.startDateTime = startDateTime;
@@ -45,14 +46,14 @@ public class ReportMailingJobRunHistoryData {
         this.errorMessage = errorMessage;
         this.errorLog = errorLog;
     }
-    
-    /** 
+
+    /**
      * creates an instance of the ReportMailingJobRunHistoryData class
-     * 
+     *
      * @return ReportMailingJobRunHistoryData object
      **/
-    public static ReportMailingJobRunHistoryData newInstance(Long id, Long reportMailingJobId, DateTime startDateTime,
-            DateTime endDateTime, String status, String errorMessage, String errorLog) {
+    public static ReportMailingJobRunHistoryData newInstance(Long id, Long reportMailingJobId, ZonedDateTime startDateTime,
+            ZonedDateTime endDateTime, String status, String errorMessage, String errorLog) {
         return new ReportMailingJobRunHistoryData(id, reportMailingJobId, startDateTime, endDateTime, status, errorMessage, errorLog);
     }
 
@@ -73,14 +74,14 @@ public class ReportMailingJobRunHistoryData {
     /**
      * @return the startDateTime
      */
-    public DateTime getStartDateTime() {
+    public ZonedDateTime getStartDateTime() {
         return startDateTime;
     }
 
     /**
      * @return the endDateTime
      */
-    public DateTime getEndDateTime() {
+    public ZonedDateTime getEndDateTime() {
         return endDateTime;
     }
 

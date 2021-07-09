@@ -18,6 +18,7 @@
  */
 package org.apache.fineract.infrastructure.cache.command;
 
+import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -25,8 +26,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.fineract.commands.annotation.CommandType;
 import org.apache.fineract.commands.handler.NewCommandSourceHandler;
 import org.apache.fineract.infrastructure.cache.CacheApiConstants;
@@ -43,15 +43,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.gson.reflect.TypeToken;
-
 @Service
 @CommandType(entity = "CACHE", action = "UPDATE")
 public class UpdateCacheCommandHandler implements NewCommandSourceHandler {
 
     private final CacheWritePlatformService cacheService;
-    private static final Set<String> REQUEST_DATA_PARAMETERS = new HashSet<>(Arrays.asList(CacheApiConstants
-            .cacheTypeParameter));
+    private static final Set<String> REQUEST_DATA_PARAMETERS = new HashSet<>(Arrays.asList(CacheApiConstants.cacheTypeParameter));
 
     @Autowired
     public UpdateCacheCommandHandler(final CacheWritePlatformService cacheService) {
@@ -64,7 +61,9 @@ public class UpdateCacheCommandHandler implements NewCommandSourceHandler {
 
         final String json = command.json();
 
-        if (StringUtils.isBlank(json)) { throw new InvalidJsonException(); }
+        if (StringUtils.isBlank(json)) {
+            throw new InvalidJsonException();
+        }
 
         final Type typeOfMap = new TypeToken<Map<String, Object>>() {}.getType();
         command.checkForUnsupportedParameters(typeOfMap, json, REQUEST_DATA_PARAMETERS);
@@ -77,7 +76,9 @@ public class UpdateCacheCommandHandler implements NewCommandSourceHandler {
         baseDataValidator.reset().parameter(CacheApiConstants.cacheTypeParameter).value(Integer.valueOf(cacheTypeEnum)).notNull()
                 .isOneOfTheseValues(Integer.valueOf(1), Integer.valueOf(2), Integer.valueOf(3));
 
-        if (!dataValidationErrors.isEmpty()) { throw new PlatformApiDataValidationException(dataValidationErrors); }
+        if (!dataValidationErrors.isEmpty()) {
+            throw new PlatformApiDataValidationException(dataValidationErrors);
+        }
 
         final CacheType cacheType = CacheType.fromInt(cacheTypeEnum);
 

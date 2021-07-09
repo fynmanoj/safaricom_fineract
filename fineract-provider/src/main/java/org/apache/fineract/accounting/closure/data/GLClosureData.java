@@ -18,17 +18,15 @@
  */
 package org.apache.fineract.accounting.closure.data;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
-
 import org.apache.fineract.organisation.office.data.OfficeData;
-import org.joda.time.LocalDate;
 
 /**
  * Immutable object representing a General Ledger Account
- * 
- * Note: no getter/setters required as google-gson will produce json from fields
- * of object.
+ *
+ * Note: no getter/setters required as google-gson will produce json from fields of object.
  */
 public class GLClosureData {
 

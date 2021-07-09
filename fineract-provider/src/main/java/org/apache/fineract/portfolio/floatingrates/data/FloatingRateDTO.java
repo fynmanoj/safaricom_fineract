@@ -19,9 +19,8 @@
 package org.apache.fineract.portfolio.floatingrates.data;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Collection;
-
-import org.joda.time.LocalDate;
 
 public class FloatingRateDTO {
 
@@ -43,7 +42,7 @@ public class FloatingRateDTO {
     public BigDecimal fetchBaseRate(LocalDate date) {
         BigDecimal rate = null;
         for (FloatingRatePeriodData periodData : this.baseLendingRatePeriods) {
-            final LocalDate periodFromDate = new LocalDate(periodData.getFromDate());
+            final LocalDate periodFromDate = periodData.getFromDate();
             if (periodFromDate.isBefore(date) || periodFromDate.isEqual(date)) {
                 rate = periodData.getInterestRate();
                 break;

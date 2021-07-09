@@ -18,8 +18,11 @@
  */
 package org.apache.fineract.portfolio.charge.serialization;
 
+import com.google.gson.JsonElement;
+import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
+import java.time.MonthDay;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -28,8 +31,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.fineract.infrastructure.core.data.ApiParameterError;
 import org.apache.fineract.infrastructure.core.data.DataValidatorBuilder;
 import org.apache.fineract.infrastructure.core.exception.InvalidJsonException;
@@ -40,12 +42,8 @@ import org.apache.fineract.portfolio.charge.domain.ChargeAppliesTo;
 import org.apache.fineract.portfolio.charge.domain.ChargeCalculationType;
 import org.apache.fineract.portfolio.charge.domain.ChargePaymentMode;
 import org.apache.fineract.portfolio.charge.domain.ChargeTimeType;
-import org.joda.time.MonthDay;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import com.google.gson.JsonElement;
-import com.google.gson.reflect.TypeToken;
 
 @Component
 public final class ChargeDefinitionCommandFromApiJsonDeserializer {
@@ -66,7 +64,9 @@ public final class ChargeDefinitionCommandFromApiJsonDeserializer {
     }
 
     public void validateForCreate(final String json) {
-        if (StringUtils.isBlank(json)) { throw new InvalidJsonException(); }
+        if (StringUtils.isBlank(json)) {
+            throw new InvalidJsonException();
+        }
 
         final Type typeOfMap = new TypeToken<Map<String, Object>>() {}.getType();
         this.fromApiJsonHelper.checkForUnsupportedParameters(typeOfMap, json, this.supportedParameters);
@@ -135,8 +135,8 @@ public final class ChargeDefinitionCommandFromApiJsonDeserializer {
 
             if (ctt.isWeeklyFee()) {
                 final String monthDay = this.fromApiJsonHelper.extractStringNamed("feeOnMonthDay", element);
-                baseDataValidator.reset().parameter("feeOnMonthDay").value(monthDay)
-                        .mustBeBlankWhenParameterProvidedIs("chargeTimeType", chargeTimeType);
+                baseDataValidator.reset().parameter("feeOnMonthDay").value(monthDay).mustBeBlankWhenParameterProvidedIs("chargeTimeType",
+                        chargeTimeType);
             }
 
             if (ctt.isMonthlyFee()) {
@@ -176,23 +176,23 @@ public final class ChargeDefinitionCommandFromApiJsonDeserializer {
                         .longGreaterThanZero();
             }
 
-        }else if(appliesTo.isSharesCharge()) {
+        } else if (appliesTo.isSharesCharge()) {
             final Integer chargeTimeType = this.fromApiJsonHelper.extractIntegerSansLocaleNamed("chargeTimeType", element);
             baseDataValidator.reset().parameter("chargeTimeType").value(chargeTimeType).notNull();
             if (chargeTimeType != null) {
                 baseDataValidator.reset().parameter("chargeTimeType").value(chargeTimeType)
                         .isOneOfTheseValues(ChargeTimeType.validShareValues());
             }
-            
+
             if (chargeCalculationType != null) {
                 baseDataValidator.reset().parameter("chargeCalculationType").value(chargeCalculationType)
                         .isOneOfTheseValues(ChargeCalculationType.validValuesForShares());
             }
-            
-            if(chargeTimeType != null && chargeTimeType.equals(ChargeTimeType.SHAREACCOUNT_ACTIVATION.getValue())) {
-                if(chargeCalculationType != null) {
+
+            if (chargeTimeType != null && chargeTimeType.equals(ChargeTimeType.SHAREACCOUNT_ACTIVATION.getValue())) {
+                if (chargeCalculationType != null) {
                     baseDataValidator.reset().parameter("chargeCalculationType").value(chargeCalculationType)
-                    .isOneOfTheseValues(ChargeCalculationType.validValuesForShareAccountActivation());
+                            .isOneOfTheseValues(ChargeCalculationType.validValuesForShareAccountActivation());
                 }
             }
         }
@@ -234,7 +234,9 @@ public final class ChargeDefinitionCommandFromApiJsonDeserializer {
     }
 
     public void validateForUpdate(final String json) {
-        if (StringUtils.isBlank(json)) { throw new InvalidJsonException(); }
+        if (StringUtils.isBlank(json)) {
+            throw new InvalidJsonException();
+        }
 
         final Type typeOfMap = new TypeToken<Map<String, Object>>() {}.getType();
         this.fromApiJsonHelper.checkForUnsupportedParameters(typeOfMap, json, this.supportedParameters);
@@ -282,11 +284,11 @@ public final class ChargeDefinitionCommandFromApiJsonDeserializer {
             final Collection<Object> validLoanValues = Arrays.asList(ChargeTimeType.validLoanValues());
             final Collection<Object> validSavingsValues = Arrays.asList(ChargeTimeType.validSavingsValues());
             final Collection<Object> validClientValues = Arrays.asList(ChargeTimeType.validClientValues());
-            final Collection<Object> validShareValues = Arrays.asList(ChargeTimeType.validShareValues()) ;
+            final Collection<Object> validShareValues = Arrays.asList(ChargeTimeType.validShareValues());
             final Collection<Object> allValidValues = new ArrayList<>(validLoanValues);
             allValidValues.addAll(validSavingsValues);
             allValidValues.addAll(validClientValues);
-            allValidValues.addAll(validShareValues) ;
+            allValidValues.addAll(validShareValues);
             baseDataValidator.reset().parameter("chargeTimeType").value(chargeTimeType).notNull()
                     .isOneOfTheseValues(allValidValues.toArray(new Object[allValidValues.size()]));
         }
@@ -300,13 +302,13 @@ public final class ChargeDefinitionCommandFromApiJsonDeserializer {
             final Integer feeInterval = this.fromApiJsonHelper.extractIntegerNamed("feeInterval", element, Locale.getDefault());
             baseDataValidator.reset().parameter("feeInterval").value(feeInterval).integerGreaterThanZero();
         }
-        
+
         if (this.fromApiJsonHelper.parameterExists("chargeCalculationType", element)) {
             final Integer chargeCalculationType = this.fromApiJsonHelper.extractIntegerNamed("chargeCalculationType", element,
                     Locale.getDefault());
             baseDataValidator.reset().parameter("chargeCalculationType").value(chargeCalculationType).notNull().inMinMaxRange(1, 5);
         }
-        
+
         if (this.fromApiJsonHelper.parameterExists("chargePaymentMode", element)) {
             final Integer chargePaymentMode = this.fromApiJsonHelper.extractIntegerNamed("chargePaymentMode", element, Locale.getDefault());
             baseDataValidator.reset().parameter("chargePaymentMode").value(chargePaymentMode).notNull().inMinMaxRange(0, 1);
@@ -357,11 +359,11 @@ public final class ChargeDefinitionCommandFromApiJsonDeserializer {
 
     private void performChargeTimeNCalculationTypeValidation(DataValidatorBuilder baseDataValidator, final Integer chargeTimeType,
             final Integer chargeCalculationType) {
-        if(chargeTimeType.equals(ChargeTimeType.SHAREACCOUNT_ACTIVATION.getValue())){
+        if (chargeTimeType.equals(ChargeTimeType.SHAREACCOUNT_ACTIVATION.getValue())) {
             baseDataValidator.reset().parameter("chargeCalculationType").value(chargeCalculationType)
-            .isOneOfTheseValues(ChargeCalculationType.validValuesForShareAccountActivation());
+                    .isOneOfTheseValues(ChargeCalculationType.validValuesForShareAccountActivation());
         }
-        
+
         if (chargeTimeType.equals(ChargeTimeType.TRANCHE_DISBURSEMENT.getValue())) {
             baseDataValidator.reset().parameter("chargeCalculationType").value(chargeCalculationType)
                     .isOneOfTheseValues(ChargeCalculationType.validValuesForTrancheDisbursement());
@@ -372,6 +374,8 @@ public final class ChargeDefinitionCommandFromApiJsonDeserializer {
     }
 
     private void throwExceptionIfValidationWarningsExist(final List<ApiParameterError> dataValidationErrors) {
-        if (!dataValidationErrors.isEmpty()) { throw new PlatformApiDataValidationException(dataValidationErrors); }
+        if (!dataValidationErrors.isEmpty()) {
+            throw new PlatformApiDataValidationException(dataValidationErrors);
+        }
     }
 }

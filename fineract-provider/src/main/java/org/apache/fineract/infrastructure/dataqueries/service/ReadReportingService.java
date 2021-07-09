@@ -22,9 +22,7 @@ import java.io.ByteArrayOutputStream;
 import java.util.Collection;
 import java.util.Locale;
 import java.util.Map;
-
 import javax.ws.rs.core.StreamingOutput;
-
 import org.apache.fineract.infrastructure.dataqueries.data.GenericResultsetData;
 import org.apache.fineract.infrastructure.dataqueries.data.ReportData;
 import org.apache.fineract.infrastructure.dataqueries.data.ReportParameterData;
@@ -32,27 +30,28 @@ import org.apache.fineract.useradministration.domain.AppUser;
 
 public interface ReadReportingService {
 
-    StreamingOutput retrieveReportCSV(String name, String type, Map<String, String> extractedQueryParams, boolean isSelfServiceUserReport);
-
-    GenericResultsetData retrieveGenericResultset(String name, String type, Map<String, String> extractedQueryParams, boolean isSelfServiceUserReport);
-
-    String retrieveReportPDF(String name, String type, Map<String, String> extractedQueryParams, boolean isSelfServiceUserReport);
-
-    String getReportType(String reportName, boolean isSelfServiceUserReport);
-
     Collection<ReportData> retrieveReportList();
+
+    ReportData retrieveReport(Long id);
+
+    String getReportType(String reportName, boolean isSelfServiceUserReport, boolean isParameterType);
 
     Collection<ReportParameterData> getAllowedParameters();
 
-    ReportData retrieveReport(final Long id);
+    // TODO Move the following x3 methods into the (new; FINERACT-1173) DatatableReportingProcessService?
 
-    Collection<String> getAllowedReportTypes();
-    
-  //needed for smsCampaign and emailCampaign jobs where securityContext is null
+    String retrieveReportPDF(String name, String type, Map<String, String> extractedQueryParams, boolean isSelfServiceUserReport);
+
+    StreamingOutput retrieveReportCSV(String name, String type, Map<String, String> extractedQueryParams, boolean isSelfServiceUserReport);
+
+    GenericResultsetData retrieveGenericResultset(String name, String type, Map<String, String> extractedQueryParams,
+            boolean isSelfServiceUserReport);
+
+    // TODO This is weird, could they not be using the retrieveGenericResultset() above after all?
+    // needed for smsCampaign and emailCampaign jobs where securityContext is null
     GenericResultsetData retrieveGenericResultSetForSmsEmailCampaign(String name, String type, Map<String, String> extractedQueryParams);
 
-    String  sqlToRunForSmsEmailCampaign(String name, String type, Map<String, String> queryParams);
-
-	ByteArrayOutputStream generatePentahoReportAsOutputStream(String reportName, String outputTypeParam,
-            Map<String, String> queryParams, Locale locale, AppUser runReportAsUser, StringBuilder errorLog);
+    // TODO kill this when tackling https://issues.apache.org/jira/browse/FINERACT-1264
+    ByteArrayOutputStream generatePentahoReportAsOutputStream(String reportName, String outputTypeParam, Map<String, String> queryParams,
+            Locale locale, AppUser runReportAsUser, StringBuilder errorLog);
 }

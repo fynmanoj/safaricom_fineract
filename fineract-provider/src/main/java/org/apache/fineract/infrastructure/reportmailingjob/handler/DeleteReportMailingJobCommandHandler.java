@@ -31,8 +31,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @CommandType(entity = ReportMailingJobConstants.REPORT_MAILING_JOB_ENTITY_NAME, action = "DELETE")
 public class DeleteReportMailingJobCommandHandler implements NewCommandSourceHandler {
+
     private final ReportMailingJobWritePlatformService reportMailingJobWritePlatformService;
-    
+
     @Autowired
     public DeleteReportMailingJobCommandHandler(final ReportMailingJobWritePlatformService reportMailingJobWritePlatformService) {
         this.reportMailingJobWritePlatformService = reportMailingJobWritePlatformService;

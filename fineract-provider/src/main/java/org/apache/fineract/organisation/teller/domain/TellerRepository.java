@@ -18,10 +18,9 @@
  */
 package org.apache.fineract.organisation.teller.domain;
 
+import java.util.Collection;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-
-import java.util.Collection;
 
 /**
  * Provides the domain repository for accessing, adding, modifying or deleting tellers.
@@ -30,5 +29,6 @@ import java.util.Collection;
  * @since 2.0.0
  */
 public interface TellerRepository extends JpaRepository<Teller, Long>, JpaSpecificationExecutor<Teller> {
+
     Collection<Teller> findTellerByOfficeId(Long officeId);
 }

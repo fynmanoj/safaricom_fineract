@@ -22,10 +22,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Stores details of {@link LoanTransaction}'s that were reversed or newly
- * created
- * 
- * 
+ * Stores details of {@link LoanTransaction}'s that were reversed or newly created
+ *
+ *
  */
 public class ChangedTransactionDetail {
 

@@ -18,19 +18,17 @@
  */
 package org.apache.fineract.infrastructure.dataqueries.serialization;
 
+import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.fineract.infrastructure.core.exception.InvalidJsonException;
 import org.apache.fineract.infrastructure.core.serialization.FromJsonHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import com.google.gson.reflect.TypeToken;
 
 @Component
 public final class ReportCommandFromApiJsonDeserializer {
@@ -49,7 +47,9 @@ public final class ReportCommandFromApiJsonDeserializer {
     }
 
     public void validate(final String json) {
-        if (StringUtils.isBlank(json)) { throw new InvalidJsonException(); }
+        if (StringUtils.isBlank(json)) {
+            throw new InvalidJsonException();
+        }
 
         final Type typeOfMap = new TypeToken<Map<String, Object>>() {}.getType();
 

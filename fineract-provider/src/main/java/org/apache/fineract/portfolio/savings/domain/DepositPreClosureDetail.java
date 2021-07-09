@@ -26,19 +26,16 @@ import static org.apache.fineract.portfolio.savings.SavingsApiConstants.localePa
 import java.math.BigDecimal;
 import java.util.LinkedHashMap;
 import java.util.Map;
-
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
-
 import org.apache.fineract.infrastructure.core.api.JsonCommand;
 import org.apache.fineract.infrastructure.core.data.DataValidatorBuilder;
 import org.apache.fineract.portfolio.savings.PreClosurePenalInterestOnType;
 import org.apache.fineract.portfolio.savings.service.SavingsEnumerations;
 
 /**
- * DepositPreClosureDetail encapsulates all the details of a
- * {@link FixedDepositProduct} that are also used and persisted by a
- * {@link FixedDepositAccount}.
+ * DepositPreClosureDetail encapsulates all the details of a {@link FixedDepositProduct} that are also used and
+ * persisted by a {@link FixedDepositAccount}.
  */
 @Embeddable
 public class DepositPreClosureDetail {

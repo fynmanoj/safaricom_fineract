@@ -19,7 +19,6 @@
 package org.apache.fineract.infrastructure.survey.service;
 
 import java.util.List;
-
 import org.apache.fineract.infrastructure.core.api.JsonCommand;
 import org.apache.fineract.infrastructure.core.data.CommandProcessingResult;
 import org.apache.fineract.infrastructure.core.data.CommandProcessingResultBuilder;
@@ -32,6 +31,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.NonTransientDataAccessException;
+import org.springframework.orm.jpa.JpaSystemException;
 import org.springframework.stereotype.Service;
 
 /**
@@ -40,7 +41,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class WriteLikelihoodServiceImpl implements WriteLikelihoodService {
 
-    private final static Logger logger = LoggerFactory.getLogger(PovertyLineService.class);
+    private static final Logger LOG = LoggerFactory.getLogger(WriteLikelihoodServiceImpl.class);
     private final PlatformSecurityContext context;
     private final LikelihoodDataValidator likelihoodDataValidator;
     private final LikelihoodRepository repository;
@@ -63,40 +64,39 @@ public class WriteLikelihoodServiceImpl implements WriteLikelihoodService {
 
             this.likelihoodDataValidator.validateForUpdate(command);
 
-            final Likelihood likelihood = this.repository.findOne(likelihoodId);
+            final Likelihood likelihood = this.repository.findById(likelihoodId).orElse(null);
 
             if (!likelihood.update(command).isEmpty()) {
                 this.repository.save(likelihood);
 
                 if (likelihood.isActivateCommand(command)) {
-                    List<Likelihood> likelihoods = this.repository
-                            .findByPpiNameAndLikeliHoodId(likelihood.getPpiName(), likelihood.getId());
+                    List<Likelihood> likelihoods = this.repository.findByPpiNameAndLikeliHoodId(likelihood.getPpiName(),
+                            likelihood.getId());
 
                     for (Likelihood aLikelihood : likelihoods) {
                         aLikelihood.disable();
                     }
-                    this.repository.save(likelihoods);
+                    this.repository.saveAll(likelihoods);
                 }
 
             }
 
             return new CommandProcessingResultBuilder().withCommandId(command.commandId()).withEntityId(likelihood.getId()).build();
 
-        } catch (final DataIntegrityViolationException dve) {
-            handleDataIntegrityIssues(dve);
+        } catch (final JpaSystemException | DataIntegrityViolationException dve) {
+            final Throwable throwable = dve.getMostSpecificCause();
+            handleDataIntegrityIssues(throwable, dve);
             return CommandProcessingResult.empty();
         }
 
     }
 
     /*
-     * Guaranteed to throw an exception no matter what the data integrity issue
-     * is.
+     * Guaranteed to throw an exception no matter what the data integrity issue is.
      */
-    private void handleDataIntegrityIssues(final DataIntegrityViolationException dve) {
+    private void handleDataIntegrityIssues(final Throwable realCause, final NonTransientDataAccessException dve) {
 
-        final Throwable realCause = dve.getMostSpecificCause();
-        logger.error(dve.getMessage(), dve);
+        LOG.error("Error occured.", dve);
         throw new PlatformDataIntegrityException("error.msg.likelihood.unknown.data.integrity.issue",
                 "Unknown data integrity issue with resource: " + realCause.getMessage());
     }

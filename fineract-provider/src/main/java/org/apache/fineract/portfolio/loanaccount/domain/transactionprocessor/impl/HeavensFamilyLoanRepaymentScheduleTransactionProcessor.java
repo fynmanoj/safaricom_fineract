@@ -18,8 +18,8 @@
  */
 package org.apache.fineract.portfolio.loanaccount.domain.transactionprocessor.impl;
 
+import java.time.LocalDate;
 import java.util.List;
-
 import org.apache.fineract.organisation.monetary.domain.MonetaryCurrency;
 import org.apache.fineract.organisation.monetary.domain.Money;
 import org.apache.fineract.portfolio.loanaccount.domain.LoanRepaymentScheduleInstallment;
@@ -27,27 +27,22 @@ import org.apache.fineract.portfolio.loanaccount.domain.LoanTransaction;
 import org.apache.fineract.portfolio.loanaccount.domain.LoanTransactionToRepaymentScheduleMapping;
 import org.apache.fineract.portfolio.loanaccount.domain.transactionprocessor.AbstractLoanRepaymentScheduleTransactionProcessor;
 import org.apache.fineract.portfolio.loanaccount.domain.transactionprocessor.LoanRepaymentScheduleTransactionProcessor;
-import org.joda.time.LocalDate;
 
 /**
  * Heavensfamily style {@link LoanRepaymentScheduleTransactionProcessor}.
- * 
- * For standard transactions, pays off components in order of interest, then
- * principal.
- * 
- * If a transaction results in an advance payment or overpayment for a given
- * installment, the over paid amount is pay off on the principal component of
- * subsequent installments.
- * 
- * If the entire principal of an installment is paid in advance then the
- * interest component is waived.
+ *
+ * For standard transactions, pays off components in order of interest, then principal.
+ *
+ * If a transaction results in an advance payment or overpayment for a given installment, the over paid amount is pay
+ * off on the principal component of subsequent installments.
+ *
+ * If the entire principal of an installment is paid in advance then the interest component is waived.
  */
 @SuppressWarnings("unused")
 public class HeavensFamilyLoanRepaymentScheduleTransactionProcessor extends AbstractLoanRepaymentScheduleTransactionProcessor {
 
     /**
-     * For late repayments, pay off in the same way as on-time payments,
-     * interest first then principal.
+     * For late repayments, pay off in the same way as on-time payments, interest first then principal.
      */
     @Override
     protected Money handleTransactionThatIsALateRepaymentOfInstallment(final LoanRepaymentScheduleInstallment currentInstallment,
@@ -73,7 +68,7 @@ public class HeavensFamilyLoanRepaymentScheduleTransactionProcessor extends Abst
         final LoanRepaymentScheduleInstallment previousInstallment = installments.get(previousInstallmentIndex);
         lastInstallmentDueDate = previousInstallment.getDueDate();
 
-        isInAdvance = !(transactionDate.isAfter(lastInstallmentDueDate) || (transactionDate.isEqual(lastInstallmentDueDate)));
+        isInAdvance = !(transactionDate.isAfter(lastInstallmentDueDate) || transactionDate.isEqual(lastInstallmentDueDate));
 
         return isInAdvance;
     }
@@ -164,8 +159,8 @@ public class HeavensFamilyLoanRepaymentScheduleTransactionProcessor extends Abst
                     loanTransaction.getPenaltyChargesPortion(currency));
             transactionAmountRemaining = transactionAmountRemaining.minus(penaltyChargesPortion);
 
-            feeChargesPortion = currentInstallment
-                    .waiveFeeChargesComponent(transactionDate, loanTransaction.getFeeChargesPortion(currency));
+            feeChargesPortion = currentInstallment.waiveFeeChargesComponent(transactionDate,
+                    loanTransaction.getFeeChargesPortion(currency));
             transactionAmountRemaining = transactionAmountRemaining.minus(feeChargesPortion);
 
         } else if (loanTransaction.isInterestWaiver()) {

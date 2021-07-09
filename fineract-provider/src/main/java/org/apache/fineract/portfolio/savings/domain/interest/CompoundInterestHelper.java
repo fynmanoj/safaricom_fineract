@@ -19,11 +19,10 @@
 package org.apache.fineract.portfolio.savings.domain.interest;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
-
 import org.apache.fineract.organisation.monetary.domain.MonetaryCurrency;
 import org.apache.fineract.organisation.monetary.domain.Money;
-import org.joda.time.LocalDate;
 
 public class CompoundInterestHelper {
 
@@ -31,12 +30,11 @@ public class CompoundInterestHelper {
      * @param currency
      * @param allPeriods
      * @param lockUntil
-     *            - account locked date used with the combination of
-     *            immediateWithdrawalOfInterest to avoid exclusion of
+     *            - account locked date used with the combination of immediateWithdrawalOfInterest to avoid exclusion of
      *            interestEarned
      * @param interestTransferEnabled
-     *            - boolean flag used to avoid addition of interest to next
-     *            posting period as income while calculating interest
+     *            - boolean flag used to avoid addition of interest to next posting period as income while calculating
+     *            interest
      * @return
      */
     public Money calculateInterestForAllPostingPeriods(final MonetaryCurrency currency, final List<PostingPeriod> allPeriods,
@@ -46,10 +44,9 @@ public class CompoundInterestHelper {
         Money interestEarned = Money.zero(currency);
 
         // total interest earned in previous periods but not yet recognised
-		BigDecimal compoundedInterest = BigDecimal.ZERO;
-		BigDecimal unCompoundedInterest = BigDecimal.ZERO;
-		final CompoundInterestValues compoundInterestValues = new CompoundInterestValues(compoundedInterest,
-				unCompoundedInterest);
+        BigDecimal compoundedInterest = BigDecimal.ZERO;
+        BigDecimal unCompoundedInterest = BigDecimal.ZERO;
+        final CompoundInterestValues compoundInterestValues = new CompoundInterestValues(compoundedInterest, unCompoundedInterest);
         for (final PostingPeriod postingPeriod : allPeriods) {
 
             final BigDecimal interestEarnedThisPeriod = postingPeriod.calculateInterest(compoundInterestValues);
@@ -63,7 +60,7 @@ public class CompoundInterestHelper {
             // calculation.
             if (!(postingPeriod.isInterestTransfered() || !interestTransferEnabled
                     || (lockUntil != null && !postingPeriod.dateOfPostingTransaction().isAfter(lockUntil)))) {
-            	compoundInterestValues.setcompoundedInterest(BigDecimal.ZERO);
+                compoundInterestValues.setcompoundedInterest(BigDecimal.ZERO);
             }
         }
 

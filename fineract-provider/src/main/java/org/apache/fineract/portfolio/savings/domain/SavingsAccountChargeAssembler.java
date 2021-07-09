@@ -29,13 +29,17 @@ import static org.apache.fineract.portfolio.savings.SavingsApiConstants.feeInter
 import static org.apache.fineract.portfolio.savings.SavingsApiConstants.feeOnMonthDayParamName;
 import static org.apache.fineract.portfolio.savings.SavingsApiConstants.idParamName;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.MonthDay;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
-
 import org.apache.fineract.infrastructure.core.data.ApiParameterError;
 import org.apache.fineract.infrastructure.core.data.DataValidatorBuilder;
 import org.apache.fineract.infrastructure.core.exception.PlatformApiDataValidationException;
@@ -46,14 +50,8 @@ import org.apache.fineract.portfolio.charge.domain.ChargeRepositoryWrapper;
 import org.apache.fineract.portfolio.charge.domain.ChargeTimeType;
 import org.apache.fineract.portfolio.charge.exception.ChargeCannotBeAppliedToException;
 import org.apache.fineract.portfolio.charge.exception.SavingsAccountChargeNotFoundException;
-import org.joda.time.LocalDate;
-import org.joda.time.MonthDay;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 
 @Service
 public class SavingsAccountChargeAssembler {
@@ -88,15 +86,15 @@ public class SavingsAccountChargeAssembler {
                     final Long id = this.fromApiJsonHelper.extractLongNamed(idParamName, savingsChargeElement);
                     final Long chargeId = this.fromApiJsonHelper.extractLongNamed(chargeIdParamName, savingsChargeElement);
                     final BigDecimal amount = this.fromApiJsonHelper.extractBigDecimalNamed(amountParamName, savingsChargeElement, locale);
-                    final Integer chargeTimeType = this.fromApiJsonHelper.extractIntegerNamed(chargeTimeTypeParamName,
-                            savingsChargeElement, locale);
+                    final Integer chargeTimeType = this.fromApiJsonHelper.extractIntegerNamed(chargeTimeTypeParamName, savingsChargeElement,
+                            locale);
                     final Integer chargeCalculationType = this.fromApiJsonHelper.extractIntegerNamed(chargeCalculationTypeParamName,
                             savingsChargeElement, locale);
                     final LocalDate dueDate = this.fromApiJsonHelper.extractLocalDateNamed(dueAsOfDateParamName, savingsChargeElement,
                             dateFormat, locale);
 
-                    final MonthDay feeOnMonthDay = this.fromApiJsonHelper.extractMonthDayNamed(feeOnMonthDayParamName,
-                            savingsChargeElement, monthDayFormat, locale);
+                    final MonthDay feeOnMonthDay = this.fromApiJsonHelper.extractMonthDayNamed(feeOnMonthDayParamName, savingsChargeElement,
+                            monthDayFormat, locale);
                     final Integer feeInterval = this.fromApiJsonHelper.extractIntegerNamed(feeIntervalParamName, savingsChargeElement,
                             locale);
 
@@ -126,8 +124,8 @@ public class SavingsAccountChargeAssembler {
                     } else {
                         final Long savingsAccountChargeId = id;
                         final SavingsAccountCharge savingsAccountCharge = this.savingsAccountChargeRepository
-                                .findOne(savingsAccountChargeId);
-                        if (savingsAccountCharge == null) { throw new SavingsAccountChargeNotFoundException(savingsAccountChargeId); }
+                                .findById(savingsAccountChargeId)
+                                .orElseThrow(() -> new SavingsAccountChargeNotFoundException(savingsAccountChargeId));
 
                         savingsAccountCharge.update(amount, dueDate, feeOnMonthDay, feeInterval);
 
@@ -192,6 +190,8 @@ public class SavingsAccountChargeAssembler {
                 isOneAnnualPresent = true;
             }
         }
-        if (!dataValidationErrors.isEmpty()) { throw new PlatformApiDataValidationException(dataValidationErrors); }
+        if (!dataValidationErrors.isEmpty()) {
+            throw new PlatformApiDataValidationException(dataValidationErrors);
+        }
     }
 }

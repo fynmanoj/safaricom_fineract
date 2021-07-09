@@ -16,20 +16,22 @@
  * specific language governing permissions and limitations
  * under the License.
  */
- 
+
 package org.apache.fineract.accounting.glaccount.domain;
 
-
-import org.apache.fineract.infrastructure.core.domain.AbstractPersistableCustom;
-
-
-import javax.persistence.*;
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.Objects;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+import org.apache.fineract.infrastructure.core.domain.AbstractPersistableCustom;
 
 @Entity
 @Table(name = "m_trial_balance")
-public class TrialBalance extends AbstractPersistableCustom<Long> {
+public class TrialBalance extends AbstractPersistableCustom {
 
     @Column(name = "office_id", nullable = false)
     private Long officeId;
@@ -51,13 +53,13 @@ public class TrialBalance extends AbstractPersistableCustom<Long> {
     @Column(name = "closing_balance", nullable = false)
     private BigDecimal closingBalance;
 
-    public static TrialBalance getInstance(final Long officeId, final Long glAccountId,
-                                           final BigDecimal amount, final Date entryDate, final Date transactionDate) {
+    public static TrialBalance getInstance(final Long officeId, final Long glAccountId, final BigDecimal amount, final Date entryDate,
+            final Date transactionDate) {
         return new TrialBalance(officeId, glAccountId, amount, entryDate, transactionDate);
     }
 
-    private TrialBalance(final Long officeId, final Long glAccountId,
-                         final BigDecimal amount, final Date entryDate, final Date transactionDate) {
+    private TrialBalance(final Long officeId, final Long glAccountId, final BigDecimal amount, final Date entryDate,
+            final Date transactionDate) {
         this.officeId = officeId;
         this.glAccountId = glAccountId;
         this.amount = amount;
@@ -65,9 +67,7 @@ public class TrialBalance extends AbstractPersistableCustom<Long> {
         this.transactionDate = transactionDate;
     }
 
-    protected TrialBalance() {
-
-    }
+    protected TrialBalance() {}
 
     public Long getOfficeId() {
         return officeId;
@@ -95,14 +95,18 @@ public class TrialBalance extends AbstractPersistableCustom<Long> {
 
     @Override
     public boolean equals(Object obj) {
-        if (!obj.getClass().equals(getClass())) return false;
-        TrialBalance trialBalance = (TrialBalance) obj;
-        return trialBalance.getOfficeId().equals(this.getOfficeId())
-                && trialBalance.getGlAccountId().equals(this.getGlAccountId())
-                && trialBalance.getEntryDate().equals(this.getEntryDate())
-                && trialBalance.getTransactionDate().equals(this.getTransactionDate());
+        if (!(obj instanceof TrialBalance)) {
+            return false;
+        }
+        TrialBalance other = (TrialBalance) obj;
+        return Objects.equals(other.officeId, officeId) && Objects.equals(other.glAccountId, glAccountId)
+                && Objects.equals(other.amount, amount) && other.entryDate.compareTo(entryDate) == 0 ? Boolean.TRUE
+                        : Boolean.FALSE && other.transactionDate.compareTo(transactionDate) == 0 ? Boolean.TRUE
+                                : Boolean.FALSE && Objects.equals(other.closingBalance, closingBalance);
     }
 
-
-
+    @Override
+    public int hashCode() {
+        return Objects.hash(officeId, glAccountId, amount, entryDate, transactionDate, closingBalance);
+    }
 }

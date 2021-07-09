@@ -21,8 +21,8 @@ package org.apache.fineract.portfolio.common.domain;
 import java.util.ArrayList;
 import java.util.List;
 
-
 public enum PeriodFrequencyType {
+
     DAYS(0, "periodFrequencyType.days"), //
     WEEKS(1, "periodFrequencyType.weeks"), //
     MONTHS(2, "periodFrequencyType.months"), //
@@ -33,7 +33,7 @@ public enum PeriodFrequencyType {
     private final Integer value;
     private final String code;
 
-    private PeriodFrequencyType(final Integer value, final String code) {
+    PeriodFrequencyType(final Integer value, final String code) {
         this.value = value;
         this.code = code;
     }
@@ -63,7 +63,7 @@ public enum PeriodFrequencyType {
                     repaymentFrequencyType = PeriodFrequencyType.YEARS;
                 break;
                 case 4:
-                   repaymentFrequencyType = PeriodFrequencyType.WHOLE_TERM;
+                    repaymentFrequencyType = PeriodFrequencyType.WHOLE_TERM;
                 break;
             }
         }
@@ -77,7 +77,7 @@ public enum PeriodFrequencyType {
     public boolean isYearly() {
         return this.value.equals(PeriodFrequencyType.YEARS.getValue());
     }
-    
+
     public boolean isWeekly() {
         return this.value.equals(PeriodFrequencyType.WEEKS.getValue());
     }
@@ -85,14 +85,15 @@ public enum PeriodFrequencyType {
     public boolean isDaily() {
         return this.value.equals(PeriodFrequencyType.DAYS.getValue());
     }
-    
+
     public boolean isWholeTerm() {
-         return this.value.equals(PeriodFrequencyType.WHOLE_TERM.getValue());
+        return this.value.equals(PeriodFrequencyType.WHOLE_TERM.getValue());
     }
+
     public boolean isInvalid() {
         return this.value.equals(PeriodFrequencyType.INVALID.getValue());
     }
-    
+
     public static Object[] integerValues() {
         final List<Integer> values = new ArrayList<>();
         for (final PeriodFrequencyType enumType : values()) {

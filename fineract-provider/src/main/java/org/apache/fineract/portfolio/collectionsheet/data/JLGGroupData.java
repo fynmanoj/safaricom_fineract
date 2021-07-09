@@ -21,10 +21,9 @@ package org.apache.fineract.portfolio.collectionsheet.data;
 import java.util.Collection;
 
 /**
- * Immutable data object for groups with clients due for disbursement or
- * collection.
+ * Immutable data object for groups with clients due for disbursement or collection.
  */
-public class JLGGroupData {
+public final class JLGGroupData {
 
     private final Long groupId;
     private final String groupName;
@@ -34,15 +33,15 @@ public class JLGGroupData {
     private final String levelName;
     private Collection<JLGClientData> clients;
 
-    public static JLGGroupData instance(final Long groupId, final String groupName, final Long staffId, final String staffName, final Long levelId,
-            final String levelName){
+    public static JLGGroupData instance(final Long groupId, final String groupName, final Long staffId, final String staffName,
+            final Long levelId, final String levelName) {
         return new JLGGroupData(groupId, groupName, staffId, staffName, levelId, levelName, null);
     }
-    
-    public static JLGGroupData withClients(final JLGGroupData group, Collection<JLGClientData> clients){
+
+    public static JLGGroupData withClients(final JLGGroupData group, Collection<JLGClientData> clients) {
         return new JLGGroupData(group.groupId, group.groupName, group.staffId, group.staffName, group.levelId, group.levelName, clients);
     }
-    
+
     private JLGGroupData(final Long groupId, final String groupName, final Long staffId, final String staffName, final Long levelId,
             final String levelName, final Collection<JLGClientData> clients) {
         this.groupId = groupId;
@@ -85,9 +84,12 @@ public class JLGGroupData {
     public void setClients(final Collection<JLGClientData> clients) {
         this.clients = clients;
     }
-    
+
     @Override
     public boolean equals(final Object obj) {
+        if (!(obj instanceof JLGGroupData)) {
+            return false;
+        }
         final JLGGroupData groupData = (JLGGroupData) obj;
         return groupData.groupId.compareTo(this.groupId) == 0;
     }

@@ -18,28 +18,35 @@
  */
 package org.apache.fineract.infrastructure.hooks.domain;
 
+import static org.apache.fineract.infrastructure.hooks.api.HookApiConstants.configParamName;
+import static org.apache.fineract.infrastructure.hooks.api.HookApiConstants.displayNameParamName;
+import static org.apache.fineract.infrastructure.hooks.api.HookApiConstants.eventsParamName;
+import static org.apache.fineract.infrastructure.hooks.api.HookApiConstants.isActiveParamName;
+import static org.apache.fineract.infrastructure.hooks.api.HookApiConstants.templateIdParamName;
+
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.fineract.infrastructure.core.api.JsonCommand;
-import org.apache.fineract.infrastructure.core.domain.AbstractAuditableCustom;
-import org.apache.fineract.template.domain.Template;
-import org.apache.fineract.useradministration.domain.AppUser;
-import org.springframework.util.CollectionUtils;
-
-import javax.persistence.*;
-
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
-
-import static org.apache.fineract.infrastructure.hooks.api.HookApiConstants.*;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.fineract.infrastructure.core.api.JsonCommand;
+import org.apache.fineract.infrastructure.core.domain.AbstractAuditableCustom;
+import org.apache.fineract.template.domain.Template;
+import org.springframework.util.CollectionUtils;
 
 @Entity
 @Table(name = "m_hook")
-public class Hook extends AbstractAuditableCustom<AppUser, Long> {
+public class Hook extends AbstractAuditableCustom {
 
     @Column(name = "name", nullable = false, length = 100)
     private String name;
@@ -47,10 +54,10 @@ public class Hook extends AbstractAuditableCustom<AppUser, Long> {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "hook", orphanRemoval = true, fetch=FetchType.EAGER)
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "hook", orphanRemoval = true, fetch = FetchType.EAGER)
     private Set<HookResource> events = new HashSet<>();
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "hook", orphanRemoval = true, fetch=FetchType.EAGER)
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "hook", orphanRemoval = true, fetch = FetchType.EAGER)
     private Set<HookConfiguration> config = new HashSet<>();
 
     @ManyToOne(optional = true)
@@ -69,7 +76,9 @@ public class Hook extends AbstractAuditableCustom<AppUser, Long> {
             final Set<HookResource> events, final Template ugdTemplate) {
         final String displayName = command.stringValueOfParameterNamed(displayNameParamName);
         Boolean isActive = command.booleanObjectValueOfParameterNamed(isActiveParamName);
-        if (isActive == null) isActive = false;
+        if (isActive == null) {
+            isActive = false;
+        }
         return new Hook(template, displayName, isActive, config, events, ugdTemplate);
     }
 
@@ -169,7 +178,9 @@ public class Hook extends AbstractAuditableCustom<AppUser, Long> {
     }
 
     public boolean updateEvents(final Set<HookResource> newHookEvents) {
-        if (newHookEvents == null) { return false; }
+        if (newHookEvents == null) {
+            return false;
+        }
 
         if (this.events == null) {
             this.events = new HashSet<>();
@@ -180,7 +191,9 @@ public class Hook extends AbstractAuditableCustom<AppUser, Long> {
     }
 
     public boolean updateConfig(final Set<HookConfiguration> newHookConfig) {
-        if (newHookConfig == null) { return false; }
+        if (newHookConfig == null) {
+            return false;
+        }
 
         if (this.config == null) {
             this.config = new HashSet<>();

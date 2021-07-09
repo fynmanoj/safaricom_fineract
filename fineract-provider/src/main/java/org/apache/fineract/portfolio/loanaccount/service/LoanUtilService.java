@@ -18,17 +18,19 @@
  */
 package org.apache.fineract.portfolio.loanaccount.service;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
-
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.fineract.infrastructure.configuration.domain.ConfigurationDomainService;
 import org.apache.fineract.infrastructure.core.serialization.FromJsonHelper;
+import org.apache.fineract.infrastructure.core.service.DateUtils;
 import org.apache.fineract.organisation.holiday.domain.Holiday;
 import org.apache.fineract.organisation.holiday.domain.HolidayRepository;
 import org.apache.fineract.organisation.holiday.domain.HolidayStatusType;
@@ -57,12 +59,8 @@ import org.apache.fineract.portfolio.loanaccount.domain.Loan;
 import org.apache.fineract.portfolio.loanaccount.domain.LoanDisbursementDetails;
 import org.apache.fineract.portfolio.loanaccount.loanschedule.domain.LoanScheduleGeneratorFactory;
 import org.apache.fineract.portfolio.loanproduct.domain.LoanProductRelatedDetail;
-import org.joda.time.LocalDate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 
 @Component
 public class LoanUtilService {
@@ -124,52 +122,63 @@ public class LoanUtilService {
         if (loan.repaymentScheduleDetail().isInterestRecalculationEnabled()) {
             restCalendarInstance = calendarInstanceRepository.findCalendarInstaneByEntityId(loan.loanInterestRecalculationDetailId(),
                     CalendarEntityType.LOAN_RECALCULATION_REST_DETAIL.getValue());
-            compoundingCalendarInstance = calendarInstanceRepository.findCalendarInstaneByEntityId(
-                    loan.loanInterestRecalculationDetailId(), CalendarEntityType.LOAN_RECALCULATION_COMPOUNDING_DETAIL.getValue());
+            compoundingCalendarInstance = calendarInstanceRepository.findCalendarInstaneByEntityId(loan.loanInterestRecalculationDetailId(),
+                    CalendarEntityType.LOAN_RECALCULATION_COMPOUNDING_DETAIL.getValue());
             overdurPenaltyWaitPeriod = this.configurationDomainService.retrievePenaltyWaitPeriod();
         }
-        final Boolean isInterestChargedFromDateAsDisbursementDateEnabled = this.configurationDomainService.isInterestChargedFromDateSameAsDisbursementDate();
+        final Boolean isInterestChargedFromDateAsDisbursementDateEnabled = this.configurationDomainService
+                .isInterestChargedFromDateSameAsDisbursementDate();
         FloatingRateDTO floatingRateDTO = constructFloatingRateDTO(loan);
         Boolean isSkipRepaymentOnFirstMonth = false;
         Integer numberOfDays = 0;
         boolean isSkipRepaymentOnFirstMonthEnabled = configurationDomainService.isSkippingMeetingOnFirstDayOfMonthEnabled();
-        if(isSkipRepaymentOnFirstMonthEnabled){
+        if (isSkipRepaymentOnFirstMonthEnabled) {
             isSkipRepaymentOnFirstMonth = isLoanRepaymentsSyncWithMeeting(loan.group(), calendar);
-            if(isSkipRepaymentOnFirstMonth) { numberOfDays = configurationDomainService.retreivePeroidInNumberOfDaysForSkipMeetingDate().intValue(); } 
+            if (isSkipRepaymentOnFirstMonth) {
+                numberOfDays = configurationDomainService.retreivePeroidInNumberOfDaysForSkipMeetingDate().intValue();
+            }
         }
-        final Boolean isChangeEmiIfRepaymentDateSameAsDisbursementDateEnabled = this.configurationDomainService.isChangeEmiIfRepaymentDateSameAsDisbursementDateEnabled();
-        
+        final Boolean isChangeEmiIfRepaymentDateSameAsDisbursementDateEnabled = this.configurationDomainService
+                .isChangeEmiIfRepaymentDateSameAsDisbursementDateEnabled();
+
+        boolean isFirstRepaymentDateAllowedOnHoliday = this.configurationDomainService
+                .isFirstRepaymentDateAfterRescheduleAllowedOnHoliday();
+
+        boolean isInterestToBeAppropriatedEquallyWhenGreaterThanEMI = this.configurationDomainService
+                .isInterestToBeAppropriatedEquallyWhenGreaterThanEMI();
+
         ScheduleGeneratorDTO scheduleGeneratorDTO = new ScheduleGeneratorDTO(loanScheduleFactory, applicationCurrency,
                 calculatedRepaymentsStartingFromDate, holidayDetails, restCalendarInstance, compoundingCalendarInstance, recalculateFrom,
-                overdurPenaltyWaitPeriod, floatingRateDTO, calendar, calendarHistoryDataWrapper, isInterestChargedFromDateAsDisbursementDateEnabled,
-                numberOfDays, isSkipRepaymentOnFirstMonth, isChangeEmiIfRepaymentDateSameAsDisbursementDateEnabled);
+                overdurPenaltyWaitPeriod, floatingRateDTO, calendar, calendarHistoryDataWrapper,
+                isInterestChargedFromDateAsDisbursementDateEnabled, numberOfDays, isSkipRepaymentOnFirstMonth,
+                isChangeEmiIfRepaymentDateSameAsDisbursementDateEnabled, isFirstRepaymentDateAllowedOnHoliday,
+                isInterestToBeAppropriatedEquallyWhenGreaterThanEMI);
 
-               return scheduleGeneratorDTO;
+        return scheduleGeneratorDTO;
     }
 
-	public Boolean isLoanRepaymentsSyncWithMeeting(final Group group, final Calendar calendar) {
-		Boolean isSkipRepaymentOnFirstMonth = false;
-		Long entityId = null;
-		Long entityTypeId = null;
+    public Boolean isLoanRepaymentsSyncWithMeeting(final Group group, final Calendar calendar) {
+        Boolean isSkipRepaymentOnFirstMonth = false;
+        Long entityId = null;
+        Long entityTypeId = null;
 
-		if (group != null) {
-			if (group.getParent() != null) {
-				entityId = group.getParent().getId();
-				entityTypeId = CalendarEntityType.CENTERS.getValue().longValue();
-			} else {
-				entityId = group.getId();
-				entityTypeId = CalendarEntityType.GROUPS.getValue().longValue();
-			}
-		}
+        if (group != null) {
+            if (group.getParent() != null) {
+                entityId = group.getParent().getId();
+                entityTypeId = CalendarEntityType.CENTERS.getValue().longValue();
+            } else {
+                entityId = group.getId();
+                entityTypeId = CalendarEntityType.GROUPS.getValue().longValue();
+            }
+        }
 
-		if (entityId == null || calendar == null) {
-			return isSkipRepaymentOnFirstMonth;
-		}
-		isSkipRepaymentOnFirstMonth = this.calendarReadPlatformService
-				.isCalendarAssociatedWithEntity(entityId, calendar.getId(), entityTypeId);
-		return isSkipRepaymentOnFirstMonth;
-	}
-
+        if (entityId == null || calendar == null) {
+            return isSkipRepaymentOnFirstMonth;
+        }
+        isSkipRepaymentOnFirstMonth = this.calendarReadPlatformService.isCalendarAssociatedWithEntity(entityId, calendar.getId(),
+                entityTypeId);
+        return isSkipRepaymentOnFirstMonth;
+    }
 
     public LocalDate getCalculatedRepaymentsStartingFromDate(final Loan loan) {
         final CalendarInstance calendarInstance = this.calendarInstanceRepository.findCalendarInstaneByEntityId(loan.getId(),
@@ -180,8 +189,9 @@ public class LoanUtilService {
 
     private HolidayDetailDTO constructHolidayDTO(final Loan loan) {
         final boolean isHolidayEnabled = this.configurationDomainService.isRescheduleRepaymentsOnHolidaysEnabled();
-        final List<Holiday> holidays = this.holidayRepository.findByOfficeIdAndGreaterThanDate(loan.getOfficeId(), loan
-                .getDisbursementDate().toDate(), HolidayStatusType.ACTIVE.getValue());
+        final List<Holiday> holidays = this.holidayRepository.findByOfficeIdAndGreaterThanDate(loan.getOfficeId(),
+                Date.from(loan.getDisbursementDate().atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant()),
+                HolidayStatusType.ACTIVE.getValue());
         final WorkingDays workingDays = this.workingDaysRepository.findOne();
         final boolean allowTransactionsOnHoliday = this.configurationDomainService.allowTransactionsOnHolidayEnabled();
         final boolean allowTransactionsOnNonWorkingDay = this.configurationDomainService.allowTransactionsOnNonWorkingDayEnabled();
@@ -218,20 +228,23 @@ public class LoanUtilService {
     public LocalDate getCalculatedRepaymentsStartingFromDate(final LocalDate actualDisbursementDate, final Loan loan,
             final Calendar calendar) {
         final CalendarHistoryDataWrapper calendarHistoryDataWrapper = null;
-        if (calendar == null) { return getCalculatedRepaymentsStartingFromDate(loan); }
+        if (calendar == null) {
+            return getCalculatedRepaymentsStartingFromDate(loan);
+        }
         return calculateRepaymentStartingFromDate(actualDisbursementDate, loan, calendar, calendarHistoryDataWrapper);
 
     }
 
-    private LocalDate calculateRepaymentStartingFromDate(final LocalDate actualDisbursementDate, final Loan loan, final Calendar calendar, 
+    private LocalDate calculateRepaymentStartingFromDate(final LocalDate actualDisbursementDate, final Loan loan, final Calendar calendar,
             final CalendarHistoryDataWrapper calendarHistoryDataWrapper) {
         LocalDate calculatedRepaymentsStartingFromDate = loan.getExpectedFirstRepaymentOnDate();
-        if (calendar != null) {// sync repayments
+        if (calendar != null) { // sync repayments
 
-            if (calculatedRepaymentsStartingFromDate == null && !calendar.getCalendarHistory().isEmpty() &&
-                    calendarHistoryDataWrapper != null) {
+            if (calculatedRepaymentsStartingFromDate == null && !calendar.getCalendarHistory().isEmpty()
+                    && calendarHistoryDataWrapper != null) {
                 // generate the first repayment date based on calendar history
-                calculatedRepaymentsStartingFromDate = generateCalculatedRepaymentStartDate(calendarHistoryDataWrapper,  actualDisbursementDate, loan);
+                calculatedRepaymentsStartingFromDate = generateCalculatedRepaymentStartDate(calendarHistoryDataWrapper,
+                        actualDisbursementDate, loan);
                 return calculatedRepaymentsStartingFromDate;
             }
 
@@ -243,15 +256,16 @@ public class LoanUtilService {
                 // need to have minimum number of days gap between disbursement
                 // and first repayment date.
                 final LoanProductRelatedDetail repaymentScheduleDetails = loan.repaymentScheduleDetail();
-                if (repaymentScheduleDetails != null) {// Not expecting to be
-                                                       // null
+                // Not expecting to be null
+                if (repaymentScheduleDetails != null) {
                     final Integer repayEvery = repaymentScheduleDetails.getRepayEvery();
-                    final String frequency = CalendarUtils.getMeetingFrequencyFromPeriodFrequencyType(repaymentScheduleDetails
-                            .getRepaymentPeriodFrequencyType());
+                    final String frequency = CalendarUtils
+                            .getMeetingFrequencyFromPeriodFrequencyType(repaymentScheduleDetails.getRepaymentPeriodFrequencyType());
                     Boolean isSkipRepaymentOnFirstMonth = false;
                     Integer numberOfDays = 0;
-                    boolean isSkipRepaymentOnFirstMonthEnabled = this.configurationDomainService.isSkippingMeetingOnFirstDayOfMonthEnabled();
-                    if(isSkipRepaymentOnFirstMonthEnabled){
+                    boolean isSkipRepaymentOnFirstMonthEnabled = this.configurationDomainService
+                            .isSkippingMeetingOnFirstDayOfMonthEnabled();
+                    if (isSkipRepaymentOnFirstMonthEnabled) {
                         numberOfDays = configurationDomainService.retreivePeroidInNumberOfDaysForSkipMeetingDate().intValue();
                         isSkipRepaymentOnFirstMonth = isLoanRepaymentsSyncWithMeeting(loan.group(), calendar);
                     }
@@ -268,28 +282,29 @@ public class LoanUtilService {
         final LoanProductRelatedDetail repaymentScheduleDetails = loan.repaymentScheduleDetail();
         final WorkingDays workingDays = this.workingDaysRepository.findOne();
         LocalDate calculatedRepaymentsStartingFromDate = null;
-        
-        List<CalendarHistory> historyList = calendarHistoryDataWrapper.getCalendarHistoryList() ;
-        
-        if( historyList!=null && historyList.size() > 0) {
-            if(repaymentScheduleDetails != null){
+
+        List<CalendarHistory> historyList = calendarHistoryDataWrapper.getCalendarHistoryList();
+
+        if (historyList != null && historyList.size() > 0) {
+            if (repaymentScheduleDetails != null) {
                 final Integer repayEvery = repaymentScheduleDetails.getRepayEvery();
-                final String frequency = CalendarUtils.getMeetingFrequencyFromPeriodFrequencyType(repaymentScheduleDetails
-                        .getRepaymentPeriodFrequencyType());
+                final String frequency = CalendarUtils
+                        .getMeetingFrequencyFromPeriodFrequencyType(repaymentScheduleDetails.getRepaymentPeriodFrequencyType());
                 Boolean isSkipRepaymentOnFirstMonth = false;
                 Integer numberOfDays = 0;
                 boolean isSkipRepaymentOnFirstMonthEnabled = this.configurationDomainService.isSkippingMeetingOnFirstDayOfMonthEnabled();
-                if(isSkipRepaymentOnFirstMonthEnabled){
+                if (isSkipRepaymentOnFirstMonthEnabled) {
                     numberOfDays = configurationDomainService.retreivePeroidInNumberOfDaysForSkipMeetingDate().intValue();
                     isSkipRepaymentOnFirstMonth = isLoanRepaymentsSyncWithMeeting(loan.group(), historyList.get(0).getCalendar());
                 }
-                calculatedRepaymentsStartingFromDate = CalendarUtils.getNextRepaymentMeetingDate(historyList.get(0).getRecurrence(), historyList.get(0).getStartDateLocalDate(), 
-                        actualDisbursementDate, repayEvery, frequency, workingDays, isSkipRepaymentOnFirstMonth, numberOfDays);
+                calculatedRepaymentsStartingFromDate = CalendarUtils.getNextRepaymentMeetingDate(historyList.get(0).getRecurrence(),
+                        historyList.get(0).getStartDateLocalDate(), actualDisbursementDate, repayEvery, frequency, workingDays,
+                        isSkipRepaymentOnFirstMonth, numberOfDays);
             }
-         }
+        }
         return calculatedRepaymentsStartingFromDate;
     }
-    
+
     public List<LoanDisbursementDetails> fetchDisbursementData(final JsonObject command) {
         final Locale locale = this.fromApiJsonHelper.extractLocaleParameter(command);
         final String dateFormat = this.fromApiJsonHelper.extractDateFormatParameter(command);
@@ -308,12 +323,12 @@ public class LoanUtilService {
                         LocalDate date = this.fromApiJsonHelper.extractLocalDateNamed(LoanApiConstants.disbursementDateParameterName,
                                 jsonObject, dateFormat, locale);
                         if (date != null) {
-                            expectedDisbursementDate = date.toDate();
+                            expectedDisbursementDate = Date.from(date.atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant());
                         }
                     }
                     if (jsonObject.has(LoanApiConstants.disbursementPrincipalParameterName)
                             && jsonObject.get(LoanApiConstants.disbursementPrincipalParameterName).isJsonPrimitive()
-                            && StringUtils.isNotBlank((jsonObject.get(LoanApiConstants.disbursementPrincipalParameterName).getAsString()))) {
+                            && StringUtils.isNotBlank(jsonObject.get(LoanApiConstants.disbursementPrincipalParameterName).getAsString())) {
                         principal = jsonObject.getAsJsonPrimitive(LoanApiConstants.disbursementPrincipalParameterName).getAsBigDecimal();
                     }
 

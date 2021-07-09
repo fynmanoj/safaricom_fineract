@@ -24,19 +24,17 @@ import org.apache.fineract.portfolio.client.exception.ClientNonPersonNotFoundExc
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-
 /**
  * <p>
- * Wrapper for {@link ClientNonPersonRepository} that adds NULL checking and Error
- * handling capabilities
+ * Wrapper for {@link ClientNonPersonRepository} that adds NULL checking and Error handling capabilities
  * </p>
  */
 @Service
 public class ClientNonPersonRepositoryWrapper {
-	
-	private final ClientNonPersonRepository repository;
+
+    private final ClientNonPersonRepository repository;
     private final PlatformSecurityContext context;
-	
+
     @Autowired
     public ClientNonPersonRepositoryWrapper(final ClientNonPersonRepository repository, final PlatformSecurityContext context) {
         this.repository = repository;
@@ -44,18 +42,18 @@ public class ClientNonPersonRepositoryWrapper {
     }
 
     public ClientNonPerson findOneWithNotFoundDetection(final Long id) {
-        final ClientNonPerson clientNonPerson = this.repository.findOne(id);
-        if (clientNonPerson == null) { throw new ClientNonPersonNotFoundException(id); }
-        return clientNonPerson;
+        return this.repository.findById(id).orElseThrow(() -> new ClientNonPersonNotFoundException(id));
     }
-    
+
     public ClientNonPerson findOneByClientId(final Long clientId) {
-    	return this.repository.findByClientId(clientId);
+        return this.repository.findByClientId(clientId);
     }
-    
+
     public ClientNonPerson findOneByClientIdWithNotFoundDetection(final Long clientId) {
         final ClientNonPerson clientNonPerson = this.repository.findByClientId(clientId);
-        if (clientNonPerson == null) { throw new ClientNonPersonNotFoundByClientIdException(clientId); }
+        if (clientNonPerson == null) {
+            throw new ClientNonPersonNotFoundByClientIdException(clientId);
+        }
         return clientNonPerson;
     }
 

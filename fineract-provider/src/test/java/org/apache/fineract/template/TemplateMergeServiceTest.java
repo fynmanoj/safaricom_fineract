@@ -18,19 +18,25 @@
  */
 package org.apache.fineract.template;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.google.common.io.Resources;
+import com.google.common.reflect.TypeToken;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
 import java.math.RoundingMode;
 import java.net.MalformedURLException;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.apache.fineract.organisation.monetary.domain.MonetaryCurrency;
 import org.apache.fineract.organisation.monetary.domain.MoneyHelper;
 import org.apache.fineract.portfolio.loanaccount.LoanScheduleTestDataHelper;
@@ -39,30 +45,20 @@ import org.apache.fineract.portfolio.loanaccount.domain.LoanRepaymentScheduleIns
 import org.apache.fineract.template.domain.Template;
 import org.apache.fineract.template.domain.TemplateMapper;
 import org.apache.fineract.template.service.TemplateMergeService;
-import org.joda.time.LocalDate;
-import org.junit.Before;
-import org.junit.Test;
-
-import com.google.common.base.Charsets;
-import com.google.common.io.Resources;
-import com.google.common.reflect.TypeToken;
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class TemplateMergeServiceTest {
 
     private TemplateMergeService tms = new TemplateMergeService();
-    
-    @Before
+
+    @BeforeEach
     public void setUpForEachTestCase() throws Exception {
 
         Field field = MoneyHelper.class.getDeclaredField("roundingMode");
         field.setAccessible(true);
         field.set(null, RoundingMode.HALF_EVEN);
     }
-
-    
 
     @Test
     public void compileHelloTemplate() throws Exception {
@@ -78,19 +74,18 @@ public class TemplateMergeServiceTest {
 
     @Test
     public void compileLoanSummary() throws IOException {
-        LocalDate july2nd = new LocalDate(2012, 7, 2);
+        LocalDate july2nd = LocalDate.of(2012, 7, 2);
         MonetaryCurrency usDollars = new MonetaryCurrencyBuilder().withCode("USD").withDigitsAfterDecimal(2).build();
         List<LoanRepaymentScheduleInstallment> installments = LoanScheduleTestDataHelper.createSimpleLoanSchedule(july2nd, usDollars);
 
         Map<String, Object> scopes = new HashMap<>();
         scopes.put("installments", installments);
 
-        String templateText = Resources.toString(Resources.getResource("template.mustache"), Charsets.UTF_8);
-        String expectedOutput = Resources.toString(Resources.getResource("template-expected.html"), Charsets.UTF_8);
+        String templateText = Resources.toString(Resources.getResource("template.mustache"), StandardCharsets.UTF_8);
+        String expectedOutput = Resources.toString(Resources.getResource("template-expected.html"), StandardCharsets.UTF_8);
 
         String output = compileTemplateText(templateText, scopes);
-        // System.out.println(output);
-       // assertEquals(expectedOutput, output);
+        assertEquals(expectedOutput, output);
     }
 
     @Test
@@ -124,11 +119,11 @@ public class TemplateMergeServiceTest {
         Template template = new Template("TemplateName", templateText, null, null, mappers);
         return tms.compile(template, scope);
     }
-    
+
     protected Map<String, Object> createMapFromJSON(String jsonText) {
         Gson gson = new Gson();
-        Type ssMap = new TypeToken<Map<String, Object>>(){}.getType();
-        JsonElement json = new JsonParser().parse(jsonText);
+        Type ssMap = new TypeToken<Map<String, Object>>() {}.getType();
+        JsonElement json = JsonParser.parseString(jsonText);
         return gson.fromJson(json, ssMap);
     }
 }

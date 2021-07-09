@@ -21,7 +21,6 @@ package org.apache.fineract.portfolio.fund.service;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
-
 import org.apache.fineract.infrastructure.core.service.RoutingDataSource;
 import org.apache.fineract.infrastructure.security.service.PlatformSecurityContext;
 import org.apache.fineract.portfolio.fund.data.FundData;
@@ -87,7 +86,7 @@ public class FundReadPlatformServiceImpl implements FundReadPlatformService {
 
             return selectedFund;
         } catch (final EmptyResultDataAccessException e) {
-            throw new FundNotFoundException(fundId);
+            throw new FundNotFoundException(fundId, e);
         }
     }
 }

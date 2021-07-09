@@ -21,7 +21,6 @@ package org.apache.fineract.portfolio.loanaccount.guarantor.domain;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -30,15 +29,14 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
-
+import org.apache.fineract.infrastructure.core.domain.AbstractPersistableCustom;
 import org.apache.fineract.portfolio.account.domain.AccountAssociations;
 import org.apache.fineract.portfolio.loanaccount.domain.Loan;
 import org.apache.fineract.portfolio.savings.domain.SavingsAccount;
-import org.apache.fineract.infrastructure.core.domain.AbstractPersistableCustom;
 
 @Entity
 @Table(name = "m_guarantor_funding_details")
-public class GuarantorFundingDetails extends AbstractPersistableCustom<Long> {
+public class GuarantorFundingDetails extends AbstractPersistableCustom {
 
     @ManyToOne
     @JoinColumn(name = "guarantor_id", nullable = false)
@@ -63,7 +61,7 @@ public class GuarantorFundingDetails extends AbstractPersistableCustom<Long> {
     @Column(name = "amount_transfered_derived", scale = 6, precision = 19, nullable = true)
     private BigDecimal amountTransfered;
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "guarantorFundingDetails", orphanRemoval = true, fetch=FetchType.EAGER)
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "guarantorFundingDetails", orphanRemoval = true, fetch = FetchType.EAGER)
     private List<GuarantorFundingTransaction> guarantorFundingTransactions = new ArrayList<>();
 
     protected GuarantorFundingDetails() {}
@@ -122,7 +120,7 @@ public class GuarantorFundingDetails extends AbstractPersistableCustom<Long> {
     public void undoReleaseFunds(final BigDecimal amount) {
         this.amountReleased = getAmountReleased().subtract(amount);
         this.amountRemaining = getAmountRemaining().add(amount);
-        if (getStatus().isCompleted() && this.amountRemaining.compareTo(BigDecimal.ZERO) == 1) {
+        if (getStatus().isCompleted() && this.amountRemaining.compareTo(BigDecimal.ZERO) > 0) {
             this.updateStatus(GuarantorFundStatusType.ACTIVE);
         }
     }

@@ -19,6 +19,7 @@
 package org.apache.fineract.portfolio.tax.domain;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -27,7 +28,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -38,20 +38,17 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.fineract.accounting.glaccount.domain.GLAccount;
 import org.apache.fineract.accounting.glaccount.domain.GLAccountType;
 import org.apache.fineract.infrastructure.core.api.JsonCommand;
 import org.apache.fineract.infrastructure.core.domain.AbstractAuditableCustom;
 import org.apache.fineract.infrastructure.core.service.DateUtils;
 import org.apache.fineract.portfolio.tax.api.TaxApiConstants;
-import org.apache.fineract.useradministration.domain.AppUser;
-import org.joda.time.LocalDate;
 
 @Entity
 @Table(name = "m_tax_component")
-public class TaxComponent extends AbstractAuditableCustom<AppUser, Long> {
+public class TaxComponent extends AbstractAuditableCustom {
 
     @Column(name = "name", length = 100)
     private String name;
@@ -77,11 +74,11 @@ public class TaxComponent extends AbstractAuditableCustom<AppUser, Long> {
     @Temporal(TemporalType.DATE)
     private Date startDate;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch=FetchType.EAGER)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinColumn(name = "tax_component_id", referencedColumnName = "id", nullable = false)
     private Set<TaxComponentHistory> taxComponentHistories = new HashSet<>();
 
-    @OneToMany(cascade = CascadeType.DETACH, mappedBy = "taxComponent", orphanRemoval = false, fetch=FetchType.EAGER)
+    @OneToMany(cascade = CascadeType.DETACH, mappedBy = "taxComponent", orphanRemoval = false, fetch = FetchType.EAGER)
     private Set<TaxGroupMappings> taxGroupMappings = new HashSet<>();
 
     protected TaxComponent() {
@@ -100,7 +97,7 @@ public class TaxComponent extends AbstractAuditableCustom<AppUser, Long> {
             this.creditAccountType = creditAccountType.getValue();
         }
         this.creditAcount = creditAcount;
-        this.startDate = startDate.toDate();
+        this.startDate = Date.from(startDate.atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant());
     }
 
     public static TaxComponent createTaxComponent(final String name, final BigDecimal percentage, final GLAccountType debitAccountType,
@@ -121,9 +118,9 @@ public class TaxComponent extends AbstractAuditableCustom<AppUser, Long> {
             final BigDecimal newValue = command.bigDecimalValueOfParameterNamed(TaxApiConstants.percentageParamName);
             changes.put(TaxApiConstants.percentageParamName, newValue);
 
-            LocalDate oldStartDate = new LocalDate(this.startDate);
+            LocalDate oldStartDate = LocalDate.ofInstant(this.startDate.toInstant(), DateUtils.getDateTimeZoneOfTenant());
             updateStartDate(command, changes, true);
-            LocalDate newStartDate = new LocalDate(this.startDate);
+            LocalDate newStartDate = LocalDate.ofInstant(this.startDate.toInstant(), DateUtils.getDateTimeZoneOfTenant());
 
             TaxComponentHistory history = TaxComponentHistory.createTaxComponentHistory(this.percentage, oldStartDate, newStartDate);
             this.taxComponentHistories.add(history);
@@ -141,11 +138,11 @@ public class TaxComponent extends AbstractAuditableCustom<AppUser, Long> {
             if (startDateFromUI != null) {
                 startDate = startDateFromUI;
             }
-            this.startDate = startDate.toDate();
+            this.startDate = Date.from(startDate.atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant());
             changes.put(TaxApiConstants.startDateParamName, startDate);
         } else if (setAsCurrentDate) {
             changes.put(TaxApiConstants.startDateParamName, startDate);
-            this.startDate = startDate.toDate();
+            this.startDate = Date.from(startDate.atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant());
         }
 
     }
@@ -157,7 +154,7 @@ public class TaxComponent extends AbstractAuditableCustom<AppUser, Long> {
     public LocalDate startDate() {
         LocalDate startDate = null;
         if (this.startDate != null) {
-            startDate = new LocalDate(this.startDate);
+            startDate = LocalDate.ofInstant(this.startDate.toInstant(), DateUtils.getDateTimeZoneOfTenant());
         }
         return startDate;
     }
@@ -199,22 +196,18 @@ public class TaxComponent extends AbstractAuditableCustom<AppUser, Long> {
         return dates;
     }
 
-    
     public Integer getDebitAccountType() {
         return this.debitAccountType;
     }
 
-    
     public GLAccount getDebitAcount() {
         return this.debitAcount;
     }
 
-    
     public Integer getCreditAccountType() {
         return this.creditAccountType;
     }
 
-    
     public GLAccount getCreditAcount() {
         return this.creditAcount;
     }

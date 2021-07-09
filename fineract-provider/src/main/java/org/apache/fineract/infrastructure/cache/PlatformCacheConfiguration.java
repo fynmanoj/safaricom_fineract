@@ -25,8 +25,8 @@ import org.springframework.cache.annotation.CachingConfigurer;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.interceptor.CacheErrorHandler;
 import org.springframework.cache.interceptor.CacheResolver;
-import org.springframework.cache.interceptor.DefaultKeyGenerator;
 import org.springframework.cache.interceptor.KeyGenerator;
+import org.springframework.cache.interceptor.SimpleKeyGenerator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -46,18 +46,18 @@ public class PlatformCacheConfiguration implements CachingConfigurer {
 
     @Override
     public CacheResolver cacheResolver() {
-        //TODO https://issues.apache.org/jira/browse/FINERACT-705
+        // TODO https://issues.apache.org/jira/browse/FINERACT-705
         return null;
     }
 
     @Override
     public KeyGenerator keyGenerator() {
-        return new DefaultKeyGenerator();
+        return new SimpleKeyGenerator();
     }
 
     @Override
     public CacheErrorHandler errorHandler() {
-        //TODO https://issues.apache.org/jira/browse/FINERACT-705
+        // TODO https://issues.apache.org/jira/browse/FINERACT-705
         return null;
     }
 }

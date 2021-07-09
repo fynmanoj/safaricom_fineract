@@ -20,7 +20,6 @@ package org.apache.fineract.portfolio.account.domain;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -30,16 +29,15 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
-
+import org.apache.fineract.infrastructure.core.domain.AbstractPersistableCustom;
 import org.apache.fineract.organisation.office.domain.Office;
 import org.apache.fineract.portfolio.client.domain.Client;
 import org.apache.fineract.portfolio.loanaccount.domain.Loan;
 import org.apache.fineract.portfolio.savings.domain.SavingsAccount;
-import org.apache.fineract.infrastructure.core.domain.AbstractPersistableCustom;
 
 @Entity
 @Table(name = "m_account_transfer_details")
-public class AccountTransferDetails extends AbstractPersistableCustom<Long> {
+public class AccountTransferDetails extends AbstractPersistableCustom {
 
     @ManyToOne
     @JoinColumn(name = "from_office_id", nullable = false)
@@ -76,7 +74,7 @@ public class AccountTransferDetails extends AbstractPersistableCustom<Long> {
     @Column(name = "transfer_type")
     private Integer transferType;
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "accountTransferDetails", orphanRemoval = true, fetch=FetchType.EAGER)
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "accountTransferDetails", orphanRemoval = true, fetch = FetchType.EAGER)
     private List<AccountTransferTransaction> accountTransferTransactions = new ArrayList<>();
 
     @OneToOne(mappedBy = "accountTransferDetails", cascade = CascadeType.ALL, optional = true, orphanRemoval = true, fetch = FetchType.EAGER)
@@ -97,9 +95,8 @@ public class AccountTransferDetails extends AbstractPersistableCustom<Long> {
                 transferType, null);
     }
 
-    public static AccountTransferDetails LoanTosavingsTransfer(final Office fromOffice, final Client fromClient,
-            final Loan fromLoanAccount, final Office toOffice, final Client toClient, final SavingsAccount toSavingsAccount,
-            Integer transferType) {
+    public static AccountTransferDetails loanTosavingsTransfer(final Office fromOffice, final Client fromClient, final Loan fromLoanAccount,
+            final Office toOffice, final Client toClient, final SavingsAccount toSavingsAccount, Integer transferType) {
         return new AccountTransferDetails(fromOffice, fromClient, null, fromLoanAccount, toOffice, toClient, toSavingsAccount, null,
                 transferType, null);
     }
@@ -156,8 +153,8 @@ public class AccountTransferDetails extends AbstractPersistableCustom<Long> {
         return AccountTransferType.fromInt(this.transferType);
     }
 
-    public static AccountTransferDetails LoanToLoanTransfer(Office fromOffice, Client fromClient, Loan fromLoanAccount, Office toOffice, Client toClient,
-            Loan toLoanAccount, Integer transferType) {
+    public static AccountTransferDetails loanToLoanTransfer(Office fromOffice, Client fromClient, Loan fromLoanAccount, Office toOffice,
+            Client toClient, Loan toLoanAccount, Integer transferType) {
         return new AccountTransferDetails(fromOffice, fromClient, null, fromLoanAccount, toOffice, toClient, null, toLoanAccount,
                 transferType, null);
     }

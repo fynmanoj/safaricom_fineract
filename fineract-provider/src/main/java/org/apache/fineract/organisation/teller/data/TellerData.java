@@ -18,21 +18,18 @@
  */
 package org.apache.fineract.organisation.teller.data;
 
-import org.apache.fineract.infrastructure.core.data.EnumOptionData;
+import java.io.Serializable;
+import java.time.LocalDate;
+import java.util.Collection;
 import org.apache.fineract.organisation.office.data.OfficeData;
 import org.apache.fineract.organisation.staff.data.StaffData;
 import org.apache.fineract.organisation.teller.domain.TellerStatus;
-import org.joda.time.LocalDate;
-
-import java.io.Serializable;
-import java.util.Collection;
-import java.util.Date;
 
 /**
  * {@code TellerData} represents an immutable data object for teller data.
  *
  * @version 1.0
-
+ *
  * @since 2.0.0
  * @see java.io.Serializable
  * @since 2.0.0
@@ -44,26 +41,26 @@ public final class TellerData implements Serializable {
     private final Long debitAccountId;
     private final Long creditAccountId;
     private final String name;
-    
+
     private final String description;
     private final LocalDate startDate;
     private final LocalDate endDate;
     private final TellerStatus status;
     private final Boolean hasTransactions;
     private final Boolean hasMappedCashiers;
-    
+
     private String officeName;
-    
+
     private final Collection<OfficeData> officeOptions;
     private final Collection<StaffData> staffOptions;
 
     /*
      * Sole private CTOR to create a new instance.
      */
-    private TellerData(final Long id, final Long officeId, final Long debitAccountId, final Long creditAccountId,
-                       final String name, final String description, final LocalDate startDate, final LocalDate endDate,
-                       final TellerStatus status, final Boolean hasTransactions, final Boolean hasMappedCashiers) {
-        super();
+    private TellerData(final Long id, final Long officeId, final Long debitAccountId, final Long creditAccountId, final String name,
+            final String description, final LocalDate startDate, final LocalDate endDate, final TellerStatus status,
+            final Boolean hasTransactions, final Boolean hasMappedCashiers) {
+
         this.id = id;
         this.officeId = officeId;
         this.debitAccountId = debitAccountId;
@@ -82,30 +79,39 @@ public final class TellerData implements Serializable {
     /**
      * Creates a new teller data object.
      *
-     * @param id                - id of the teller
-     * @param officeId          - id of the related office
-     * @param debitAccountId    - id of the debit account to use
-     * @param creditAccountId   - id of the credit account to use
-     * @param name              - name of the teller
-     * @param description       - description of the teller
-     * @param startDate         - date when the teller becomes available
-     * @param endDate           - date when the teller becomes unavailable
-     * @param status            - current state of the teller, eg. active, inactive, pending
-     * @param hasTransactions   - indicates that this teller already is used to perform postings
-     * @param hasMappedCashiers - indicates that the teller already has @code Cashier}s assigned to it
+     * @param id
+     *            - id of the teller
+     * @param officeId
+     *            - id of the related office
+     * @param debitAccountId
+     *            - id of the debit account to use
+     * @param creditAccountId
+     *            - id of the credit account to use
+     * @param name
+     *            - name of the teller
+     * @param description
+     *            - description of the teller
+     * @param startDate
+     *            - date when the teller becomes available
+     * @param endDate
+     *            - date when the teller becomes unavailable
+     * @param status
+     *            - current state of the teller, eg. active, inactive, pending
+     * @param hasTransactions
+     *            - indicates that this teller already is used to perform postings
+     * @param hasMappedCashiers
+     *            - indicates that the teller already has @code Cashier}s assigned to it
      * @return the new created {@code TellerData}
      */
-    public static TellerData instance(final Long id, final Long officeId, final Long debitAccountId,
-                                      final Long creditAccountId, final String name, final String description,
-                                      final LocalDate startDate, final LocalDate endDate, final TellerStatus status,
-                                      final String officeName,
-                                      final Boolean hasTransactions, final Boolean hasMappedCashiers) {
-        TellerData tellerData = new TellerData(id, officeId, debitAccountId, creditAccountId, name, description, startDate, endDate,
-                status, hasTransactions, hasMappedCashiers);
+    public static TellerData instance(final Long id, final Long officeId, final Long debitAccountId, final Long creditAccountId,
+            final String name, final String description, final LocalDate startDate, final LocalDate endDate, final TellerStatus status,
+            final String officeName, final Boolean hasTransactions, final Boolean hasMappedCashiers) {
+        TellerData tellerData = new TellerData(id, officeId, debitAccountId, creditAccountId, name, description, startDate, endDate, status,
+                hasTransactions, hasMappedCashiers);
         tellerData.officeName = officeName;
         return tellerData;
     }
-    
+
     public static TellerData lookup(final Long id, final String name) {
         return new TellerData(id, null, null, null, name, null, null, null, null, null, null);
     }
@@ -129,7 +135,7 @@ public final class TellerData implements Serializable {
     public String getName() {
         return this.name;
     }
-    
+
     public String getOfficeName() {
         return this.officeName;
     }

@@ -18,31 +18,35 @@
  */
 package org.apache.fineract.infrastructure.core.serialization;
 
-import java.math.BigDecimal;
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
-import java.text.NumberFormat;
-import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.fineract.infrastructure.core.data.ApiParameterError;
-import org.apache.fineract.infrastructure.core.exception.PlatformApiDataValidationException;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.joda.time.MonthDay;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
-import org.springframework.format.number.NumberFormatter;
+import static java.time.temporal.ChronoField.DAY_OF_MONTH;
+import static java.time.temporal.ChronoField.MONTH_OF_YEAR;
+import static java.time.temporal.ChronoField.YEAR_OF_ERA;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import java.math.BigDecimal;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.text.NumberFormat;
+import java.text.ParseException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.MonthDay;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.temporal.ChronoField;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.fineract.infrastructure.core.data.ApiParameterError;
+import org.apache.fineract.infrastructure.core.exception.PlatformApiDataValidationException;
+import org.apache.fineract.infrastructure.core.service.DateUtils;
+import org.springframework.format.number.NumberStyleFormatter;
 
 /**
  * Helper class to extract values of json named attributes.
@@ -50,7 +54,9 @@ import com.google.gson.JsonPrimitive;
 public class JsonParserHelper {
 
     public boolean parameterExists(final String parameterName, final JsonElement element) {
-        if (element == null) { return false; }
+        if (element == null) {
+            return false;
+        }
         return element.getAsJsonObject().has(parameterName);
     }
 
@@ -128,7 +134,8 @@ public class JsonParserHelper {
         return value;
     }
 
-    public Integer extractIntegerWithLocaleNamed(final String parameterName, final JsonElement element, final Set<String> modifiedParameters) {
+    public Integer extractIntegerWithLocaleNamed(final String parameterName, final JsonElement element,
+            final Set<String> modifiedParameters) {
         Integer value = null;
         if (element.isJsonObject()) {
             final JsonObject object = element.getAsJsonObject();
@@ -156,11 +163,10 @@ public class JsonParserHelper {
     }
 
     /**
-     * Method used to extract integers from unformatted strings. Ex: "1" ,
-     * "100002" etc
+     * Method used to extract integers from unformatted strings. Ex: "1" , "100002" etc
      *
-     * Please note that this method does not support extracting Integers from
-     * locale specific formatted strings Ex "1,000" etc
+     * Please note that this method does not support extracting Integers from locale specific formatted strings Ex
+     * "1,000" etc
      *
      * @param parameterName
      * @param element
@@ -197,7 +203,7 @@ public class JsonParserHelper {
         }
         return value;
     }
-    
+
     public String extractTimeFormatParameter(final JsonObject element) {
         String value = null;
         if (element.isJsonObject()) {
@@ -303,7 +309,8 @@ public class JsonParserHelper {
                 final Integer month = dateArray.get(1).getAsInt();
                 final Integer day = dateArray.get(2).getAsInt();
 
-                value = new LocalDate().withYearOfEra(year).withMonthOfYear(month).withDayOfMonth(day);
+                value = LocalDate.now(DateUtils.getDateTimeZoneOfTenant()).with(YEAR_OF_ERA, year).with(MONTH_OF_YEAR, month)
+                        .with(DAY_OF_MONTH, day);
             }
 
         }
@@ -336,18 +343,19 @@ public class JsonParserHelper {
                 final String valueAsString = primitive.getAsString();
                 if (StringUtils.isNotBlank(valueAsString)) {
                     try {
-                        final DateTimeFormatter formatter = DateTimeFormat.forPattern(dateFormat).withLocale(clientApplicationLocale);
-                        value = MonthDay.parse(valueAsString.toLowerCase(clientApplicationLocale), formatter);
+                        final DateTimeFormatter formatter = new DateTimeFormatterBuilder().parseCaseInsensitive().parseLenient()
+                                .appendPattern(dateFormat).toFormatter(clientApplicationLocale);
+                        value = MonthDay.parse(valueAsString, formatter);
                     } catch (final IllegalArgumentException e) {
                         final List<ApiParameterError> dataValidationErrors = new ArrayList<>();
                         final ApiParameterError error = ApiParameterError.parameterError("validation.msg.invalid.month.day",
                                 "The parameter " + parameterName + " is invalid based on the monthDayFormat: '" + dateFormat
-                                        + "' and locale: '" + clientApplicationLocale + "' provided:", parameterName, valueAsString,
-                                dateFormat);
+                                        + "' and locale: '" + clientApplicationLocale + "' provided:",
+                                parameterName, valueAsString, dateFormat);
                         dataValidationErrors.add(error);
 
                         throw new PlatformApiDataValidationException("validation.msg.validation.errors.exist", "Validation errors exist.",
-                                dataValidationErrors);
+                                dataValidationErrors, e);
                     }
                 }
             }
@@ -370,7 +378,7 @@ public class JsonParserHelper {
         }
         return value;
     }
-    
+
     public LocalDateTime extractLocalTimeNamed(final String parameterName, final JsonElement element,
             final Set<String> parametersPassedInCommand) {
 
@@ -378,48 +386,57 @@ public class JsonParserHelper {
 
         if (element.isJsonObject()) {
             final JsonObject object = element.getAsJsonObject();
+            value = extractLocalTimeNamed(parameterName, element, extractTimeFormatParameter(object), parametersPassedInCommand);
+        }
+        return value;
+    }
 
-            final String timeFormat = extractTimeFormatParameter(object);
+    public LocalDateTime extractLocalTimeNamed(final String parameterName, final JsonElement element, String timeFormat,
+            final Set<String> parametersPassedInCommand) {
+
+        LocalDateTime value = null;
+
+        if (element.isJsonObject()) {
+            final JsonObject object = element.getAsJsonObject();
             final Locale clientApplicationLocale = extractLocaleParameter(object);
             value = extractLocalTimeNamed(parameterName, object, timeFormat, clientApplicationLocale, parametersPassedInCommand);
         }
         return value;
     }
-    
-    public LocalDateTime extractLocalTimeNamed(final String parameterName, final JsonObject element, final String timeFormat,
+
+    public LocalDateTime extractLocalTimeNamed(final String parameterName, final JsonElement element, final String timeFormat,
             final Locale clientApplicationLocale, final Set<String> parametersPassedInCommand) {
         LocalDateTime value = null;
-        String timeValueAsString=null;
+        String timeValueAsString = null;
         if (element.isJsonObject()) {
             final JsonObject object = element.getAsJsonObject();
             if (object.has(parameterName) && object.get(parameterName).isJsonPrimitive()) {
                 parametersPassedInCommand.add(parameterName);
-                
-                try{
-                    DateTimeFormatter timeFormtter = DateTimeFormat.forPattern(timeFormat);
+
+                try {
+                    DateTimeFormatter timeFormtter = DateTimeFormatter.ofPattern(timeFormat);
                     final JsonPrimitive primitive = object.get(parameterName).getAsJsonPrimitive();
-                     timeValueAsString = primitive.getAsString();
+                    timeValueAsString = primitive.getAsString();
                     if (StringUtils.isNotBlank(timeValueAsString)) {
                         value = LocalDateTime.parse(timeValueAsString, timeFormtter);
-                    }    
-                }
-                catch(IllegalArgumentException e ){
+                    }
+                } catch (IllegalArgumentException e) {
                     final List<ApiParameterError> dataValidationErrors = new ArrayList<>();
-                    final String defaultMessage = new StringBuilder("The parameter '" + timeValueAsString
-                            + "' is not in correct format.").toString();
+                    final String defaultMessage = new StringBuilder("The parameter '" + timeValueAsString + "' is not in correct format.")
+                            .toString();
                     final ApiParameterError error = ApiParameterError.parameterError("validation.msg.invalid.TimeFormat", defaultMessage,
                             parameterName);
                     dataValidationErrors.add(error);
                     throw new PlatformApiDataValidationException("validation.msg.validation.errors.exist", "Validation errors exist.",
-                            dataValidationErrors);
+                            dataValidationErrors, e);
                 }
-                
+
             }
         }
         return value;
     }
 
-    public LocalDate extractLocalDateNamed(final String parameterName, final JsonObject element, final String dateFormat,
+    public LocalDate extractLocalDateNamed(final String parameterName, final JsonElement element, final String dateFormat,
             final Locale clientApplicationLocale, final Set<String> parametersPassedInCommand) {
         LocalDate value = null;
         if (element.isJsonObject()) {
@@ -443,28 +460,32 @@ public class JsonParserHelper {
     public static LocalDate convertFrom(final String dateAsString, final String parameterName, final String dateFormat,
             final Locale clientApplicationLocale) {
 
-        return convertDateTimeFrom(dateAsString, parameterName,
-                dateFormat, clientApplicationLocale).toLocalDate();
+        return convertDateTimeFrom(dateAsString, parameterName, dateFormat, clientApplicationLocale).toLocalDate();
     }
 
-    public static LocalDateTime convertDateTimeFrom(final String dateTimeAsString, final String parameterName,
-                                        final String dateTimeFormat, final Locale clientApplicationLocale) {
+    public static LocalDateTime convertDateTimeFrom(final String dateTimeAsString, final String parameterName, final String dateTimeFormat,
+            final Locale clientApplicationLocale) {
 
         validateDateFormatAndLocale(parameterName, dateTimeFormat, clientApplicationLocale);
         LocalDateTime eventLocalDateTime = null;
         if (StringUtils.isNotBlank(dateTimeAsString)) {
             try {
-                eventLocalDateTime = DateTimeFormat.forPattern(dateTimeFormat).withLocale(clientApplicationLocale)
-                        .parseLocalDateTime(dateTimeAsString.toLowerCase(clientApplicationLocale));
+                DateTimeFormatter formatter = new DateTimeFormatterBuilder().parseCaseInsensitive().parseLenient()
+                        .appendPattern(dateTimeFormat).optionalStart().appendPattern(" HH:mm:ss").optionalEnd()
+                        .parseDefaulting(ChronoField.HOUR_OF_DAY, 0).parseDefaulting(ChronoField.MINUTE_OF_HOUR, 0)
+                        .parseDefaulting(ChronoField.SECOND_OF_MINUTE, 0).toFormatter(clientApplicationLocale);
+                eventLocalDateTime = LocalDateTime.parse(dateTimeAsString, formatter);
             } catch (final IllegalArgumentException e) {
                 final List<ApiParameterError> dataValidationErrors = new ArrayList<>();
-                final ApiParameterError error = ApiParameterError.parameterError("validation.msg.invalid.dateFormat.format", "The parameter "
-                        + parameterName + " is invalid based on the dateFormat: '" + dateTimeFormat + "' and locale: '"
-                        + clientApplicationLocale + "' provided:", parameterName, eventLocalDateTime, dateTimeFormat);
+                final ApiParameterError error = ApiParameterError
+                        .parameterError("validation.msg.invalid.dateFormat.format",
+                                "The parameter " + parameterName + " is invalid based on the dateFormat: '" + dateTimeFormat
+                                        + "' and locale: '" + clientApplicationLocale + "' provided:",
+                                parameterName, eventLocalDateTime, dateTimeFormat);
                 dataValidationErrors.add(error);
 
                 throw new PlatformApiDataValidationException("validation.msg.validation.errors.exist", "Validation errors exist.",
-                        dataValidationErrors);
+                        dataValidationErrors, e);
             }
         }
 
@@ -472,20 +493,20 @@ public class JsonParserHelper {
     }
 
     private static void validateDateFormatAndLocale(final String parameterName, final String dateFormat,
-                                        final Locale clientApplicationLocale) {
+            final Locale clientApplicationLocale) {
         if (StringUtils.isBlank(dateFormat) || clientApplicationLocale == null) {
 
             final List<ApiParameterError> dataValidationErrors = new ArrayList<>();
             if (StringUtils.isBlank(dateFormat)) {
-                final String defaultMessage = new StringBuilder("The parameter '" + parameterName
-                        + "' requires a 'dateFormat' parameter to be passed with it.").toString();
+                final String defaultMessage = new StringBuilder(
+                        "The parameter '" + parameterName + "' requires a 'dateFormat' parameter to be passed with it.").toString();
                 final ApiParameterError error = ApiParameterError.parameterError("validation.msg.missing.dateFormat.parameter",
                         defaultMessage, parameterName);
                 dataValidationErrors.add(error);
             }
             if (clientApplicationLocale == null) {
-                final String defaultMessage = new StringBuilder("The parameter '" + parameterName
-                        + "' requires a 'locale' parameter to be passed with it.").toString();
+                final String defaultMessage = new StringBuilder(
+                        "The parameter '" + parameterName + "' requires a 'locale' parameter to be passed with it.").toString();
                 final ApiParameterError error = ApiParameterError.parameterError("validation.msg.missing.locale.parameter", defaultMessage,
                         parameterName);
                 dataValidationErrors.add(error);
@@ -496,13 +517,14 @@ public class JsonParserHelper {
 
     }
 
-    public Integer convertToInteger(final String numericalValueFormatted, final String parameterName, final Locale clientApplicationLocale) {
+    public Integer convertToInteger(final String numericalValueFormatted, final String parameterName,
+            final Locale clientApplicationLocale) {
 
         if (clientApplicationLocale == null) {
 
             final List<ApiParameterError> dataValidationErrors = new ArrayList<>();
-            final String defaultMessage = new StringBuilder("The parameter '" + parameterName
-                    + "' requires a 'locale' parameter to be passed with it.").toString();
+            final String defaultMessage = new StringBuilder(
+                    "The parameter '" + parameterName + "' requires a 'locale' parameter to be passed with it.").toString();
             final ApiParameterError error = ApiParameterError.parameterError("validation.msg.missing.locale.parameter", defaultMessage,
                     parameterName);
             dataValidationErrors.add(error);
@@ -534,10 +556,13 @@ public class JsonParserHelper {
                 final double parsedNumberDouble = parsedNumber.doubleValue();
                 final int parsedNumberInteger = parsedNumber.intValue();
 
-                if (source.contains(Character.toString(symbols.getDecimalSeparator()))) { throw new ParseException(source, 0); }
+                if (source.contains(Character.toString(symbols.getDecimalSeparator()))) {
+                    throw new ParseException(source, 0);
+                }
 
-                if (!Double.valueOf(parsedNumberDouble).equals(Double.valueOf(Integer.valueOf(parsedNumberInteger)))) { throw new ParseException(
-                        source, 0); }
+                if (!Double.valueOf(parsedNumberDouble).equals(Double.valueOf(Integer.valueOf(parsedNumberInteger)))) {
+                    throw new ParseException(source, 0);
+                }
 
                 number = parsedNumber.intValue();
             }
@@ -546,14 +571,14 @@ public class JsonParserHelper {
         } catch (final ParseException e) {
 
             final List<ApiParameterError> dataValidationErrors = new ArrayList<>();
-            final ApiParameterError error = ApiParameterError.parameterError("validation.msg.invalid.integer.format", "The parameter "
-                    + parameterName + " has value: " + numericalValueFormatted + " which is invalid integer value for provided locale of ["
-                    + clientApplicationLocale.toString() + "].", parameterName, numericalValueFormatted, clientApplicationLocale);
-            error.setValue(numericalValueFormatted);
+            final ApiParameterError error = ApiParameterError.parameterErrorWithValue("validation.msg.invalid.integer.format",
+                    "The parameter " + parameterName + " has value: " + numericalValueFormatted
+                            + " which is invalid integer value for provided locale of [" + clientApplicationLocale.toString() + "].",
+                    parameterName, numericalValueFormatted, numericalValueFormatted, clientApplicationLocale);
             dataValidationErrors.add(error);
 
             throw new PlatformApiDataValidationException("validation.msg.validation.errors.exist", "Validation errors exist.",
-                    dataValidationErrors);
+                    dataValidationErrors, e);
         }
     }
 
@@ -570,14 +595,13 @@ public class JsonParserHelper {
         } catch (final NumberFormatException e) {
 
             final List<ApiParameterError> dataValidationErrors = new ArrayList<>();
-            final ApiParameterError error = ApiParameterError.parameterError("validation.msg.invalid.integer", "The parameter "
-                    + parameterName + " has value: " + numericalValueFormatted + " which is invalid integer.", parameterName,
-                    numericalValueFormatted);
-            error.setValue(numericalValueFormatted);
+            final ApiParameterError error = ApiParameterError.parameterErrorWithValue("validation.msg.invalid.integer",
+                    "The parameter " + parameterName + " has value: " + numericalValueFormatted + " which is invalid integer.",
+                    parameterName, numericalValueFormatted, numericalValueFormatted);
             dataValidationErrors.add(error);
 
             throw new PlatformApiDataValidationException("validation.msg.validation.errors.exist", "Validation errors exist.",
-                    dataValidationErrors);
+                    dataValidationErrors, e);
         }
     }
 
@@ -586,8 +610,8 @@ public class JsonParserHelper {
         if (clientApplicationLocale == null) {
 
             final List<ApiParameterError> dataValidationErrors = new ArrayList<>();
-            final String defaultMessage = new StringBuilder("The parameter '" + parameterName
-                    + "' requires a 'locale' parameter to be passed with it.").toString();
+            final String defaultMessage = new StringBuilder(
+                    "The parameter '" + parameterName + "' requires a 'locale' parameter to be passed with it.").toString();
             final ApiParameterError error = ApiParameterError.parameterError("validation.msg.missing.locale.parameter", defaultMessage,
                     parameterName);
             dataValidationErrors.add(error);
@@ -612,12 +636,12 @@ public class JsonParserHelper {
                     source = source.replaceAll(" ", Character.toString('\u00a0'));
                 }
 
-                final NumberFormatter numberFormatter = new NumberFormatter();
+                final NumberStyleFormatter numberFormatter = new NumberStyleFormatter();
                 final Number parsedNumber = numberFormatter.parse(source, clientApplicationLocale);
                 if (parsedNumber instanceof BigDecimal) {
                     number = (BigDecimal) parsedNumber;
                 } else {
-                    number = BigDecimal.valueOf(Double.valueOf(parsedNumber.doubleValue()));
+                    number = BigDecimal.valueOf(parsedNumber.doubleValue());
                 }
             }
 
@@ -625,18 +649,20 @@ public class JsonParserHelper {
         } catch (final ParseException e) {
 
             final List<ApiParameterError> dataValidationErrors = new ArrayList<>();
-            final ApiParameterError error = ApiParameterError.parameterError("validation.msg.invalid.decimal.format", "The parameter "
-                    + parameterName + " has value: " + numericalValueFormatted + " which is invalid decimal value for provided locale of ["
-                    + clientApplicationLocale.toString() + "].", parameterName, numericalValueFormatted, clientApplicationLocale);
-            error.setValue(numericalValueFormatted);
+            final ApiParameterError error = ApiParameterError.parameterErrorWithValue("validation.msg.invalid.decimal.format",
+                    "The parameter " + parameterName + " has value: " + numericalValueFormatted
+                            + " which is invalid decimal value for provided locale of [" + clientApplicationLocale.toString() + "].",
+                    parameterName, numericalValueFormatted, numericalValueFormatted, clientApplicationLocale);
             dataValidationErrors.add(error);
 
             throw new PlatformApiDataValidationException("validation.msg.validation.errors.exist", "Validation errors exist.",
-                    dataValidationErrors);
+                    dataValidationErrors, e);
         }
     }
 
-    /*** TODO: Vishwas move all Locale related code to a separate Utils class ***/
+    /***
+     * TODO: Vishwas move all Locale related code to a separate Utils class
+     ***/
     public static Locale localeFromString(final String localeAsString) {
 
         if (StringUtils.isBlank(localeAsString)) {
@@ -693,8 +719,10 @@ public class JsonParserHelper {
             }
         }
 
-        if (!dataValidationErrors.isEmpty()) { throw new PlatformApiDataValidationException("validation.msg.validation.errors.exist",
-                "Validation errors exist.", dataValidationErrors); }
+        if (!dataValidationErrors.isEmpty()) {
+            throw new PlatformApiDataValidationException("validation.msg.validation.errors.exist", "Validation errors exist.",
+                    dataValidationErrors);
+        }
 
         return new Locale(languageCode.toLowerCase(), courntryCode.toUpperCase(), variantCode);
     }

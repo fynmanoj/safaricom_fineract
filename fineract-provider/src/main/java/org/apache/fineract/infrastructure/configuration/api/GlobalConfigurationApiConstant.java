@@ -18,11 +18,11 @@
  */
 package org.apache.fineract.infrastructure.configuration.api;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+public final class GlobalConfigurationApiConstant {
 
-public class GlobalConfigurationApiConstant {
+    private GlobalConfigurationApiConstant() {
+
+    }
 
     public static final String ENABLED = "enabled";
     public static final String VALUE = "value";

@@ -25,7 +25,6 @@ import static org.apache.fineract.portfolio.common.service.CommonEnumerations.te
 
 import java.util.Arrays;
 import java.util.List;
-
 import org.apache.fineract.infrastructure.core.data.EnumOptionData;
 import org.apache.fineract.portfolio.common.domain.ConditionType;
 import org.apache.fineract.portfolio.common.domain.DaysInMonthType;
@@ -40,7 +39,7 @@ public class DropdownReadPlatformServiceImpl implements DropdownReadPlatformServ
     public List<EnumOptionData> retrievePeriodFrequencyTypeOptions() {
         final List<EnumOptionData> loanTermFrequencyOptions = Arrays.asList(termFrequencyType(PeriodFrequencyType.DAYS, "frequency"),
                 termFrequencyType(PeriodFrequencyType.WEEKS, "frequency"), termFrequencyType(PeriodFrequencyType.MONTHS, "frequency"),
-                 termFrequencyType(PeriodFrequencyType.YEARS, "frequency"), termFrequencyType(PeriodFrequencyType.WHOLE_TERM, "frequency"));
+                termFrequencyType(PeriodFrequencyType.YEARS, "frequency"), termFrequencyType(PeriodFrequencyType.WHOLE_TERM, "frequency"));
         return loanTermFrequencyOptions;
     }
 

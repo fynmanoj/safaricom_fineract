@@ -18,11 +18,11 @@
  */
 package org.apache.fineract.portfolio.tax.domain;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
@@ -30,15 +30,13 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-
 import org.apache.fineract.infrastructure.core.domain.AbstractAuditableCustom;
+import org.apache.fineract.infrastructure.core.service.DateUtils;
 import org.apache.fineract.portfolio.tax.api.TaxApiConstants;
-import org.apache.fineract.useradministration.domain.AppUser;
-import org.joda.time.LocalDate;
 
 @Entity
 @Table(name = "m_tax_group_mappings")
-public class TaxGroupMappings extends AbstractAuditableCustom<AppUser, Long> {
+public class TaxGroupMappings extends AbstractAuditableCustom {
 
     @ManyToOne
     @JoinColumn(name = "tax_component_id", nullable = false)
@@ -58,10 +56,10 @@ public class TaxGroupMappings extends AbstractAuditableCustom<AppUser, Long> {
 
         this.taxComponent = taxComponent;
         if (startDate != null) {
-            this.startDate = startDate.toDate();
+            this.startDate = Date.from(startDate.atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant());
         }
         if (endDate != null) {
-            this.endDate = endDate.toDate();
+            this.endDate = Date.from(endDate.atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant());
         }
     }
 
@@ -90,7 +88,9 @@ public class TaxGroupMappings extends AbstractAuditableCustom<AppUser, Long> {
     }
 
     public boolean occursOnDayFromAndUpToAndIncluding(final LocalDate target) {
-        if (this.endDate == null) { return target != null && target.isAfter(startDate()); }
+        if (this.endDate == null) {
+            return target != null && target.isAfter(startDate());
+        }
         return target != null && target.isAfter(startDate()) && !target.isAfter(endDate());
     }
 
@@ -105,7 +105,7 @@ public class TaxGroupMappings extends AbstractAuditableCustom<AppUser, Long> {
     public LocalDate startDate() {
         LocalDate startDate = null;
         if (this.startDate != null) {
-            startDate = new LocalDate(this.startDate);
+            startDate = LocalDate.ofInstant(this.startDate.toInstant(), DateUtils.getDateTimeZoneOfTenant());
         }
         return startDate;
     }
@@ -113,7 +113,7 @@ public class TaxGroupMappings extends AbstractAuditableCustom<AppUser, Long> {
     public LocalDate endDate() {
         LocalDate endDate = null;
         if (this.endDate != null) {
-            endDate = new LocalDate(this.endDate);
+            endDate = LocalDate.ofInstant(this.endDate.toInstant(), DateUtils.getDateTimeZoneOfTenant());
         }
         return endDate;
     }

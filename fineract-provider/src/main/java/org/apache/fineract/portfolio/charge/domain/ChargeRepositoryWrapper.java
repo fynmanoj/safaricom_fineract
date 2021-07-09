@@ -25,14 +25,13 @@ import org.springframework.stereotype.Service;
 
 /**
  * <p>
- * Wrapper for {@link ChargeRepository} that is responsible for checking if
- * {@link Charge} is returned when using <code>findOne</code> repository method
- * and throwing an appropriate not found exception.
+ * Wrapper for {@link ChargeRepository} that is responsible for checking if {@link Charge} is returned when using
+ * <code>findOne</code> repository method and throwing an appropriate not found exception.
  * </p>
- * 
+ *
  * <p>
- * This is to avoid need for checking and throwing in multiple areas of code
- * base where {@link ChargeRepository} is required.
+ * This is to avoid need for checking and throwing in multiple areas of code base where {@link ChargeRepository} is
+ * required.
  * </p>
  */
 @Service
@@ -47,9 +46,13 @@ public class ChargeRepositoryWrapper {
 
     public Charge findOneWithNotFoundDetection(final Long id) {
 
-        final Charge chargeDefinition = this.repository.findOne(id);
-        if (chargeDefinition == null || chargeDefinition.isDeleted()) { throw new ChargeNotFoundException(id); }
-        if (!chargeDefinition.isActive()) { throw new ChargeIsNotActiveException(id, chargeDefinition.getName()); }
+        final Charge chargeDefinition = this.repository.findById(id).orElseThrow(() -> new ChargeNotFoundException(id));
+        if (chargeDefinition.isDeleted()) {
+            throw new ChargeNotFoundException(id);
+        }
+        if (!chargeDefinition.isActive()) {
+            throw new ChargeIsNotActiveException(id, chargeDefinition.getName());
+        }
 
         return chargeDefinition;
     }

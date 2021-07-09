@@ -23,7 +23,6 @@ import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
-
 import org.apache.fineract.infrastructure.core.domain.AbstractPersistableCustom;
 import org.apache.fineract.portfolio.loanproduct.domain.InterestRecalculationCompoundingMethod;
 import org.apache.fineract.portfolio.loanproduct.domain.LoanProductInterestRecalculationDetails;
@@ -31,15 +30,14 @@ import org.apache.fineract.portfolio.loanproduct.domain.LoanRescheduleStrategyMe
 import org.apache.fineract.portfolio.loanproduct.domain.RecalculationFrequencyType;
 
 /**
- * Entity for holding interest recalculation setting, details will be copied
- * from product directly
- * 
+ * Entity for holding interest recalculation setting, details will be copied from product directly
+ *
  * @author conflux
  */
 
 @Entity
 @Table(name = "m_loan_recalculation_details")
-public class LoanInterestRecalculationDetails extends AbstractPersistableCustom<Long> {
+public class LoanInterestRecalculationDetails extends AbstractPersistableCustom {
 
     @OneToOne
     @JoinColumn(name = "loan_id", nullable = false)
@@ -118,12 +116,13 @@ public class LoanInterestRecalculationDetails extends AbstractPersistableCustom<
     public static LoanInterestRecalculationDetails createFrom(
             final LoanProductInterestRecalculationDetails loanProductInterestRecalculationDetails) {
         return new LoanInterestRecalculationDetails(loanProductInterestRecalculationDetails.getInterestRecalculationCompoundingMethod(),
-                loanProductInterestRecalculationDetails.getRescheduleStrategyMethod(), loanProductInterestRecalculationDetails
-                        .getRestFrequencyType().getValue(), loanProductInterestRecalculationDetails.getRestInterval(),
-                loanProductInterestRecalculationDetails.getRestFrequencyNthDay(),
+                loanProductInterestRecalculationDetails.getRescheduleStrategyMethod(),
+                loanProductInterestRecalculationDetails.getRestFrequencyType().getValue(),
+                loanProductInterestRecalculationDetails.getRestInterval(), loanProductInterestRecalculationDetails.getRestFrequencyNthDay(),
                 loanProductInterestRecalculationDetails.getRestFrequencyWeekday(),
-                loanProductInterestRecalculationDetails.getRestFrequencyOnDay(), loanProductInterestRecalculationDetails
-                        .getCompoundingFrequencyType().getValue(), loanProductInterestRecalculationDetails.getCompoundingInterval(),
+                loanProductInterestRecalculationDetails.getRestFrequencyOnDay(),
+                loanProductInterestRecalculationDetails.getCompoundingFrequencyType().getValue(),
+                loanProductInterestRecalculationDetails.getCompoundingInterval(),
                 loanProductInterestRecalculationDetails.getCompoundingFrequencyNthDay(),
                 loanProductInterestRecalculationDetails.getCompoundingFrequencyWeekday(),
                 loanProductInterestRecalculationDetails.getCompoundingFrequencyOnDay(),

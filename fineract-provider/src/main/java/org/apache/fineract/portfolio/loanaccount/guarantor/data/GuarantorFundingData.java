@@ -20,11 +20,10 @@ package org.apache.fineract.portfolio.loanaccount.guarantor.data;
 
 import java.math.BigDecimal;
 import java.util.Collection;
-
 import org.apache.fineract.infrastructure.core.data.EnumOptionData;
 import org.apache.fineract.portfolio.account.data.PortfolioAccountData;
 
-public class GuarantorFundingData {
+public final class GuarantorFundingData {
 
     @SuppressWarnings("unused")
     private final Long id;
@@ -43,8 +42,8 @@ public class GuarantorFundingData {
     @SuppressWarnings("unused")
     private final Collection<GuarantorTransactionData> guarantorTransactions;
 
-    private GuarantorFundingData(final Long id, final EnumOptionData status, final PortfolioAccountData savingsAccount, final BigDecimal amount,
-            final BigDecimal amountReleased, final BigDecimal amountRemaining, final BigDecimal amountTransfered,
+    private GuarantorFundingData(final Long id, final EnumOptionData status, final PortfolioAccountData savingsAccount,
+            final BigDecimal amount, final BigDecimal amountReleased, final BigDecimal amountRemaining, final BigDecimal amountTransfered,
             final Collection<GuarantorTransactionData> guarantorTransactions) {
         this.id = id;
         this.status = status;
@@ -56,8 +55,8 @@ public class GuarantorFundingData {
         this.guarantorTransactions = guarantorTransactions;
     }
 
-    public static GuarantorFundingData instance(final Long id, final EnumOptionData status, final PortfolioAccountData savingsAccount, final BigDecimal amount,
-            final BigDecimal amountReleased, final BigDecimal amountRemaining, final BigDecimal amountTransfered,
+    public static GuarantorFundingData instance(final Long id, final EnumOptionData status, final PortfolioAccountData savingsAccount,
+            final BigDecimal amount, final BigDecimal amountReleased, final BigDecimal amountRemaining, final BigDecimal amountTransfered,
             final Collection<GuarantorTransactionData> guarantorTransactions) {
         return new GuarantorFundingData(id, status, savingsAccount, amount, amountReleased, amountRemaining, amountTransfered,
                 guarantorTransactions);

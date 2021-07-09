@@ -28,19 +28,18 @@ import org.springframework.stereotype.Service;
 
 @Service
 @CommandType(entity = "SSBENEFICIARYTPT", action = "UPDATE")
-public class UpdateSelfBeneficiariesTPTCommandHandler implements
-		NewCommandSourceHandler {
-	private final SelfBeneficiariesTPTWritePlatformService writePlatformService;
+public class UpdateSelfBeneficiariesTPTCommandHandler implements NewCommandSourceHandler {
 
-	@Autowired
-	public UpdateSelfBeneficiariesTPTCommandHandler(
-			final SelfBeneficiariesTPTWritePlatformService writePlatformService) {
-		this.writePlatformService = writePlatformService;
-	}
+    private final SelfBeneficiariesTPTWritePlatformService writePlatformService;
 
-	@Override
-	public CommandProcessingResult processCommand(final JsonCommand command) {
-		return this.writePlatformService.update(command);
-	}
+    @Autowired
+    public UpdateSelfBeneficiariesTPTCommandHandler(final SelfBeneficiariesTPTWritePlatformService writePlatformService) {
+        this.writePlatformService = writePlatformService;
+    }
+
+    @Override
+    public CommandProcessingResult processCommand(final JsonCommand command) {
+        return this.writePlatformService.update(command);
+    }
 
 }

@@ -19,14 +19,19 @@
 package org.apache.fineract.notification.exception;
 
 import org.apache.fineract.infrastructure.core.exception.AbstractPlatformResourceNotFoundException;
+import org.springframework.dao.EmptyResultDataAccessException;
 
 /**
  * A {@link RuntimeException} thrown when topic resources are not found.
  */
 public class TopicNotFoundException extends AbstractPlatformResourceNotFoundException {
 
-	public TopicNotFoundException(final Long id) {
-		super("error.msg.topic.id.invalid", "Topic with identifier " + id + " does not exist", id);
-	}
+    public TopicNotFoundException(final Long id) {
+        super("error.msg.topic.id.invalid", "Topic with identifier " + id + " does not exist", id);
+    }
+
+    public TopicNotFoundException(Long id, EmptyResultDataAccessException e) {
+        super("error.msg.topic.id.invalid", "Topic with identifier " + id + " does not exist", id, e);
+    }
 
 }

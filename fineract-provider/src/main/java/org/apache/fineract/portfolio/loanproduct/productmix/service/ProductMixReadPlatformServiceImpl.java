@@ -23,7 +23,6 @@ import java.sql.SQLException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.apache.fineract.infrastructure.core.service.RoutingDataSource;
 import org.apache.fineract.infrastructure.security.service.PlatformSecurityContext;
 import org.apache.fineract.portfolio.loanproduct.data.LoanProductData;
@@ -67,7 +66,7 @@ public class ProductMixReadPlatformServiceImpl implements ProductMixReadPlatform
             return productMixData.get(productId);
 
         } catch (final EmptyResultDataAccessException e) {
-            throw new ProductMixNotFoundException(productId);
+            throw new ProductMixNotFoundException(productId, e);
         }
     }
 
@@ -94,7 +93,7 @@ public class ProductMixReadPlatformServiceImpl implements ProductMixReadPlatform
             return "pm.product_id as productId, lp.name as name from m_product_mix pm join m_product_loan lp on lp.id=pm.product_id";
         }
 
-        public ProductMixDataExtractor(final LoanProductReadPlatformService loanProductReadPlatformService, final Long productId) {
+        ProductMixDataExtractor(final LoanProductReadPlatformService loanProductReadPlatformService, final Long productId) {
             this.loanProductReadPlatformService = loanProductReadPlatformService;
             this.productId = productId;
         }
@@ -112,9 +111,7 @@ public class ProductMixReadPlatformServiceImpl implements ProductMixReadPlatform
                 extractedData.put(this.productId, productMixData);
                 return extractedData;
             }
-            /* move the cursor to starting of resultset */
-            rs.beforeFirst();
-            while (rs.next()) {
+            do {
                 final Long productId = rs.getLong("productId");
                 final String name = rs.getString("name");
                 final Collection<LoanProductData> restrictedProducts = this.loanProductReadPlatformService
@@ -123,7 +120,7 @@ public class ProductMixReadPlatformServiceImpl implements ProductMixReadPlatform
                         .retrieveAllowedProductsForMix(productId);
                 final ProductMixData productMixData = ProductMixData.withDetails(productId, name, restrictedProducts, allowedProducts);
                 extractedData.put(productId, productMixData);
-            }
+            } while (rs.next());
             return extractedData;
         }
     }

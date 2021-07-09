@@ -25,9 +25,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.apache.fineract.infrastructure.core.data.EnumOptionData;
 import org.apache.fineract.infrastructure.core.domain.JdbcSupport;
 import org.apache.fineract.infrastructure.core.service.Page;
@@ -41,7 +41,6 @@ import org.apache.fineract.portfolio.account.data.PortfolioAccountData;
 import org.apache.fineract.portfolio.account.data.StandingInstructionDTO;
 import org.apache.fineract.portfolio.account.data.StandingInstructionHistoryData;
 import org.apache.fineract.portfolio.client.data.ClientData;
-import org.joda.time.LocalDate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -60,8 +59,7 @@ public class StandingInstructionHistoryReadPlatformServiceImpl implements Standi
     private final PaginationHelper<StandingInstructionHistoryData> paginationHelper = new PaginationHelper<>();
 
     @Autowired
-    public StandingInstructionHistoryReadPlatformServiceImpl(final RoutingDataSource dataSource,
-    		final ColumnValidator columnValidator) {
+    public StandingInstructionHistoryReadPlatformServiceImpl(final RoutingDataSource dataSource, final ColumnValidator columnValidator) {
         this.jdbcTemplate = new JdbcTemplate(dataSource);
         this.standingInstructionHistoryMapper = new StandingInstructionHistoryMapper();
         this.columnValidator = columnValidator;
@@ -129,7 +127,7 @@ public class StandingInstructionHistoryReadPlatformServiceImpl implements Standi
             paramObj.add(df.format(standingInstructionDTO.startDateRange()));
             addAndCaluse = true;
         }
-        
+
         if (standingInstructionDTO.endDateRange() != null) {
             if (addAndCaluse) {
                 sqlBuilder.append(" and ");
@@ -167,7 +165,7 @@ public class StandingInstructionHistoryReadPlatformServiceImpl implements Standi
 
         private final String schemaSql;
 
-        public StandingInstructionHistoryMapper() {
+        StandingInstructionHistoryMapper() {
             final StringBuilder sqlBuilder = new StringBuilder(400);
             sqlBuilder.append("atsi.id as id,atsi.name as name, ");
             sqlBuilder.append("atsih.status as status, atsih.execution_time as executionTime, ");

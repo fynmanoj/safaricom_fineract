@@ -19,13 +19,13 @@
 package org.apache.fineract.infrastructure.core.serialization;
 
 /**
- * 
+ *
  */
 public interface FromCommandJsonDeserializer<T> {
 
-    T commandFromCommandJson(final String json);
+    T commandFromCommandJson(String json);
 
-    T commandFromCommandJson(final Long resourceId, final String json);
+    T commandFromCommandJson(Long resourceId, String json);
 
-    T commandFromCommandJson(final Long resourceId, final String json, final boolean makerCheckerApproval);
+    T commandFromCommandJson(Long resourceId, String json, boolean makerCheckerApproval);
 }

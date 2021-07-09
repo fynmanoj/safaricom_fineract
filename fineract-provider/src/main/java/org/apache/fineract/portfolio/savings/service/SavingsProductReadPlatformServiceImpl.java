@@ -22,7 +22,6 @@ import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
-
 import org.apache.fineract.accounting.common.AccountingEnumerations;
 import org.apache.fineract.infrastructure.core.data.EnumOptionData;
 import org.apache.fineract.infrastructure.core.domain.JdbcSupport;
@@ -69,7 +68,7 @@ public class SavingsProductReadPlatformServiceImpl implements SavingsProductRead
         // products mapped to current user's office
         String inClause = fineractEntityAccessUtil
                 .getSQLWhereClauseForProductIDsForUserOffice_ifGlobalConfigEnabled(FineractEntityType.SAVINGS_PRODUCT);
-        if ((inClause != null) && (!(inClause.trim().isEmpty()))) {
+        if (inClause != null && !inClause.trim().isEmpty()) {
             sql += " and sp.id in ( " + inClause + " ) ";
         }
 
@@ -85,7 +84,7 @@ public class SavingsProductReadPlatformServiceImpl implements SavingsProductRead
         // products mapped to current user's office
         String inClause = fineractEntityAccessUtil
                 .getSQLWhereClauseForProductIDsForUserOffice_ifGlobalConfigEnabled(FineractEntityType.SAVINGS_PRODUCT);
-        if ((inClause != null) && (!(inClause.trim().isEmpty()))) {
+        if (inClause != null && !inClause.trim().isEmpty()) {
             sql += " and id in ( " + inClause + " ) ";
         }
 
@@ -98,10 +97,10 @@ public class SavingsProductReadPlatformServiceImpl implements SavingsProductRead
         try {
             this.context.authenticatedUser();
             final String sql = "select " + this.savingsProductRowMapper.schema() + " where sp.id = ? and sp.deposit_type_enum = ?";
-            return this.jdbcTemplate.queryForObject(sql, this.savingsProductRowMapper, new Object[] { savingProductId,
-                    DepositAccountType.SAVINGS_DEPOSIT.getValue() });
+            return this.jdbcTemplate.queryForObject(sql, this.savingsProductRowMapper,
+                    new Object[] { savingProductId, DepositAccountType.SAVINGS_DEPOSIT.getValue() });
         } catch (final EmptyResultDataAccessException e) {
-            throw new SavingsProductNotFoundException(savingProductId);
+            throw new SavingsProductNotFoundException(savingProductId, e);
         }
     }
 
@@ -109,11 +108,11 @@ public class SavingsProductReadPlatformServiceImpl implements SavingsProductRead
 
         private final String schemaSql;
 
-        public SavingProductMapper() {
+        SavingProductMapper() {
             final StringBuilder sqlBuilder = new StringBuilder(400);
             sqlBuilder.append("sp.id as id, sp.name as name, sp.short_name as shortName, sp.description as description, ");
-            sqlBuilder
-                    .append("sp.currency_code as currencyCode, sp.currency_digits as currencyDigits, sp.currency_multiplesof as inMultiplesOf, ");
+            sqlBuilder.append(
+                    "sp.currency_code as currencyCode, sp.currency_digits as currencyDigits, sp.currency_multiplesof as inMultiplesOf, ");
             sqlBuilder.append("curr.name as currencyName, curr.internationalized_name_code as currencyNameCode, ");
             sqlBuilder.append("curr.display_symbol as currencyDisplaySymbol, ");
             sqlBuilder.append("sp.nominal_annual_interest_rate as nominalAnnualInterestRate, ");
@@ -164,8 +163,8 @@ public class SavingsProductReadPlatformServiceImpl implements SavingsProductRead
             final String currencyDisplaySymbol = rs.getString("currencyDisplaySymbol");
             final Integer currencyDigits = JdbcSupport.getInteger(rs, "currencyDigits");
             final Integer inMultiplesOf = JdbcSupport.getInteger(rs, "inMultiplesOf");
-            final CurrencyData currency = new CurrencyData(currencyCode, currencyName, currencyDigits, inMultiplesOf,
-                    currencyDisplaySymbol, currencyNameCode);
+            final CurrencyData currency = new CurrencyData(currencyCode, currencyName, currencyDigits, inMultiplesOf, currencyDisplaySymbol,
+                    currencyNameCode);
             final BigDecimal nominalAnnualInterestRate = rs.getBigDecimal("nominalAnnualInterestRate");
 
             final Integer compoundingInterestPeriodTypeValue = JdbcSupport.getInteger(rs, "compoundingInterestPeriodType");
@@ -214,12 +213,12 @@ public class SavingsProductReadPlatformServiceImpl implements SavingsProductRead
             if (taxGroupId != null) {
                 taxGroupData = TaxGroupData.lookup(taxGroupId, taxGroupName);
             }
-            
+
             final Boolean isDormancyTrackingActive = rs.getBoolean("isDormancyTrackingActive");
             final Long daysToInactive = JdbcSupport.getLong(rs, "daysToInactive");
             final Long daysToDormancy = JdbcSupport.getLong(rs, "daysToDormancy");
             final Long daysToEscheat = JdbcSupport.getLong(rs, "daysToEscheat");
-            
+
             return SavingsProductData.instance(id, name, shortName, description, currency, nominalAnnualInterestRate,
                     compoundingInterestPeriodType, interestPostingPeriodType, interestCalculationType, interestCalculationDaysInYearType,
                     minRequiredOpeningBalance, lockinPeriodFrequency, lockinPeriodFrequencyType, withdrawalFeeForTransfers,
@@ -255,7 +254,7 @@ public class SavingsProductReadPlatformServiceImpl implements SavingsProductRead
         // products mapped to current user's office
         String inClause = fineractEntityAccessUtil
                 .getSQLWhereClauseForProductIDsForUserOffice_ifGlobalConfigEnabled(FineractEntityType.SAVINGS_PRODUCT);
-        if ((inClause != null) && (!(inClause.trim().isEmpty()))) {
+        if (inClause != null && !inClause.trim().isEmpty()) {
             sql += " where id in ( " + inClause + " ) ";
             inClauseAdded = true;
         }
@@ -266,15 +265,17 @@ public class SavingsProductReadPlatformServiceImpl implements SavingsProductRead
             } else {
                 sql += " where sp.allow_overdraft=? and sp.deposit_type_enum = ?";
             }
-            return this.jdbcTemplate.query(sql, this.savingsProductLookupsRowMapper, new Object[] {isOverdraftType, DepositAccountType.SAVINGS_DEPOSIT.getValue() });
+            return this.jdbcTemplate.query(sql, this.savingsProductLookupsRowMapper,
+                    new Object[] { isOverdraftType, DepositAccountType.SAVINGS_DEPOSIT.getValue() });
         }
-        
-        if(inClauseAdded) {
-        	sql += " and sp.deposit_type_enum = ?";
-        }else {
-        	 sql += " where sp.deposit_type_enum = ?";
+
+        if (inClauseAdded) {
+            sql += " and sp.deposit_type_enum = ?";
+        } else {
+            sql += " where sp.deposit_type_enum = ?";
         }
-        return this.jdbcTemplate.query(sql, this.savingsProductLookupsRowMapper, new Object[] { DepositAccountType.SAVINGS_DEPOSIT.getValue() });
+        return this.jdbcTemplate.query(sql, this.savingsProductLookupsRowMapper,
+                new Object[] { DepositAccountType.SAVINGS_DEPOSIT.getValue() });
 
     }
 
@@ -289,10 +290,10 @@ public class SavingsProductReadPlatformServiceImpl implements SavingsProductRead
         // products mapped to current user's office
         String inClause = fineractEntityAccessUtil
                 .getSQLWhereClauseForProductIDsForUserOffice_ifGlobalConfigEnabled(FineractEntityType.SAVINGS_PRODUCT);
-        if ((inClause != null) && (!(inClause.trim().isEmpty()))) {
+        if (inClause != null && !inClause.trim().isEmpty()) {
             sql += " and id in ( " + inClause + " ) ";
         }
 
-        return this.jdbcTemplate.query(sql, this.savingsProductRowMapper, new Object[] {currencyCode});
+        return this.jdbcTemplate.query(sql, this.savingsProductRowMapper, new Object[] { currencyCode });
     }
 }

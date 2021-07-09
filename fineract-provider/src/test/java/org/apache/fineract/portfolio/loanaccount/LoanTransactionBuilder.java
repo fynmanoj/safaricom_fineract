@@ -18,26 +18,26 @@
  */
 package org.apache.fineract.portfolio.loanaccount;
 
+import java.time.LocalDate;
+import org.apache.fineract.infrastructure.core.service.DateUtils;
 import org.apache.fineract.organisation.monetary.domain.Money;
-import org.joda.time.LocalDate;
 
 public class LoanTransactionBuilder {
 
     @SuppressWarnings("unused")
     private Money transactionAmount = new MoneyBuilder().build();
     @SuppressWarnings("unused")
-    private LocalDate transactionDate = LocalDate.now();
+    private LocalDate transactionDate = LocalDate.now(DateUtils.getDateTimeZoneOfTenant());
     @SuppressWarnings("unused")
     private boolean repayment = false;
 
     /**
      * public LoanTransaction build() {
-     * 
+     *
      * LoanTransaction transaction = null;
-     * 
-     * if (repayment) { transaction =
-     * LoanTransaction.repayment(transactionAmount, transactionDate); }
-     * 
+     *
+     * if (repayment) { transaction = LoanTransaction.repayment(transactionAmount, transactionDate); }
+     *
      * return transaction; }
      **/
 

@@ -17,13 +17,13 @@
  * under the License.
  */
 package org.apache.fineract.portfolio.common.domain;
+
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 
- * People typically use either of the following settings when calculating there
- * interest using the daily method:
+ *
+ * People typically use either of the following settings when calculating there interest using the daily method:
  * <ul>
  * <li>Actual or</li>
  * <li>30</li>
@@ -38,7 +38,7 @@ public enum DaysInMonthType {
     private final Integer value;
     private final String code;
 
-    private DaysInMonthType(final Integer value, final String code) {
+    DaysInMonthType(final Integer value, final String code) {
         this.value = value;
         this.code = code;
     }

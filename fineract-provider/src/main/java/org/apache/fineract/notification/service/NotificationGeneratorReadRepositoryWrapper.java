@@ -18,13 +18,10 @@
  */
 package org.apache.fineract.notification.service;
 
+import java.util.List;
 import org.apache.fineract.notification.domain.Notification;
 
-import java.util.List;
-
-
 public interface NotificationGeneratorReadRepositoryWrapper {
-
 
     Notification findById(Long id);
 

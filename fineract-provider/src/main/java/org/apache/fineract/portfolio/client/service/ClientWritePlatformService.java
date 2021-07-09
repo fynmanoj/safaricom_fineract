@@ -33,7 +33,7 @@ public interface ClientWritePlatformService {
 
     CommandProcessingResult unassignClientStaff(Long clientId, JsonCommand command);
 
-    CommandProcessingResult closeClient(final Long clientId, final JsonCommand command);
+    CommandProcessingResult closeClient(Long clientId, JsonCommand command);
 
     CommandProcessingResult assignClientStaff(Long clientId, JsonCommand command);
 
@@ -45,9 +45,8 @@ public interface ClientWritePlatformService {
 
     CommandProcessingResult reActivateClient(Long entityId, JsonCommand command);
 
-	CommandProcessingResult undoRejection(Long entityId, JsonCommand command);
-	
-	CommandProcessingResult undoWithdrawal(Long entityId, JsonCommand command);
+    CommandProcessingResult undoRejection(Long entityId, JsonCommand command);
 
+    CommandProcessingResult undoWithdrawal(Long entityId, JsonCommand command);
 
 }

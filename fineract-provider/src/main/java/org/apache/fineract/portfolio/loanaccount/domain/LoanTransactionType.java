@@ -29,35 +29,33 @@ public enum LoanTransactionType {
     WRITEOFF(6, "loanTransactionType.writeOff"), //
     MARKED_FOR_RESCHEDULING(7, "loanTransactionType.marked.for.rescheduling"), //
     /**
-     * This type of transactions is allowed on written-off loans where mfi still
-     * attempts to recover payments from applicant after writing-off.
+     * This type of transactions is allowed on written-off loans where mfi still attempts to recover payments from
+     * applicant after writing-off.
      */
     RECOVERY_REPAYMENT(8, "loanTransactionType.recoveryRepayment"), //
     WAIVE_CHARGES(9, "loanTransactionType.waiveCharges"), //
     /**
-     * Transaction represents an Accrual (For either interest, charge or a
-     * penalty
+     * Transaction represents an Accrual (For either interest, charge or a penalty
      **/
     ACCRUAL(10, "loanTransactionType.accrual"), //
 
     /***
-     * A Loan Transfer involves two steps, first a "initiate" Loan transfer
-     * transaction done by the Source branch followed by a "complete" loan
-     * transaction initiated by the destination branch
+     * A Loan Transfer involves two steps, first a "initiate" Loan transfer transaction done by the Source branch
+     * followed by a "complete" loan transaction initiated by the destination branch
      **/
     INITIATE_TRANSFER(12, "loanTransactionType.initiateTransfer"), //
     APPROVE_TRANSFER(13, "loanTransactionType.approveTransfer"), //
     WITHDRAW_TRANSFER(14, "loanTransactionType.withdrawTransfer"), //
     REJECT_TRANSFER(15, "loanTransactionType.rejectTransfer"), //
     REFUND(16, "loanTransactionType.refund"), //
-    CHARGE_PAYMENT(17, "loanTransactionType.chargePayment"),  //
+    CHARGE_PAYMENT(17, "loanTransactionType.chargePayment"), //
     REFUND_FOR_ACTIVE_LOAN(18, "loanTransactionType.refund"), //
-    INCOME_POSTING(19,"loanTransactionType.incomePosting");
+    INCOME_POSTING(19, "loanTransactionType.incomePosting");
 
     private final Integer value;
     private final String code;
 
-    private LoanTransactionType(final Integer value, final String code) {
+    LoanTransactionType(final Integer value, final String code) {
         this.value = value;
         this.code = code;
     }
@@ -72,7 +70,9 @@ public enum LoanTransactionType {
 
     public static LoanTransactionType fromInt(final Integer transactionType) {
 
-        if (transactionType == null) { return LoanTransactionType.INVALID; }
+        if (transactionType == null) {
+            return LoanTransactionType.INVALID;
+        }
 
         LoanTransactionType loanTransactionType = null;
         switch (transactionType) {
@@ -128,8 +128,8 @@ public enum LoanTransactionType {
                 loanTransactionType = LoanTransactionType.REFUND_FOR_ACTIVE_LOAN;
             break;
             case 19:
-            	loanTransactionType = LoanTransactionType.INCOME_POSTING;
-            	break;
+                loanTransactionType = LoanTransactionType.INCOME_POSTING;
+            break;
             default:
                 loanTransactionType = LoanTransactionType.INVALID;
             break;
@@ -172,10 +172,11 @@ public enum LoanTransactionType {
     public boolean isChargePayment() {
         return this.value.equals(LoanTransactionType.CHARGE_PAYMENT.getValue());
     }
-    
+
     public boolean isRefundForActiveLoan() {
         return this.value.equals(LoanTransactionType.REFUND_FOR_ACTIVE_LOAN.getValue());
     }
+
     public boolean isIncomePosting() {
         return this.value.equals(LoanTransactionType.INCOME_POSTING.getValue());
     }

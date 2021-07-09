@@ -30,7 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @CommandType(entity = "ENTITYMAPPING", action = "CREATE")
 public class CreateEntityToEntityMappingCommandHandler implements NewCommandSourceHandler {
-    
+
     private final FineractEntityAccessWriteService fineractEntityAccessWriteService;
 
     @Autowired
@@ -41,7 +41,7 @@ public class CreateEntityToEntityMappingCommandHandler implements NewCommandSour
     @Override
     @Transactional
     public CommandProcessingResult processCommand(JsonCommand command) {
-        return this.fineractEntityAccessWriteService.createEntityToEntityMapping(command.entityId(),command);
+        return this.fineractEntityAccessWriteService.createEntityToEntityMapping(command.entityId(), command);
     }
 
 }

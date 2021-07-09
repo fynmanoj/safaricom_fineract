@@ -46,7 +46,7 @@
                 </encoder>
         </appender>
 
-		<logger name="org.apache.fineract.portfolio.savings.service" level="warn" />
+        <logger name="org.apache.fineract.portfolio.savings.service" level="warn" />
 
         <logger name="org.fineract.platform" level="warn" />
         <logger name="org.apache.fineract.infrastructure.security.filter"

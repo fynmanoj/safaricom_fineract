@@ -21,15 +21,12 @@ package org.apache.fineract.portfolio.savings.domain;
 import java.math.BigDecimal;
 import java.util.LinkedHashMap;
 import java.util.Map;
-
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
-
 import org.apache.fineract.infrastructure.core.api.JsonCommand;
 
 /**
- * RecurringDepositProductAmountDetails encapsulates all recurring Deposit
- * Amount of a {@link RecurringDepositProduct}.
+ * RecurringDepositProductAmountDetails encapsulates all recurring Deposit Amount of a {@link RecurringDepositProduct}.
  */
 @Embeddable
 public class DepositProductAmountDetails {
@@ -53,7 +50,8 @@ public class DepositProductAmountDetails {
         //
     }
 
-    public DepositProductAmountDetails(final BigDecimal minDepositAmount, final BigDecimal depositAmount, final BigDecimal maxDepositAmount) {
+    public DepositProductAmountDetails(final BigDecimal minDepositAmount, final BigDecimal depositAmount,
+            final BigDecimal maxDepositAmount) {
         this.minDepositAmount = minDepositAmount;
         this.depositAmount = depositAmount;
         this.maxDepositAmount = maxDepositAmount;

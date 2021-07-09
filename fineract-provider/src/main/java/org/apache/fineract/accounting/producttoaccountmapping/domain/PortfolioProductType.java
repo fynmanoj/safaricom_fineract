@@ -22,13 +22,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 public enum PortfolioProductType {
+
     LOAN(1, "productType.loan"), SAVING(2, "productType.saving"), CLIENT(5, "productType.client"), PROVISIONING(3,
             "productType.provisioning"), SHARES(4, "productType.shares");
 
     private final Integer value;
     private final String code;
 
-    private PortfolioProductType(final Integer value, final String code) {
+    PortfolioProductType(final Integer value, final String code) {
         this.value = value;
         this.code = code;
     }

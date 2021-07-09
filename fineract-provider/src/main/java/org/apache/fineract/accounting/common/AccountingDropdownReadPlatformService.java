@@ -20,28 +20,27 @@ package org.apache.fineract.accounting.common;
 
 import java.util.List;
 import java.util.Map;
-
 import org.apache.fineract.accounting.glaccount.data.GLAccountData;
 import org.apache.fineract.infrastructure.core.data.EnumOptionData;
 
 public interface AccountingDropdownReadPlatformService {
 
-    public List<EnumOptionData> retrieveGLAccountTypeOptions();
+    List<EnumOptionData> retrieveGLAccountTypeOptions();
 
-    public List<EnumOptionData> retrieveGLAccountUsageOptions();
+    List<EnumOptionData> retrieveGLAccountUsageOptions();
 
-    public List<EnumOptionData> retrieveJournalEntryTypeOptions();
+    List<EnumOptionData> retrieveJournalEntryTypeOptions();
 
-    public List<EnumOptionData> retrieveAccountingRuleTypeOptions();
+    List<EnumOptionData> retrieveAccountingRuleTypeOptions();
 
-    public Map<String, List<GLAccountData>> retrieveAccountMappingOptionsForLoanProducts();
+    Map<String, List<GLAccountData>> retrieveAccountMappingOptionsForLoanProducts();
 
-    public Map<String, List<GLAccountData>> retrieveAccountMappingOptionsForSavingsProducts();
+    Map<String, List<GLAccountData>> retrieveAccountMappingOptionsForSavingsProducts();
 
-    public Map<String, List<GLAccountData>> retrieveAccountMappingOptionsForCharges();
+    Map<String, List<GLAccountData>> retrieveAccountMappingOptionsForCharges();
 
-    public Map<String, List<GLAccountData>> retrieveAccountMappingOptions();
-    
-    public Map<String, List<GLAccountData>> retrieveAccountMappingOptionsForShareProducts();
+    Map<String, List<GLAccountData>> retrieveAccountMappingOptions();
+
+    Map<String, List<GLAccountData>> retrieveAccountMappingOptionsForShareProducts();
 
 }

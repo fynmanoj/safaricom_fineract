@@ -21,10 +21,11 @@ package org.apache.fineract.organisation.office.service;
 import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
-
 import org.apache.fineract.infrastructure.core.domain.JdbcSupport;
+import org.apache.fineract.infrastructure.core.service.DateUtils;
 import org.apache.fineract.infrastructure.core.service.RoutingDataSource;
 import org.apache.fineract.infrastructure.core.service.SearchParameters;
 import org.apache.fineract.infrastructure.security.service.PlatformSecurityContext;
@@ -35,7 +36,6 @@ import org.apache.fineract.organisation.office.data.OfficeData;
 import org.apache.fineract.organisation.office.data.OfficeTransactionData;
 import org.apache.fineract.organisation.office.exception.OfficeNotFoundException;
 import org.apache.fineract.useradministration.domain.AppUser;
-import org.joda.time.LocalDate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -50,12 +50,11 @@ public class OfficeReadPlatformServiceImpl implements OfficeReadPlatformService 
     private final PlatformSecurityContext context;
     private final CurrencyReadPlatformService currencyReadPlatformService;
     private final ColumnValidator columnValidator;
-    private final static String nameDecoratedBaseOnHierarchy = "concat(substring('........................................', 1, ((LENGTH(o.hierarchy) - LENGTH(REPLACE(o.hierarchy, '.', '')) - 1) * 4)), o.name)";
+    private static final String nameDecoratedBaseOnHierarchy = "concat(substring('........................................', 1, ((LENGTH(o.hierarchy) - LENGTH(REPLACE(o.hierarchy, '.', '')) - 1) * 4)), o.name)";
 
     @Autowired
     public OfficeReadPlatformServiceImpl(final PlatformSecurityContext context,
-            final CurrencyReadPlatformService currencyReadPlatformService,
-            final RoutingDataSource dataSource,
+            final CurrencyReadPlatformService currencyReadPlatformService, final RoutingDataSource dataSource,
             final ColumnValidator columnValidator) {
         this.context = context;
         this.currencyReadPlatformService = currencyReadPlatformService;
@@ -66,8 +65,7 @@ public class OfficeReadPlatformServiceImpl implements OfficeReadPlatformService 
     private static final class OfficeMapper implements RowMapper<OfficeData> {
 
         public String officeSchema() {
-            return " o.id as id, o.name as name, "
-                    + nameDecoratedBaseOnHierarchy
+            return " o.id as id, o.name as name, " + nameDecoratedBaseOnHierarchy
                     + " as nameDecorated, o.external_id as externalId, o.opening_date as openingDate, o.hierarchy as hierarchy, parent.id as parentId, parent.name as parentName "
                     + "from m_office o LEFT JOIN m_office AS parent ON parent.id = o.parent_id ";
         }
@@ -112,8 +110,7 @@ public class OfficeReadPlatformServiceImpl implements OfficeReadPlatformService 
                     + " ot.to_office_id as toOfficeId, tooff.name as toOfficeName, ot.transaction_amount as transactionAmount, ot.description as description, "
                     + " ot.currency_code as currencyCode, rc.decimal_places as currencyDigits, rc.currency_multiplesof as inMultiplesOf, "
                     + " rc.name as currencyName, rc.internationalized_name_code as currencyNameCode, rc.display_symbol as currencyDisplaySymbol "
-                    + " from m_office_transaction ot "
-                    + " left join m_office fromoff on fromoff.id = ot.from_office_id "
+                    + " from m_office_transaction ot " + " left join m_office fromoff on fromoff.id = ot.from_office_id "
                     + " left join m_office tooff on tooff.id = ot.to_office_id " + " join m_currency rc on rc.`code` = ot.currency_code";
         }
 
@@ -140,8 +137,8 @@ public class OfficeReadPlatformServiceImpl implements OfficeReadPlatformService 
             final BigDecimal transactionAmount = rs.getBigDecimal("transactionAmount");
             final String description = rs.getString("description");
 
-            return OfficeTransactionData.instance(id, transactionDate, fromOfficeId, fromOfficeName, toOfficeId, toOfficeName,
-                    currencyData, transactionAmount, description);
+            return OfficeTransactionData.instance(id, transactionDate, fromOfficeId, fromOfficeName, toOfficeId, toOfficeName, currencyData,
+                    transactionAmount, description);
         }
     }
 
@@ -161,7 +158,7 @@ public class OfficeReadPlatformServiceImpl implements OfficeReadPlatformService 
         sqlBuilder.append("select ");
         sqlBuilder.append(rm.officeSchema());
         sqlBuilder.append(" where o.hierarchy like ? ");
-        if(searchParameters!=null) {
+        if (searchParameters != null) {
             if (searchParameters.isOrderByRequested()) {
                 sqlBuilder.append("order by ").append(searchParameters.getOrderBy());
                 this.columnValidator.validateSqlInjection(sqlBuilder.toString(), searchParameters.getOrderBy());
@@ -204,7 +201,7 @@ public class OfficeReadPlatformServiceImpl implements OfficeReadPlatformService 
 
             return selectedOffice;
         } catch (final EmptyResultDataAccessException e) {
-            throw new OfficeNotFoundException(officeId);
+            throw new OfficeNotFoundException(officeId, e);
         }
     }
 
@@ -213,7 +210,7 @@ public class OfficeReadPlatformServiceImpl implements OfficeReadPlatformService 
 
         this.context.authenticatedUser();
 
-        return OfficeData.template(null, new LocalDate());
+        return OfficeData.template(null, LocalDate.now(DateUtils.getDateTimeZoneOfTenant()));
     }
 
     @Override
@@ -261,7 +258,7 @@ public class OfficeReadPlatformServiceImpl implements OfficeReadPlatformService 
         final Collection<OfficeData> parentLookups = retrieveAllOfficesForDropdown();
         final Collection<CurrencyData> currencyOptions = this.currencyReadPlatformService.retrieveAllowedCurrencies();
 
-        return OfficeTransactionData.template(new LocalDate(), parentLookups, currencyOptions);
+        return OfficeTransactionData.template(LocalDate.now(DateUtils.getDateTimeZoneOfTenant()), parentLookups, currencyOptions);
     }
 
     public PlatformSecurityContext getContext() {

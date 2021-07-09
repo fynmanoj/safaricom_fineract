@@ -19,12 +19,13 @@
 package org.apache.fineract.portfolio.client.service;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-
 import org.apache.fineract.accounting.journalentry.service.JournalEntryWritePlatformService;
 import org.apache.fineract.infrastructure.configuration.domain.ConfigurationDomainService;
 import org.apache.fineract.infrastructure.core.api.JsonCommand;
@@ -54,19 +55,18 @@ import org.apache.fineract.portfolio.client.domain.ClientTransactionRepository;
 import org.apache.fineract.portfolio.paymentdetail.domain.PaymentDetail;
 import org.apache.fineract.portfolio.paymentdetail.service.PaymentDetailWritePlatformService;
 import org.apache.fineract.useradministration.domain.AppUser;
-import org.joda.time.LocalDate;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.NonTransientDataAccessException;
+import org.springframework.orm.jpa.JpaSystemException;
 import org.springframework.stereotype.Service;
 
 @Service
 public class ClientChargeWritePlatformServiceJpaRepositoryImpl implements ClientChargeWritePlatformService {
 
-    private final static Logger logger = LoggerFactory.getLogger(ClientChargeWritePlatformServiceJpaRepositoryImpl.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ClientChargeWritePlatformServiceJpaRepositoryImpl.class);
 
     private final PlatformSecurityContext context;
     private final ChargeRepositoryWrapper chargeRepository;
@@ -118,17 +118,19 @@ public class ClientChargeWritePlatformServiceJpaRepositoryImpl implements Client
             }
 
             final ClientCharge clientCharge = ClientCharge.createNew(client, charge, command);
-            final DateTimeFormatter fmt = DateTimeFormat.forPattern(command.dateFormat());
+            final DateTimeFormatter fmt = DateTimeFormatter.ofPattern(command.dateFormat());
             final List<ApiParameterError> dataValidationErrors = new ArrayList<>();
             final DataValidatorBuilder baseDataValidator = new DataValidatorBuilder(dataValidationErrors)
                     .resource(ClientApiConstants.CLIENT_CHARGES_RESOURCE_NAME);
             LocalDate activationDate = client.getActivationLocalDate();
             LocalDate dueDate = clientCharge.getDueLocalDate();
-            if(dueDate.isBefore(activationDate)){
-                baseDataValidator.reset().parameter(ClientApiConstants.dueAsOfDateParamName).value(dueDate.toString(fmt))
-                .failWithCodeNoParameterAddedToErrorCode("dueDate.before.activationDate");
+            if (dueDate.isBefore(activationDate)) {
+                baseDataValidator.reset().parameter(ClientApiConstants.dueAsOfDateParamName).value(dueDate.format(fmt))
+                        .failWithCodeNoParameterAddedToErrorCode("dueDate.before.activationDate");
 
-                if (!dataValidationErrors.isEmpty()) { throw new PlatformApiDataValidationException(dataValidationErrors); }
+                if (!dataValidationErrors.isEmpty()) {
+                    throw new PlatformApiDataValidationException(dataValidationErrors);
+                }
             }
 
             validateDueDateOnWorkingDay(clientCharge, fmt);
@@ -139,8 +141,9 @@ public class ClientChargeWritePlatformServiceJpaRepositoryImpl implements Client
                     .withOfficeId(clientCharge.getClient().getOffice().getId()) //
                     .withClientId(clientCharge.getClient().getId()) //
                     .build();
-        } catch (DataIntegrityViolationException dve) {
-            handleDataIntegrityIssues(clientId, null, dve);
+        } catch (final JpaSystemException | DataIntegrityViolationException dve) {
+            final Throwable throwable = dve.getMostSpecificCause();
+            handleDataIntegrityIssues(clientId, null, throwable, dve);
             return CommandProcessingResult.empty();
         }
     }
@@ -155,7 +158,7 @@ public class ClientChargeWritePlatformServiceJpaRepositoryImpl implements Client
             final ClientCharge clientCharge = this.clientChargeRepository.findOneWithNotFoundDetection(clientChargeId);
 
             final Locale locale = command.extractLocale();
-            final DateTimeFormatter fmt = DateTimeFormat.forPattern(command.dateFormat()).withLocale(locale);
+            final DateTimeFormatter fmt = DateTimeFormatter.ofPattern(command.dateFormat()).withLocale(locale);
             final LocalDate transactionDate = command.localDateValueOfParameterNamed(ClientApiConstants.transactionDateParamName);
             final BigDecimal amountPaid = command.bigDecimalValueOfParameterNamed(ClientApiConstants.amountParamName);
             final Money chargePaid = Money.of(clientCharge.getCurrency(), amountPaid);
@@ -186,8 +189,9 @@ public class ClientChargeWritePlatformServiceJpaRepositoryImpl implements Client
                     .withEntityId(clientCharge.getId()) //
                     .withOfficeId(clientCharge.getClient().getOffice().getId()) //
                     .withClientId(clientCharge.getClient().getId()).build();
-        } catch (DataIntegrityViolationException dve) {
-            handleDataIntegrityIssues(clientId, clientChargeId, dve);
+        } catch (final JpaSystemException | DataIntegrityViolationException dve) {
+            final Throwable throwable = dve.getMostSpecificCause();
+            handleDataIntegrityIssues(clientId, clientChargeId, throwable, dve);
             return CommandProcessingResult.empty();
         }
 
@@ -225,8 +229,9 @@ public class ClientChargeWritePlatformServiceJpaRepositoryImpl implements Client
                     .withOfficeId(clientCharge.getClient().getOffice().getId()) //
                     .withClientId(clientCharge.getClient().getId()) //
                     .build();
-        } catch (DataIntegrityViolationException dve) {
-            handleDataIntegrityIssues(clientId, clientChargeId, dve);
+        } catch (final JpaSystemException | DataIntegrityViolationException dve) {
+            final Throwable throwable = dve.getMostSpecificCause();
+            handleDataIntegrityIssues(clientId, clientChargeId, throwable, dve);
             return CommandProcessingResult.empty();
         }
     }
@@ -248,8 +253,9 @@ public class ClientChargeWritePlatformServiceJpaRepositoryImpl implements Client
                     .withOfficeId(clientCharge.getClient().getOffice().getId()) //
                     .withClientId(clientCharge.getClient().getId()) //
                     .build();
-        } catch (DataIntegrityViolationException dve) {
-            handleDataIntegrityIssues(clientId, clientChargeId, dve);
+        } catch (final JpaSystemException | DataIntegrityViolationException dve) {
+            final Throwable throwable = dve.getMostSpecificCause();
+            handleDataIntegrityIssues(clientId, clientChargeId, throwable, dve);
             return CommandProcessingResult.empty();
         }
     }
@@ -257,19 +263,17 @@ public class ClientChargeWritePlatformServiceJpaRepositoryImpl implements Client
     /**
      * Validates transaction to ensure that <br>
      * charge is active <br>
-     * transaction date is valid (between client activation and todays date)
-     * <br>
+     * transaction date is valid (between client activation and todays date) <br>
      * charge is not already paid or waived <br>
      * amount is not more than total due
-     * 
+     *
      * @param client
      * @param clientCharge
      * @param fmt
      * @param transactionDate
      * @param amountPaid
      * @param requiresTransactionDateValidation
-     *            if set to false, transaction date specific validation is
-     *            skipped
+     *            if set to false, transaction date specific validation is skipped
      * @param requiresTransactionAmountValidation
      *            if set to false transaction amount validation is skipped
      * @return
@@ -283,20 +287,22 @@ public class ClientChargeWritePlatformServiceJpaRepositoryImpl implements Client
 
         if (clientCharge.isNotActive()) {
             baseDataValidator.reset().failWithCodeNoParameterAddedToErrorCode("charge.is.not.active");
-            if (!dataValidationErrors.isEmpty()) { throw new PlatformApiDataValidationException(dataValidationErrors); }
+            if (!dataValidationErrors.isEmpty()) {
+                throw new PlatformApiDataValidationException(dataValidationErrors);
+            }
         }
 
         if (requiresTransactionDateValidation) {
             validateTransactionDateOnWorkingDay(transactionDate, clientCharge, fmt);
 
             if (client.getActivationLocalDate() != null && transactionDate.isBefore(client.getActivationLocalDate())) {
-                baseDataValidator.reset().parameter(ClientApiConstants.transactionDateParamName).value(transactionDate.toString(fmt))
+                baseDataValidator.reset().parameter(ClientApiConstants.transactionDateParamName).value(transactionDate.format(fmt))
                         .failWithCodeNoParameterAddedToErrorCode("transaction.before.activationDate");
                 throw new PlatformApiDataValidationException(dataValidationErrors);
             }
 
             if (DateUtils.isDateInTheFuture(transactionDate)) {
-                baseDataValidator.reset().parameter(ClientApiConstants.transactionDateParamName).value(transactionDate.toString(fmt))
+                baseDataValidator.reset().parameter(ClientApiConstants.transactionDateParamName).value(transactionDate.format(fmt))
                         .failWithCodeNoParameterAddedToErrorCode("transaction.is.futureDate");
                 throw new PlatformApiDataValidationException(dataValidationErrors);
             }
@@ -305,17 +311,23 @@ public class ClientChargeWritePlatformServiceJpaRepositoryImpl implements Client
         // validate charge is not already paid or waived
         if (clientCharge.isWaived()) {
             baseDataValidator.reset().failWithCodeNoParameterAddedToErrorCode("transaction.invalid.account.charge.is.already.waived");
-            if (!dataValidationErrors.isEmpty()) { throw new PlatformApiDataValidationException(dataValidationErrors); }
+            if (!dataValidationErrors.isEmpty()) {
+                throw new PlatformApiDataValidationException(dataValidationErrors);
+            }
         } else if (clientCharge.isPaid()) {
             baseDataValidator.reset().failWithCodeNoParameterAddedToErrorCode("transaction.invalid.account.charge.is.paid");
-            if (!dataValidationErrors.isEmpty()) { throw new PlatformApiDataValidationException(dataValidationErrors); }
+            if (!dataValidationErrors.isEmpty()) {
+                throw new PlatformApiDataValidationException(dataValidationErrors);
+            }
         }
 
         if (requiresTransactionAmountValidation) {
             final Money chargePaid = Money.of(clientCharge.getCurrency(), amountPaid);
             if (!clientCharge.getAmountOutstanding().isGreaterThanOrEqualTo(chargePaid)) {
                 baseDataValidator.reset().failWithCodeNoParameterAddedToErrorCode("transaction.invalid.charge.amount.paid.in.access");
-                if (!dataValidationErrors.isEmpty()) { throw new PlatformApiDataValidationException(dataValidationErrors); }
+                if (!dataValidationErrors.isEmpty()) {
+                    throw new PlatformApiDataValidationException(dataValidationErrors);
+                }
             }
         }
     }
@@ -368,7 +380,7 @@ public class ClientChargeWritePlatformServiceJpaRepositoryImpl implements Client
 
     /**
      * Ensures that the charge due date is not on a holiday or a non working day
-     * 
+     *
      * @param clientCharge
      * @param fmt
      */
@@ -378,9 +390,8 @@ public class ClientChargeWritePlatformServiceJpaRepositoryImpl implements Client
     }
 
     /**
-     * Ensures that the charge transaction date (for payments) is not on a
-     * holiday or a non working day
-     * 
+     * Ensures that the charge transaction date (for payments) is not on a holiday or a non working day
+     *
      * @param savingsAccountCharge
      * @param fmt
      */
@@ -407,16 +418,20 @@ public class ClientChargeWritePlatformServiceJpaRepositoryImpl implements Client
         if (date != null) {
             // transaction date should not be on a holiday or non working day
             if (!this.configurationDomainService.allowTransactionsOnHolidayEnabled() && this.holidayRepository.isHoliday(officeId, date)) {
-                baseDataValidator.reset().parameter(jsonPropertyName).value(date.toString(fmt))
+                baseDataValidator.reset().parameter(jsonPropertyName).value(date.format(fmt))
                         .failWithCodeNoParameterAddedToErrorCode(errorMessageFragmentForActivityOnHoliday);
-                if (!dataValidationErrors.isEmpty()) { throw new PlatformApiDataValidationException(dataValidationErrors); }
+                if (!dataValidationErrors.isEmpty()) {
+                    throw new PlatformApiDataValidationException(dataValidationErrors);
+                }
             }
 
             if (!this.configurationDomainService.allowTransactionsOnNonWorkingDayEnabled()
                     && !this.workingDaysRepository.isWorkingDay(date)) {
-                baseDataValidator.reset().parameter(jsonPropertyName).value(date.toString(fmt))
+                baseDataValidator.reset().parameter(jsonPropertyName).value(date.format(fmt))
                         .failWithCodeNoParameterAddedToErrorCode(errorMessageFragmentForActivityOnNonWorkingDay);
-                if (!dataValidationErrors.isEmpty()) { throw new PlatformApiDataValidationException(dataValidationErrors); }
+                if (!dataValidationErrors.isEmpty()) {
+                    throw new PlatformApiDataValidationException(dataValidationErrors);
+                }
             }
         }
     }
@@ -430,16 +445,16 @@ public class ClientChargeWritePlatformServiceJpaRepositoryImpl implements Client
     }
 
     private void handleDataIntegrityIssues(@SuppressWarnings("unused") final Long clientId, final Long clientChargeId,
-            final DataIntegrityViolationException dve) {
+            final Throwable realCause, final NonTransientDataAccessException dve) {
 
-        final Throwable realCause = dve.getMostSpecificCause();
         if (realCause.getMessage().contains("FK_m_client_charge_paid_by_m_client_charge")) {
 
-        throw new PlatformDataIntegrityException("error.msg.client.charge.cannot.be.deleted",
-                "Client charge with id `" + clientChargeId + "` cannot be deleted as transactions have been made on the same",
-                "clientChargeId", clientChargeId); }
+            throw new PlatformDataIntegrityException("error.msg.client.charge.cannot.be.deleted",
+                    "Client charge with id `" + clientChargeId + "` cannot be deleted as transactions have been made on the same",
+                    "clientChargeId", clientChargeId);
+        }
 
-        logger.error(dve.getMessage(), dve);
+        LOG.error("Error occured.", dve);
         throw new PlatformDataIntegrityException("error.msg.client.charges.unknown.data.integrity.issue",
                 "Unknown data integrity issue with resource.");
     }

@@ -18,11 +18,12 @@
  */
 package org.apache.fineract.infrastructure.survey.service;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
-
 import javax.sql.DataSource;
-
+import org.apache.fineract.infrastructure.core.service.DateUtils;
 import org.apache.fineract.infrastructure.core.service.RoutingDataSource;
 import org.apache.fineract.infrastructure.dataqueries.api.DataTableApiConstant;
 import org.apache.fineract.infrastructure.dataqueries.data.DatatableData;
@@ -35,7 +36,6 @@ import org.apache.fineract.infrastructure.security.utils.SQLInjectionValidator;
 import org.apache.fineract.infrastructure.survey.data.ClientScoresOverview;
 import org.apache.fineract.infrastructure.survey.data.LikelihoodStatus;
 import org.apache.fineract.infrastructure.survey.data.SurveyDataTableData;
-import org.joda.time.LocalDate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -76,8 +76,8 @@ public class ReadSurveyServiceImpl implements ReadSurveyService {
             final List<ResultsetColumnHeaderData> columnHeaderData = this.genericDataService
                     .fillResultsetColumnHeaders(registeredDatatableName);
 
-            surveyDataTables.add(SurveyDataTableData.create(DatatableData.create(appTableName, registeredDatatableName, columnHeaderData),
-                    enabled));
+            surveyDataTables.add(
+                    SurveyDataTableData.create(DatatableData.create(appTableName, registeredDatatableName, columnHeaderData), enabled));
         }
 
         return surveyDataTables;
@@ -97,7 +97,7 @@ public class ReadSurveyServiceImpl implements ReadSurveyService {
 
     @Override
     public SurveyDataTableData retrieveSurvey(String surveyName) {
-    	SQLInjectionValidator.validateSQLInput(surveyName);
+        SQLInjectionValidator.validateSQLInput(surveyName);
         final String sql = "select cf.enabled, application_table_name, registered_table_name" + " from x_registered_table "
                 + " left join c_configuration cf on x_registered_table.registered_table_name = cf.name " + " where exists" + " (select 'f'"
                 + " from m_appuser_role ur " + " join m_role r on r.id = ur.role_id"
@@ -128,18 +128,21 @@ public class ReadSurveyServiceImpl implements ReadSurveyService {
     public List<ClientScoresOverview> retrieveClientSurveyScoreOverview(String surveyName, Long clientId) {
 
         final String sql = "SELECT  tz.id, lkh.name, lkh.code, poverty_line, tz.date, tz.score FROM ? tz"
-                + " JOIN ppi_likelihoods_ppi lkp on lkp.ppi_name = ? AND enabled = ? " 
+                + " JOIN ppi_likelihoods_ppi lkp on lkp.ppi_name = ? AND enabled = ? "
                 + " JOIN ppi_scores sc on score_from  <= tz.score AND score_to >=tz.score"
                 + " JOIN ppi_poverty_line pvl on pvl.likelihood_ppi_id = lkp.id AND pvl.score_id = sc.id"
                 + " JOIN ppi_likelihoods lkh on lkh.id = lkp.likelihood_id " + " WHERE  client_id = ? ";
 
-        final SqlRowSet rs = this.jdbcTemplate.queryForRowSet(sql, new Object[] { surveyName, surveyName, LikelihoodStatus.ENABLED, clientId });
+        final SqlRowSet rs = this.jdbcTemplate.queryForRowSet(sql,
+                new Object[] { surveyName, surveyName, LikelihoodStatus.ENABLED, clientId });
 
         List<ClientScoresOverview> scoresOverviews = new ArrayList<>();
 
         while (rs.next()) {
-            scoresOverviews.add(new ClientScoresOverview(rs.getString("code"), rs.getString("name"), rs.getLong("score"), rs
-                    .getDouble("poverty_line"), new LocalDate(rs.getTimestamp("date").getTime()), rs.getLong("id"), surveyName));
+            scoresOverviews.add(new ClientScoresOverview(rs.getString("code"), rs.getString("name"), rs.getLong("score"),
+                    rs.getDouble("poverty_line"),
+                    LocalDate.ofInstant(new Date(rs.getTimestamp("date").getTime()).toInstant(), DateUtils.getDateTimeZoneOfTenant()),
+                    rs.getLong("id"), surveyName));
         }
 
         return scoresOverviews;
@@ -167,9 +170,10 @@ public class ReadSurveyServiceImpl implements ReadSurveyService {
             final SqlRowSet rs = this.jdbcTemplate.queryForRowSet(sql);
 
             while (rs.next()) {
-                scoresOverviews.add(new ClientScoresOverview(rs.getString("code"), rs.getString("name"), rs.getLong("score"), rs
-                        .getDouble("poverty_line"), new LocalDate(rs.getTimestamp("date").getTime()), rs.getLong("id"), rs
-                        .getString("surveyName")));
+                scoresOverviews.add(new ClientScoresOverview(rs.getString("code"), rs.getString("name"), rs.getLong("score"),
+                        rs.getDouble("poverty_line"),
+                        LocalDate.ofInstant(new Date(rs.getTimestamp("date").getTime()).toInstant(), DateUtils.getDateTimeZoneOfTenant()),
+                        rs.getLong("id"), rs.getString("surveyName")));
             }
 
         }
@@ -179,9 +183,8 @@ public class ReadSurveyServiceImpl implements ReadSurveyService {
 
     private String retrieveAllSurveyNameSQL() {
         // PERMITTED datatables
-        return "select cf.name from x_registered_table "
-                + " join c_configuration cf on x_registered_table.registered_table_name = cf.name " + " where exists" + " (select 'f'"
-                + " from m_appuser_role ur " + " join m_role r on r.id = ur.role_id"
+        return "select cf.name from x_registered_table " + " join c_configuration cf on x_registered_table.registered_table_name = cf.name "
+                + " where exists" + " (select 'f'" + " from m_appuser_role ur " + " join m_role r on r.id = ur.role_id"
                 + " left join m_role_permission rp on rp.role_id = r.id" + " left join m_permission p on p.id = rp.permission_id"
                 + " where ur.appuser_id = " + this.context.authenticatedUser().getId()
                 + " and (p.code in ('ALL_FUNCTIONS', 'ALL_FUNCTIONS_READ') or p.code = concat('READ_', registered_table_name))) "

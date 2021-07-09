@@ -19,16 +19,16 @@
 package org.apache.fineract.portfolio.loanaccount.guarantor.command;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
 import org.apache.fineract.infrastructure.core.data.ApiParameterError;
 import org.apache.fineract.infrastructure.core.data.DataValidatorBuilder;
 import org.apache.fineract.infrastructure.core.exception.PlatformApiDataValidationException;
-import org.apache.fineract.portfolio.loanaccount.guarantor.GuarantorConstants.GUARANTOR_JSON_INPUT_PARAMS;
+import org.apache.fineract.infrastructure.core.service.DateUtils;
+import org.apache.fineract.portfolio.loanaccount.guarantor.GuarantorConstants.GuarantorJSONinputParams;
 import org.apache.fineract.portfolio.loanaccount.guarantor.domain.GuarantorType;
-import org.joda.time.LocalDate;
 
 /**
  * Immutable command for creating or updating details of a Guarantor.
@@ -58,10 +58,10 @@ public class GuarantorCommand {
     private final Long savingsId;
     private final BigDecimal amount;
 
-    public GuarantorCommand(final Long clientRelationshipTypeId, final Integer guarantorTypeId, final Long entityId,
-            final String firstname, final String lastname, final String addressLine1, final String addressLine2, final String city,
-            final String state, final String zip, final String country, final String mobileNumber, final String housePhoneNumber,
-            final String comment, final LocalDate dob, final Long savingsId, final BigDecimal amount) {
+    public GuarantorCommand(final Long clientRelationshipTypeId, final Integer guarantorTypeId, final Long entityId, final String firstname,
+            final String lastname, final String addressLine1, final String addressLine2, final String city, final String state,
+            final String zip, final String country, final String mobileNumber, final String housePhoneNumber, final String comment,
+            final LocalDate dob, final Long savingsId, final BigDecimal amount) {
 
         this.clientRelationshipTypeId = clientRelationshipTypeId;
 
@@ -91,7 +91,7 @@ public class GuarantorCommand {
     }
 
     public Date getDobAsDate() {
-        return this.dob.toDateTimeAtStartOfDay().toDate();
+        return Date.from(this.dob.atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant());
     }
 
     public void validateForCreate() {
@@ -100,33 +100,34 @@ public class GuarantorCommand {
 
         final DataValidatorBuilder baseDataValidator = getDataValidator(dataValidationErrors);
 
-        baseDataValidator.reset().parameter(GUARANTOR_JSON_INPUT_PARAMS.CLIENT_RELATIONSHIP_TYPE_ID.getValue())
+        baseDataValidator.reset().parameter(GuarantorJSONinputParams.CLIENT_RELATIONSHIP_TYPE_ID.getValue())
                 .value(this.clientRelationshipTypeId).ignoreIfNull().integerGreaterThanZero();
 
-        baseDataValidator.reset().parameter(GUARANTOR_JSON_INPUT_PARAMS.GUARANTOR_TYPE_ID.getValue()).value(this.guarantorTypeId).notNull()
+        baseDataValidator.reset().parameter(GuarantorJSONinputParams.GUARANTOR_TYPE_ID.getValue()).value(this.guarantorTypeId).notNull()
                 .inMinMaxRange(GuarantorType.getMinValue(), GuarantorType.getMaxValue());
 
         // validate for existing Client or Staff serving as gurantor
         if (!isExternalGuarantor()) {
-            baseDataValidator.reset().parameter(GUARANTOR_JSON_INPUT_PARAMS.ENTITY_ID.getValue()).value(this.entityId).notNull()
+            baseDataValidator.reset().parameter(GuarantorJSONinputParams.ENTITY_ID.getValue()).value(this.entityId).notNull()
                     .integerGreaterThanZero();
-            baseDataValidator.reset().parameter(GUARANTOR_JSON_INPUT_PARAMS.SAVINGS_ID.getValue()).value(this.savingsId)
-                    .longGreaterThanZero();
+            baseDataValidator.reset().parameter(GuarantorJSONinputParams.SAVINGS_ID.getValue()).value(this.savingsId).longGreaterThanZero();
             if (this.savingsId != null) {
-                baseDataValidator.reset().parameter(GUARANTOR_JSON_INPUT_PARAMS.AMOUNT.getValue()).value(this.amount).notNull()
+                baseDataValidator.reset().parameter(GuarantorJSONinputParams.AMOUNT.getValue()).value(this.amount).notNull()
                         .positiveAmount();
             }
         } else {
             // validate for an external guarantor
-            baseDataValidator.reset().parameter(GUARANTOR_JSON_INPUT_PARAMS.FIRSTNAME.getValue()).value(this.firstname).notBlank()
+            baseDataValidator.reset().parameter(GuarantorJSONinputParams.FIRSTNAME.getValue()).value(this.firstname).notBlank()
                     .notExceedingLengthOf(50);
-            baseDataValidator.reset().parameter(GUARANTOR_JSON_INPUT_PARAMS.LASTNAME.getValue()).value(this.lastname).notBlank()
+            baseDataValidator.reset().parameter(GuarantorJSONinputParams.LASTNAME.getValue()).value(this.lastname).notBlank()
                     .notExceedingLengthOf(50);
             validateNonMandatoryFieldsForMaxLength(baseDataValidator);
         }
 
-        if (!dataValidationErrors.isEmpty()) { throw new PlatformApiDataValidationException("validation.msg.validation.errors.exist",
-                "Validation errors exist.", dataValidationErrors); }
+        if (!dataValidationErrors.isEmpty()) {
+            throw new PlatformApiDataValidationException("validation.msg.validation.errors.exist", "Validation errors exist.",
+                    dataValidationErrors);
+        }
     }
 
     public void validateForUpdate() {
@@ -134,20 +135,19 @@ public class GuarantorCommand {
 
         final DataValidatorBuilder baseDataValidator = getDataValidator(dataValidationErrors);
 
-        baseDataValidator.reset().parameter(GUARANTOR_JSON_INPUT_PARAMS.CLIENT_RELATIONSHIP_TYPE_ID.getValue())
+        baseDataValidator.reset().parameter(GuarantorJSONinputParams.CLIENT_RELATIONSHIP_TYPE_ID.getValue())
                 .value(this.clientRelationshipTypeId).ignoreIfNull().integerGreaterThanZero();
 
-        baseDataValidator.reset().parameter(GUARANTOR_JSON_INPUT_PARAMS.GUARANTOR_TYPE_ID.getValue()).value(this.guarantorTypeId)
+        baseDataValidator.reset().parameter(GuarantorJSONinputParams.GUARANTOR_TYPE_ID.getValue()).value(this.guarantorTypeId)
                 .ignoreIfNull().inMinMaxRange(GuarantorType.getMinValue(), GuarantorType.getMaxValue());
 
         // validate for existing Client or Staff serving as gurantor
         if (!isExternalGuarantor()) {
-            baseDataValidator.reset().parameter(GUARANTOR_JSON_INPUT_PARAMS.ENTITY_ID.getValue()).value(this.entityId).ignoreIfNull()
+            baseDataValidator.reset().parameter(GuarantorJSONinputParams.ENTITY_ID.getValue()).value(this.entityId).ignoreIfNull()
                     .integerGreaterThanZero();
-            baseDataValidator.reset().parameter(GUARANTOR_JSON_INPUT_PARAMS.SAVINGS_ID.getValue()).value(this.savingsId)
-                    .longGreaterThanZero();
+            baseDataValidator.reset().parameter(GuarantorJSONinputParams.SAVINGS_ID.getValue()).value(this.savingsId).longGreaterThanZero();
             if (this.savingsId != null) {
-                baseDataValidator.reset().parameter(GUARANTOR_JSON_INPUT_PARAMS.AMOUNT.getValue()).value(this.amount).notNull()
+                baseDataValidator.reset().parameter(GuarantorJSONinputParams.AMOUNT.getValue()).value(this.amount).notNull()
                         .positiveAmount();
             }
         } else {
@@ -156,9 +156,9 @@ public class GuarantorCommand {
             // firstname and last name when a guarantor type is changed), to be
             // corrected while
             // refactoring for maker checker
-            baseDataValidator.reset().parameter(GUARANTOR_JSON_INPUT_PARAMS.FIRSTNAME.getValue()).value(this.firstname).ignoreIfNull()
+            baseDataValidator.reset().parameter(GuarantorJSONinputParams.FIRSTNAME.getValue()).value(this.firstname).ignoreIfNull()
                     .notExceedingLengthOf(50);
-            baseDataValidator.reset().parameter(GUARANTOR_JSON_INPUT_PARAMS.LASTNAME.getValue()).value(this.lastname).ignoreIfNull()
+            baseDataValidator.reset().parameter(GuarantorJSONinputParams.LASTNAME.getValue()).value(this.lastname).ignoreIfNull()
                     .notExceedingLengthOf(50);
 
             validateNonMandatoryFieldsForMaxLength(baseDataValidator);
@@ -166,8 +166,10 @@ public class GuarantorCommand {
         baseDataValidator.reset().anyOfNotNull(this.entityId, this.addressLine1, this.addressLine2, this.city, this.comment, this.country,
                 this.firstname, this.housePhoneNumber, this.lastname, this.mobileNumber, this.state, this.zip);
 
-        if (!dataValidationErrors.isEmpty()) { throw new PlatformApiDataValidationException("validation.msg.validation.errors.exist",
-                "Validation errors exist.", dataValidationErrors); }
+        if (!dataValidationErrors.isEmpty()) {
+            throw new PlatformApiDataValidationException("validation.msg.validation.errors.exist", "Validation errors exist.",
+                    dataValidationErrors);
+        }
     }
 
     /**
@@ -175,23 +177,23 @@ public class GuarantorCommand {
      */
     private void validateNonMandatoryFieldsForMaxLength(final DataValidatorBuilder baseDataValidator) {
         // validate non mandatory fields for length
-        baseDataValidator.reset().parameter(GUARANTOR_JSON_INPUT_PARAMS.ADDRESS_LINE_1.getValue()).value(this.addressLine1).ignoreIfNull()
+        baseDataValidator.reset().parameter(GuarantorJSONinputParams.ADDRESS_LINE_1.getValue()).value(this.addressLine1).ignoreIfNull()
                 .notExceedingLengthOf(500);
-        baseDataValidator.reset().parameter(GUARANTOR_JSON_INPUT_PARAMS.ADDRESS_LINE_2.getValue()).value(this.addressLine2).ignoreIfNull()
+        baseDataValidator.reset().parameter(GuarantorJSONinputParams.ADDRESS_LINE_2.getValue()).value(this.addressLine2).ignoreIfNull()
                 .notExceedingLengthOf(500);
-        baseDataValidator.reset().parameter(GUARANTOR_JSON_INPUT_PARAMS.CITY.getValue()).value(this.city).ignoreIfNull()
+        baseDataValidator.reset().parameter(GuarantorJSONinputParams.CITY.getValue()).value(this.city).ignoreIfNull()
                 .notExceedingLengthOf(50);
-        baseDataValidator.reset().parameter(GUARANTOR_JSON_INPUT_PARAMS.STATE.getValue()).value(this.state).ignoreIfNull()
+        baseDataValidator.reset().parameter(GuarantorJSONinputParams.STATE.getValue()).value(this.state).ignoreIfNull()
                 .notExceedingLengthOf(50);
-        baseDataValidator.reset().parameter(GUARANTOR_JSON_INPUT_PARAMS.ZIP.getValue()).value(this.zip).ignoreIfNull()
+        baseDataValidator.reset().parameter(GuarantorJSONinputParams.ZIP.getValue()).value(this.zip).ignoreIfNull()
                 .notExceedingLengthOf(50);
-        baseDataValidator.reset().parameter(GUARANTOR_JSON_INPUT_PARAMS.COUNTRY.getValue()).value(this.country).ignoreIfNull()
+        baseDataValidator.reset().parameter(GuarantorJSONinputParams.COUNTRY.getValue()).value(this.country).ignoreIfNull()
                 .notExceedingLengthOf(50);
-        baseDataValidator.reset().parameter(GUARANTOR_JSON_INPUT_PARAMS.MOBILE_NUMBER.getValue()).value(this.mobileNumber).ignoreIfNull()
+        baseDataValidator.reset().parameter(GuarantorJSONinputParams.MOBILE_NUMBER.getValue()).value(this.mobileNumber).ignoreIfNull()
                 .notExceedingLengthOf(20).validatePhoneNumber();
-        baseDataValidator.reset().parameter(GUARANTOR_JSON_INPUT_PARAMS.PHONE_NUMBER.getValue()).value(this.housePhoneNumber)
-                .ignoreIfNull().notExceedingLengthOf(20).validatePhoneNumber();
-        baseDataValidator.reset().parameter(GUARANTOR_JSON_INPUT_PARAMS.COMMENT.getValue()).value(this.comment).ignoreIfNull()
+        baseDataValidator.reset().parameter(GuarantorJSONinputParams.PHONE_NUMBER.getValue()).value(this.housePhoneNumber).ignoreIfNull()
+                .notExceedingLengthOf(20).validatePhoneNumber();
+        baseDataValidator.reset().parameter(GuarantorJSONinputParams.COMMENT.getValue()).value(this.comment).ignoreIfNull()
                 .notExceedingLengthOf(500);
     }
 

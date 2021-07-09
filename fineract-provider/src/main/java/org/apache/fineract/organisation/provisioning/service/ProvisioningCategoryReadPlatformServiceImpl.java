@@ -21,7 +21,6 @@ package org.apache.fineract.organisation.provisioning.service;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
-
 import org.apache.fineract.infrastructure.core.domain.JdbcSupport;
 import org.apache.fineract.infrastructure.core.service.RoutingDataSource;
 import org.apache.fineract.organisation.provisioning.data.ProvisioningCategoryData;
@@ -44,12 +43,14 @@ public class ProvisioningCategoryReadPlatformServiceImpl implements Provisioning
 
     @Override
     public Collection<ProvisioningCategoryData> retrieveAllProvisionCategories() {
-        //User is already authenticated by API. So we no need to check again here
+        // User is already authenticated by API. So we no need to check again
+        // here
         final String sql = "select " + this.provisionCategoryRowMapper.schema() + " from m_provision_category pc order by pc.id";
         return this.jdbcTemplate.query(sql, this.provisionCategoryRowMapper, new Object[] {});
     }
 
     private static final class ProvisioningCategoryRowMapper implements RowMapper<ProvisioningCategoryData> {
+
         @Override
         public ProvisioningCategoryData mapRow(final ResultSet rs, @SuppressWarnings("unused") final int rowNum) throws SQLException {
             final Long id = JdbcSupport.getLong(rs, "id");

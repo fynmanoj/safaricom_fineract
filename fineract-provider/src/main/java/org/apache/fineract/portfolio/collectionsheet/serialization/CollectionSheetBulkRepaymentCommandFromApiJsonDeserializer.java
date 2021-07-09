@@ -18,10 +18,13 @@
  */
 package org.apache.fineract.portfolio.collectionsheet.serialization;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Locale;
-
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.fineract.infrastructure.core.exception.InvalidJsonException;
 import org.apache.fineract.infrastructure.core.serialization.AbstractFromApiJsonDeserializer;
 import org.apache.fineract.infrastructure.core.serialization.FromApiJsonDeserializer;
@@ -30,21 +33,15 @@ import org.apache.fineract.portfolio.collectionsheet.command.CollectionSheetBulk
 import org.apache.fineract.portfolio.collectionsheet.command.SingleRepaymentCommand;
 import org.apache.fineract.portfolio.paymentdetail.domain.PaymentDetail;
 import org.apache.fineract.portfolio.paymentdetail.domain.PaymentDetailAssembler;
-import org.joda.time.LocalDate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-
 /**
- * Implementation of {@link FromApiJsonDeserializer} for
- * {@link CollectionSheetBulkRepaymentCommand}'s.
+ * Implementation of {@link FromApiJsonDeserializer} for {@link CollectionSheetBulkRepaymentCommand}'s.
  */
 @Component
-public final class CollectionSheetBulkRepaymentCommandFromApiJsonDeserializer extends
-        AbstractFromApiJsonDeserializer<CollectionSheetBulkRepaymentCommand> {
+public final class CollectionSheetBulkRepaymentCommandFromApiJsonDeserializer
+        extends AbstractFromApiJsonDeserializer<CollectionSheetBulkRepaymentCommand> {
 
     private final FromJsonHelper fromApiJsonHelper;
     private final PaymentDetailAssembler paymentDetailAssembler;
@@ -58,7 +55,9 @@ public final class CollectionSheetBulkRepaymentCommandFromApiJsonDeserializer ex
 
     @Override
     public CollectionSheetBulkRepaymentCommand commandFromApiJson(final String json) {
-        if (StringUtils.isBlank(json)) { throw new InvalidJsonException(); }
+        if (StringUtils.isBlank(json)) {
+            throw new InvalidJsonException();
+        }
 
         final JsonElement element = this.fromApiJsonHelper.parse(json);
         final PaymentDetail paymentDetail = this.paymentDetailAssembler.fetchPaymentDetail(element.getAsJsonObject());
@@ -67,7 +66,9 @@ public final class CollectionSheetBulkRepaymentCommandFromApiJsonDeserializer ex
     }
 
     public CollectionSheetBulkRepaymentCommand commandFromApiJson(final String json, final PaymentDetail paymentDetail) {
-        if (StringUtils.isBlank(json)) { throw new InvalidJsonException(); }
+        if (StringUtils.isBlank(json)) {
+            throw new InvalidJsonException();
+        }
 
         final JsonElement element = this.fromApiJsonHelper.parse(json);
 
@@ -81,7 +82,8 @@ public final class CollectionSheetBulkRepaymentCommandFromApiJsonDeserializer ex
         SingleRepaymentCommand[] loanRepaymentTransactions = null;
 
         if (element.isJsonObject()) {
-            if (topLevelJsonElement.has("bulkRepaymentTransactions") && topLevelJsonElement.get("bulkRepaymentTransactions").isJsonArray()) {
+            if (topLevelJsonElement.has("bulkRepaymentTransactions")
+                    && topLevelJsonElement.get("bulkRepaymentTransactions").isJsonArray()) {
                 final JsonArray array = topLevelJsonElement.get("bulkRepaymentTransactions").getAsJsonArray();
                 loanRepaymentTransactions = new SingleRepaymentCommand[array.size()];
                 for (int i = 0; i < array.size(); i++) {
@@ -94,8 +96,8 @@ public final class CollectionSheetBulkRepaymentCommandFromApiJsonDeserializer ex
                     if (paymentDetail == null) {
                         detail = this.paymentDetailAssembler.fetchPaymentDetail(loanTransactionElement);
                     }
-                    if(transactionAmount != null && transactionAmount.intValue() > 0){
-                    	loanRepaymentTransactions[i] = new SingleRepaymentCommand(loanId, transactionAmount, transactionDate, detail);
+                    if (transactionAmount != null && transactionAmount.intValue() > 0) {
+                        loanRepaymentTransactions[i] = new SingleRepaymentCommand(loanId, transactionAmount, transactionDate, detail);
                     }
                 }
             }

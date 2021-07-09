@@ -19,12 +19,11 @@
 package org.apache.fineract.portfolio.interestratechart.incentive;
 
 import java.math.BigDecimal;
-
 import org.apache.fineract.portfolio.common.domain.ConditionType;
 
 public abstract class AttributeIncentiveCalculation {
 
-    public abstract BigDecimal calculateIncentive(final IncentiveDTO incentiveDTO);
+    public abstract BigDecimal calculateIncentive(IncentiveDTO incentiveDTO);
 
     public boolean applyIncentive(ConditionType conditionType, Long attributeValue, Long actualValue) {
         boolean applyIncentive = false;

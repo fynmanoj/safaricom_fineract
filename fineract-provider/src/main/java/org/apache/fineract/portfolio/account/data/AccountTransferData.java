@@ -18,20 +18,20 @@
  */
 package org.apache.fineract.portfolio.account.data;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Collection;
-
 import org.apache.fineract.infrastructure.core.data.EnumOptionData;
 import org.apache.fineract.organisation.monetary.data.CurrencyData;
 import org.apache.fineract.organisation.office.data.OfficeData;
 import org.apache.fineract.portfolio.client.data.ClientData;
-import org.joda.time.LocalDate;
 
 /**
  * Immutable data object representing a savings account.
  */
 @SuppressWarnings("unused")
-public class AccountTransferData {
+public final class AccountTransferData implements Serializable {
 
     private final Long id;
     private final Boolean reversed;
@@ -97,8 +97,8 @@ public class AccountTransferData {
         final EnumOptionData fromAccountType = null;
         final EnumOptionData toAccountType = null;
 
-        return new AccountTransferData(id, reversed, null, null, fromAccountType, null, currency, transferAmount, transferDate,
-                description, null, null, toAccountType, null, null, null, null, null, null, null, null, null);
+        return new AccountTransferData(id, reversed, null, null, fromAccountType, null, currency, transferAmount, transferDate, description,
+                null, null, toAccountType, null, null, null, null, null, null, null, null, null);
     }
 
     private AccountTransferData(final Long id, final Boolean reversed, final OfficeData fromOffice, final ClientData fromClient,

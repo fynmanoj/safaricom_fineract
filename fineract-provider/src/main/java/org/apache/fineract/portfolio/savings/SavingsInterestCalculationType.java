@@ -22,26 +22,24 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 
+ *
  * There are two methods to calculate the interest on a savings account:
  * <ul>
  * <li>The daily balance method; and</li>
  * <li>The average daily balance method.</li>
  * </ul>
- * 
+ *
  * <p>
- * The interest calculation must be based on a point in time for determining the
- * balance in the account, such as:
+ * The interest calculation must be based on a point in time for determining the balance in the account, such as:
  * </p>
  * <ul>
  * <li>beginning-of-day balance</li>
  * <li>end-of-day balance</li>
  * <li>close-of-business-day balance</li>
  * </ul>
- * 
+ *
  * <p>
- * Any one of the three may be used, but must be applied consistently.
- * End-of-day balance is used by default at present.
+ * Any one of the three may be used, but must be applied consistently. End-of-day balance is used by default at present.
  * </p>
  */
 public enum SavingsInterestCalculationType {
@@ -53,7 +51,7 @@ public enum SavingsInterestCalculationType {
     private final Integer value;
     private final String code;
 
-    private SavingsInterestCalculationType(final Integer value, final String code) {
+    SavingsInterestCalculationType(final Integer value, final String code) {
         this.value = value;
         this.code = code;
     }

@@ -43,10 +43,11 @@ import static org.apache.fineract.portfolio.savings.SavingsApiConstants.submitte
 import static org.apache.fineract.portfolio.savings.SavingsApiConstants.withHoldTaxParamName;
 import static org.apache.fineract.portfolio.savings.SavingsApiConstants.withdrawalFeeForTransfersParamName;
 
+import com.google.gson.JsonElement;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Set;
-
 import org.apache.fineract.infrastructure.core.api.JsonCommand;
 import org.apache.fineract.infrastructure.core.exception.UnsupportedParameterException;
 import org.apache.fineract.infrastructure.core.serialization.FromJsonHelper;
@@ -70,15 +71,15 @@ import org.apache.fineract.portfolio.savings.SavingsPeriodFrequencyType;
 import org.apache.fineract.portfolio.savings.SavingsPostingInterestPeriodType;
 import org.apache.fineract.portfolio.savings.exception.SavingsProductNotFoundException;
 import org.apache.fineract.useradministration.domain.AppUser;
-import org.joda.time.LocalDate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import com.google.gson.JsonElement;
 
 @Service
 public class SavingsAccountAssembler {
 
+    private static final Logger LOG = LoggerFactory.getLogger(SavingsAccountAssembler.class);
     private final SavingsAccountTransactionSummaryWrapper savingsAccountTransactionSummaryWrapper;
     private final SavingsHelper savingsHelper;
     private final ClientRepositoryWrapper clientRepository;
@@ -108,9 +109,8 @@ public class SavingsAccountAssembler {
     }
 
     /**
-     * Assembles a new {@link SavingsAccount} from JSON details passed in
-     * request inheriting details where relevant from chosen
-     * {@link SavingsProduct}.
+     * Assembles a new {@link SavingsAccount} from JSON details passed in request inheriting details where relevant from
+     * chosen {@link SavingsProduct}.
      */
     public SavingsAccount assembleFrom(final JsonCommand command, final AppUser submittedBy) {
 
@@ -120,18 +120,21 @@ public class SavingsAccountAssembler {
         final String externalId = this.fromApiJsonHelper.extractStringNamed(externalIdParamName, element);
         final Long productId = this.fromApiJsonHelper.extractLongNamed(productIdParamName, element);
 
-        final SavingsProduct product = this.savingProductRepository.findOne(productId);
-        if (product == null) { throw new SavingsProductNotFoundException(productId); }
+        final SavingsProduct product = this.savingProductRepository.findById(productId)
+                .orElseThrow(() -> new SavingsProductNotFoundException(productId));
 
         Client client = null;
         Group group = null;
         Staff fieldOfficer = null;
         AccountType accountType = AccountType.INVALID;
+
         final Long clientId = this.fromApiJsonHelper.extractLongNamed(clientIdParamName, element);
         if (clientId != null) {
             client = this.clientRepository.findOneWithNotFoundDetection(clientId);
             accountType = AccountType.INDIVIDUAL;
-            if (client.isNotActive()) { throw new ClientNotActiveException(clientId); }
+            if (client.isNotActive()) {
+                throw new ClientNotActiveException(clientId);
+            }
         }
 
         final Long groupId = this.fromApiJsonHelper.extractLongNamed(groupIdParamName, element);
@@ -139,14 +142,24 @@ public class SavingsAccountAssembler {
             group = this.groupRepository.findOneWithNotFoundDetection(groupId);
             accountType = AccountType.GROUP;
             if (group.isNotActive()) {
-                if (group.isCenter()) { throw new CenterNotActiveException(groupId); }
+                if (group.isCenter()) {
+                    throw new CenterNotActiveException(groupId);
+                }
                 throw new GroupNotActiveException(groupId);
             }
         }
 
         if (group != null && client != null) {
-            if (!group.hasClientAsMember(client)) { throw new ClientNotInGroupException(clientId, groupId); }
+            if (!group.hasClientAsMember(client)) {
+                throw new ClientNotInGroupException(clientId, groupId);
+            }
             accountType = AccountType.JLG;
+        }
+
+        if ((Boolean) command.booleanPrimitiveValueOfParameterNamed("isGSIM") != null) {
+            if (command.booleanPrimitiveValueOfParameterNamed("isGSIM")) {
+                accountType = AccountType.GSIM;
+            }
         }
 
         final Long fieldOfficerId = this.fromApiJsonHelper.extractLongNamed(fieldOfficerIdParamName, element);
@@ -274,7 +287,7 @@ public class SavingsAccountAssembler {
         boolean withHoldTax = product.withHoldTax();
         if (command.parameterExists(withHoldTaxParamName)) {
             withHoldTax = command.booleanPrimitiveValueOfParameterNamed(withHoldTaxParamName);
-            if(withHoldTax && product.getTaxGroup()  == null){
+            if (withHoldTax && product.getTaxGroup() == null) {
                 throw new UnsupportedParameterException(Arrays.asList(withHoldTaxParamName));
             }
         }
@@ -305,9 +318,8 @@ public class SavingsAccountAssembler {
     }
 
     /**
-     * Assembles a new {@link SavingsAccount} from JSON details passed in
-     * request inheriting details where relevant from chosen
-     * {@link SavingsProduct}.
+     * Assembles a new {@link SavingsAccount} from JSON details passed in request inheriting details where relevant from
+     * chosen {@link SavingsProduct}.
      */
     public SavingsAccount assembleFrom(final Client client, final Group group, final Long productId, final LocalDate appliedonDate,
             final AppUser appliedBy) {
@@ -315,22 +327,28 @@ public class SavingsAccountAssembler {
         AccountType accountType = AccountType.INVALID;
         if (client != null) {
             accountType = AccountType.INDIVIDUAL;
-            if (client.isNotActive()) { throw new ClientNotActiveException(client.getId()); }
+            if (client.isNotActive()) {
+                throw new ClientNotActiveException(client.getId());
+            }
         }
 
         if (group != null) {
             accountType = AccountType.GROUP;
             if (group.isNotActive()) {
-                if (group.isCenter()) { throw new CenterNotActiveException(group.getId()); }
+                if (group.isCenter()) {
+                    throw new CenterNotActiveException(group.getId());
+                }
                 throw new GroupNotActiveException(group.getId());
             }
         }
 
         if (group != null && client != null) {
-            if (!group.hasClientAsMember(client)) { throw new ClientNotInGroupException(client.getId(), group.getId()); }
+            if (!group.hasClientAsMember(client)) {
+                throw new ClientNotInGroupException(client.getId(), group.getId());
+            }
             accountType = AccountType.JLG;
         }
-        final SavingsProduct product = this.savingProductRepository.findOne(productId) ;
+        final SavingsProduct product = this.savingProductRepository.findById(productId).get();
         final Set<SavingsAccountCharge> charges = this.savingsAccountChargeAssembler.fromSavingsProduct(product);
         final SavingsAccount account = SavingsAccount.createNewApplicationForSubmittal(client, group, product, null, null, null,
                 accountType, appliedonDate, appliedBy, product.nominalAnnualInterestRate(), product.interestCompoundingPeriodType(),

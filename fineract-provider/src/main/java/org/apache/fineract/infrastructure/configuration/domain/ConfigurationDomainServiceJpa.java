@@ -21,8 +21,7 @@ package org.apache.fineract.infrastructure.configuration.domain;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.fineract.infrastructure.cache.domain.CacheType;
 import org.apache.fineract.infrastructure.cache.domain.PlatformCache;
 import org.apache.fineract.infrastructure.cache.domain.PlatformCacheRepository;
@@ -53,10 +52,14 @@ public class ConfigurationDomainServiceJpa implements ConfigurationDomainService
 
     @Override
     public boolean isMakerCheckerEnabledForTask(final String taskPermissionCode) {
-        if (StringUtils.isBlank(taskPermissionCode)) { throw new PermissionNotFoundException(taskPermissionCode); }
+        if (StringUtils.isBlank(taskPermissionCode)) {
+            throw new PermissionNotFoundException(taskPermissionCode);
+        }
 
         final Permission thisTask = this.permissionRepository.findOneByCode(taskPermissionCode);
-        if (thisTask == null) { throw new PermissionNotFoundException(taskPermissionCode); }
+        if (thisTask == null) {
+            throw new PermissionNotFoundException(taskPermissionCode);
+        }
 
         final String makerCheckerConfigurationProperty = "maker-checker";
         final GlobalConfigurationPropertyData property = getGlobalConfigurationPropertyData(makerCheckerConfigurationProperty);
@@ -78,9 +81,8 @@ public class ConfigurationDomainServiceJpa implements ConfigurationDomainService
 
     /*
      * (non-Javadoc)
-     * 
-     * @see org.apache.fineract.infrastructure.configuration.domain.
-     * ConfigurationDomainService#isHolidaysEnabled()
+     *
+     * @see org.apache.fineract.infrastructure.configuration.domain. ConfigurationDomainService#isHolidaysEnabled()
      */
     @Override
     public boolean isRescheduleRepaymentsOnHolidaysEnabled() {
@@ -112,13 +114,13 @@ public class ConfigurationDomainServiceJpa implements ConfigurationDomainService
 
     @Override
     public boolean isEhcacheEnabled() {
-        return this.cacheTypeRepository.findOne(Long.valueOf(1)).isEhcacheEnabled();
+        return this.cacheTypeRepository.findById(1L).get().isEhcacheEnabled();
     }
 
     @Transactional
     @Override
     public void updateCache(final CacheType cacheType) {
-        final PlatformCache cache = this.cacheTypeRepository.findOne(Long.valueOf(1));
+        final PlatformCache cache = this.cacheTypeRepository.findById(1L).get();
         cache.update(cacheType);
         this.cacheTypeRepository.save(cache);
     }
@@ -169,7 +171,9 @@ public class ConfigurationDomainServiceJpa implements ConfigurationDomainService
     public Integer retrieveFinancialYearBeginningMonth() {
         final String propertyName = "financial-year-beginning-month";
         final GlobalConfigurationPropertyData property = getGlobalConfigurationPropertyData(propertyName);
-        if (property.isEnabled()) return property.getValue().intValue();
+        if (property.isEnabled()) {
+            return property.getValue().intValue();
+        }
         return 1;
     }
 
@@ -177,7 +181,9 @@ public class ConfigurationDomainServiceJpa implements ConfigurationDomainService
     public Integer retrieveMinAllowedClientsInGroup() {
         final String propertyName = "min-clients-in-group";
         final GlobalConfigurationPropertyData property = getGlobalConfigurationPropertyData(propertyName);
-        if (property.isEnabled()) { return property.getValue().intValue(); }
+        if (property.isEnabled()) {
+            return property.getValue().intValue();
+        }
         return null;
     }
 
@@ -185,7 +191,9 @@ public class ConfigurationDomainServiceJpa implements ConfigurationDomainService
     public Integer retrieveMaxAllowedClientsInGroup() {
         final String propertyName = "max-clients-in-group";
         final GlobalConfigurationPropertyData property = getGlobalConfigurationPropertyData(propertyName);
-        if (property.isEnabled()) { return property.getValue().intValue(); }
+        if (property.isEnabled()) {
+            return property.getValue().intValue();
+        }
         return null;
     }
 
@@ -232,16 +240,26 @@ public class ConfigurationDomainServiceJpa implements ConfigurationDomainService
         return property.getDateValue();
     }
 
-	@Override
-	public boolean isPaymnetypeApplicableforDisbursementCharge() {
-		final String propertyName = "paymenttype-applicable-for-disbursement-charges";
+    @Override
+    public boolean isPaymnetypeApplicableforDisbursementCharge() {
+        final String propertyName = "paymenttype-applicable-for-disbursement-charges";
         final GlobalConfigurationPropertyData property = getGlobalConfigurationPropertyData(propertyName);
         return property.isEnabled();
-	}
-	
+    }
+
     @Override
     public boolean isSkippingMeetingOnFirstDayOfMonthEnabled() {
         return getGlobalConfigurationPropertyData("skip-repayment-on-first-day-of-month").isEnabled();
+    }
+
+    @Override
+    public boolean isFirstRepaymentDateAfterRescheduleAllowedOnHoliday() {
+        return getGlobalConfigurationPropertyData("loan-reschedule-is-first-payday-allowed-on-holiday").isEnabled();
+    }
+
+    @Override
+    public boolean isInterestToBeAppropriatedEquallyWhenGreaterThanEMI() {
+        return getGlobalConfigurationPropertyData("is-interest-to-be-appropriated-equally-when-greater-than-emi").isEnabled();
     }
 
     @Override
@@ -258,7 +276,7 @@ public class ConfigurationDomainServiceJpa implements ConfigurationDomainService
         final GlobalConfigurationPropertyData property = getGlobalConfigurationPropertyData(propertyName);
         return property.isEnabled();
     }
-    
+
     @Override
     public boolean isChangeEmiIfRepaymentDateSameAsDisbursementDateEnabled() {
         final String propertyName = "change-emi-if-repaymentdate-same-as-disbursementdate";
@@ -266,19 +284,19 @@ public class ConfigurationDomainServiceJpa implements ConfigurationDomainService
         return property.isEnabled();
     }
 
-	@Override
-	public boolean isDailyTPTLimitEnabled() {
+    @Override
+    public boolean isDailyTPTLimitEnabled() {
         final String propertyName = "daily-tpt-limit";
         final GlobalConfigurationPropertyData property = getGlobalConfigurationPropertyData(propertyName);
         return property.isEnabled();
-	}
+    }
 
-	@Override
-	public Long getDailyTPTLimit() {
+    @Override
+    public Long getDailyTPTLimit() {
         final String propertyName = "daily-tpt-limit";
         final GlobalConfigurationPropertyData property = getGlobalConfigurationPropertyData(propertyName);
         return property.getValue();
-	}
+    }
 
     @Override
     public void removeGlobalConfigurationPropertyDataFromCache(final String propertyName) {
@@ -307,8 +325,9 @@ public class ConfigurationDomainServiceJpa implements ConfigurationDomainService
         final GlobalConfigurationPropertyData property = getGlobalConfigurationPropertyData(propertyName);
         int defaultValue = 6;
         int value = property.getValue().intValue();
-        if(value < 1)
+        if (value < 1) {
             return defaultValue;
+        }
         return value;
     }
 
@@ -318,7 +337,7 @@ public class ConfigurationDomainServiceJpa implements ConfigurationDomainService
         final GlobalConfigurationPropertyData property = getGlobalConfigurationPropertyData(propertyName);
         int defaultValue = 300;
         int value = property.getValue().intValue();
-        if(value < 1) {
+        if (value < 1) {
             return defaultValue;
         }
         return value;
@@ -330,7 +349,7 @@ public class ConfigurationDomainServiceJpa implements ConfigurationDomainService
         final GlobalConfigurationPropertyData property = getGlobalConfigurationPropertyData(propertyName);
         int defaultValue = 10;
         int value = property.getValue().intValue();
-        if(value < 1) {
+        if (value < 1) {
             return defaultValue;
         }
         return value;
@@ -345,4 +364,15 @@ public class ConfigurationDomainServiceJpa implements ConfigurationDomainService
         }
         return configurations.get(key);
     }
+
+    @Override
+    public boolean isSubRatesEnabled() {
+        GlobalConfigurationPropertyData configuration = getGlobalConfigurationPropertyData("sub-rates");
+        if (configuration == null) {
+            return false;
+        } else {
+            return configuration.isEnabled();
+        }
+    }
+
 }

@@ -19,15 +19,11 @@
 package org.apache.fineract.infrastructure.security.filter;
 
 import java.io.IOException;
-
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import org.apache.commons.lang.time.StopWatch;
+import org.apache.commons.lang3.time.StopWatch;
 import org.apache.fineract.infrastructure.cache.domain.CacheType;
 import org.apache.fineract.infrastructure.cache.service.CacheWritePlatformService;
 import org.apache.fineract.infrastructure.configuration.domain.ConfigurationDomainService;
@@ -43,7 +39,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
@@ -54,25 +49,22 @@ import org.springframework.stereotype.Service;
 
 /**
  * A customised version of spring security's {@link BasicAuthenticationFilter}.
- * 
- * This filter is responsible for extracting multi-tenant and basic auth
- * credentials from the request and checking that the details provided are
- * valid.
- * 
- * If multi-tenant and basic auth credentials are valid, the details of the
- * tenant are stored in {@link FineractPlatformTenant} and stored in a
- * {@link ThreadLocal} variable for this request using
+ *
+ * This filter is responsible for extracting multi-tenant and basic auth credentials from the request and checking that
+ * the details provided are valid.
+ *
+ * If multi-tenant and basic auth credentials are valid, the details of the tenant are stored in
+ * {@link FineractPlatformTenant} and stored in a {@link ThreadLocal} variable for this request using
  * {@link ThreadLocalContextUtil}.
- * 
- * If multi-tenant and basic auth credentials are invalid, a http error response
- * is returned.
+ *
+ * If multi-tenant and basic auth credentials are invalid, a http error response is returned.
  */
 @Service(value = "basicAuthenticationProcessingFilter")
 @Profile("basicauth")
 public class TenantAwareBasicAuthenticationFilter extends BasicAuthenticationFilter {
 
     private static boolean firstRequestProcessed = false;
-    private final static Logger logger = LoggerFactory.getLogger(TenantAwareBasicAuthenticationFilter.class);
+    private static final Logger LOG = LoggerFactory.getLogger(TenantAwareBasicAuthenticationFilter.class);
 
     private final BasicAuthTenantDetailsService basicAuthTenantDetailsService;
     private final ToApiJsonSerializer<PlatformRequestLog> toApiJsonSerializer;
@@ -97,10 +89,8 @@ public class TenantAwareBasicAuthenticationFilter extends BasicAuthenticationFil
     }
 
     @Override
-    public void doFilter(final ServletRequest req, final ServletResponse res, final FilterChain chain) throws IOException, ServletException {
-
-        final HttpServletRequest request = (HttpServletRequest) req;
-        final HttpServletResponse response = (HttpServletResponse) res;
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
 
         final StopWatch task = new StopWatch();
         task.start();
@@ -114,13 +104,14 @@ public class TenantAwareBasicAuthenticationFilter extends BasicAuthenticationFil
 
                 String tenantIdentifier = request.getHeader(this.tenantRequestHeader);
 
-                if (org.apache.commons.lang.StringUtils.isBlank(tenantIdentifier)) {
+                if (org.apache.commons.lang3.StringUtils.isBlank(tenantIdentifier)) {
                     tenantIdentifier = request.getParameter("tenantIdentifier");
                 }
 
-                if (tenantIdentifier == null && this.exceptionIfHeaderMissing) { throw new InvalidTenantIdentiferException(
-                        "No tenant identifier found: Add request header of '" + this.tenantRequestHeader
-                                + "' or add the parameter 'tenantIdentifier' to query string of request URL."); }
+                if (tenantIdentifier == null && this.exceptionIfHeaderMissing) {
+                    throw new InvalidTenantIdentiferException("No tenant identifier found: Add request header of '"
+                            + this.tenantRequestHeader + "' or add the parameter 'tenantIdentifier' to query string of request URL.");
+                }
 
                 String pathInfo = request.getRequestURI();
                 boolean isReportRequest = false;
@@ -150,7 +141,7 @@ public class TenantAwareBasicAuthenticationFilter extends BasicAuthenticationFil
                 }
             }
 
-            super.doFilter(req, res, chain);
+            super.doFilterInternal(request, response, filterChain);
         } catch (final InvalidTenantIdentiferException e) {
             // deal with exception at low level
             SecurityContextHolder.getContext().setAuthentication(null);
@@ -160,31 +151,29 @@ public class TenantAwareBasicAuthenticationFilter extends BasicAuthenticationFil
         } finally {
             task.stop();
             final PlatformRequestLog log = PlatformRequestLog.from(task, request);
-            logger.info(this.toApiJsonSerializer.serialize(log));
+            LOG.debug("{}", this.toApiJsonSerializer.serialize(log));
         }
     }
-    
+
     @Override
-    protected void onSuccessfulAuthentication(HttpServletRequest request,
-    		HttpServletResponse response, Authentication authResult)
-    		throws IOException {
-    	super.onSuccessfulAuthentication(request, response, authResult);
-		AppUser user = (AppUser) authResult.getPrincipal();
+    protected void onSuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, Authentication authResult)
+            throws IOException {
+        super.onSuccessfulAuthentication(request, response, authResult);
+        AppUser user = (AppUser) authResult.getPrincipal();
 
         if (notificationReadPlatformService.hasUnreadNotifications(user.getId())) {
             response.addHeader("X-Notification-Refresh", "true");
         } else {
             response.addHeader("X-Notification-Refresh", "false");
         }
-		
-		String pathURL = request.getRequestURI();
-		boolean isSelfServiceRequest = (pathURL != null && pathURL.contains("/self/"));
 
-		boolean notAllowed = ((isSelfServiceRequest && !user.isSelfServiceUser())
-				||(!isSelfServiceRequest && user.isSelfServiceUser()));
-		
-		if(notAllowed){
-			throw new BadCredentialsException("User not authorised to use the requested resource.");
-		}
+        String pathURL = request.getRequestURI();
+        boolean isSelfServiceRequest = pathURL != null && pathURL.contains("/self/");
+
+        boolean notAllowed = (isSelfServiceRequest && !user.isSelfServiceUser()) || (!isSelfServiceRequest && user.isSelfServiceUser());
+
+        if (notAllowed) {
+            throw new BadCredentialsException("User not authorised to use the requested resource.");
+        }
     }
 }

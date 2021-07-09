@@ -21,6 +21,8 @@ package org.apache.fineract.portfolio.loanaccount.rescheduleloan.service;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -29,7 +31,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import org.apache.fineract.accounting.journalentry.service.JournalEntryWritePlatformService;
 import org.apache.fineract.infrastructure.codes.domain.CodeValue;
 import org.apache.fineract.infrastructure.codes.domain.CodeValueRepositoryWrapper;
@@ -40,6 +41,7 @@ import org.apache.fineract.infrastructure.core.data.CommandProcessingResultBuild
 import org.apache.fineract.infrastructure.core.data.DataValidatorBuilder;
 import org.apache.fineract.infrastructure.core.exception.PlatformApiDataValidationException;
 import org.apache.fineract.infrastructure.core.exception.PlatformDataIntegrityException;
+import org.apache.fineract.infrastructure.core.service.DateUtils;
 import org.apache.fineract.infrastructure.security.service.PlatformSecurityContext;
 import org.apache.fineract.organisation.monetary.domain.ApplicationCurrency;
 import org.apache.fineract.organisation.monetary.domain.ApplicationCurrencyRepositoryWrapper;
@@ -80,20 +82,19 @@ import org.apache.fineract.portfolio.loanaccount.rescheduleloan.exception.LoanRe
 import org.apache.fineract.portfolio.loanaccount.service.LoanAssembler;
 import org.apache.fineract.portfolio.loanaccount.service.LoanUtilService;
 import org.apache.fineract.useradministration.domain.AppUser;
-import org.joda.time.LocalDate;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.NonTransientDataAccessException;
+import org.springframework.orm.jpa.JpaSystemException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class LoanRescheduleRequestWritePlatformServiceImpl implements LoanRescheduleRequestWritePlatformService {
 
-    private final static Logger logger = LoggerFactory.getLogger(LoanRescheduleRequestWritePlatformServiceImpl.class);
+    private static final Logger LOG = LoggerFactory.getLogger(LoanRescheduleRequestWritePlatformServiceImpl.class);
 
     private final CodeValueRepositoryWrapper codeValueRepositoryWrapper;
     private final PlatformSecurityContext platformSecurityContext;
@@ -117,8 +118,8 @@ public class LoanRescheduleRequestWritePlatformServiceImpl implements LoanResche
 
     /**
      * LoanRescheduleRequestWritePlatformServiceImpl constructor
-     * 
-     * 
+     *
+     *
      **/
     @Autowired
     public LoanRescheduleRequestWritePlatformServiceImpl(final CodeValueRepositoryWrapper codeValueRepositoryWrapper,
@@ -157,9 +158,8 @@ public class LoanRescheduleRequestWritePlatformServiceImpl implements LoanResche
     }
 
     /**
-     * create a new instance of the LoanRescheduleRequest object from the
-     * JsonCommand object and persist
-     * 
+     * create a new instance of the LoanRescheduleRequest object from the JsonCommand object and persist
+     *
      * @return CommandProcessingResult object
      **/
     @Override
@@ -212,6 +212,9 @@ public class LoanRescheduleRequestWritePlatformServiceImpl implements LoanResche
             final Boolean recalculateInterest = jsonCommand
                     .booleanObjectValueOfParameterNamed(RescheduleLoansApiConstants.recalculateInterestParamName);
 
+            final Date endDate = jsonCommand.dateValueOfParameterNamed(RescheduleLoansApiConstants.endDateParamName);
+            final BigDecimal emi = jsonCommand.bigDecimalValueOfParameterNamed(RescheduleLoansApiConstants.emiParamName);
+
             // initialize set the value to null
             Date submittedOnDate = null;
 
@@ -223,7 +226,7 @@ public class LoanRescheduleRequestWritePlatformServiceImpl implements LoanResche
 
                 if (localDate != null) {
                     // update the value of the "submittedOnDate" variable
-                    submittedOnDate = localDate.toDate();
+                    submittedOnDate = Date.from(localDate.atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant());
                 }
             }
 
@@ -248,7 +251,7 @@ public class LoanRescheduleRequestWritePlatformServiceImpl implements LoanResche
                     rescheduleFromInstallment = installment.getInstallmentNumber();
 
                     // update the value of the "rescheduleFromDate" variable
-                    rescheduleFromDate = localDate.toDate();
+                    rescheduleFromDate = Date.from(localDate.atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant());
                 }
             }
 
@@ -259,7 +262,7 @@ public class LoanRescheduleRequestWritePlatformServiceImpl implements LoanResche
 
                 if (localDate != null) {
                     // update the value of the "adjustedDueDate"variable
-                    adjustedDueDate = localDate.toDate();
+                    adjustedDueDate = Date.from(localDate.atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant());
                 }
             }
 
@@ -276,18 +279,19 @@ public class LoanRescheduleRequestWritePlatformServiceImpl implements LoanResche
             Date dueDate = null;
             // create term variations for flat and declining balance loans
             createLoanTermVariationsForRegularLoans(loan, graceOnPrincipal, graceOnInterest, extraTerms, interestRate, rescheduleFromDate,
-                    adjustedDueDate, loanRescheduleRequest, loanRescheduleRequestToTermVariationMappings, isActive,
-                    isSpecificToInstallment, decimalValue, dueDate);
+                    adjustedDueDate, loanRescheduleRequest, loanRescheduleRequestToTermVariationMappings, isActive, isSpecificToInstallment,
+                    decimalValue, dueDate, endDate, emi);
 
             // create a new entry in the m_loan_reschedule_request table
             this.loanRescheduleRequestRepository.save(loanRescheduleRequest);
             this.loanRepositoryWrapper.save(loan);
 
             return new CommandProcessingResultBuilder().withCommandId(jsonCommand.commandId()).withEntityId(loanRescheduleRequest.getId())
-                    .withLoanId(loan.getId()).build();
+                    .withLoanId(loan.getId()).withClientId(loan.getClientId()).withOfficeId(loan.getOfficeId())
+                    .withGroupId(loan.getGroupId()).build();
         }
 
-        catch (final DataIntegrityViolationException dve) {
+        catch (final JpaSystemException | DataIntegrityViolationException dve) {
             // handle the data integrity violation
             handleDataIntegrityViolation(dve);
 
@@ -300,7 +304,27 @@ public class LoanRescheduleRequestWritePlatformServiceImpl implements LoanResche
             final Integer extraTerms, final BigDecimal interestRate, Date rescheduleFromDate, Date adjustedDueDate,
             final LoanRescheduleRequest loanRescheduleRequest,
             List<LoanRescheduleRequestToTermVariationMapping> loanRescheduleRequestToTermVariationMappings, final Boolean isActive,
-            final boolean isSpecificToInstallment, BigDecimal decimalValue, Date dueDate) {
+            final boolean isSpecificToInstallment, BigDecimal decimalValue, Date dueDate, Date endDate, BigDecimal emi) {
+
+        if (rescheduleFromDate != null && endDate != null && emi != null) {
+            LoanTermVariations parent = null;
+            LocalDate rescheduleFromLocDate = LocalDate.ofInstant(rescheduleFromDate.toInstant(), DateUtils.getDateTimeZoneOfTenant());
+            LocalDate endDateLocDate = LocalDate.ofInstant(endDate.toInstant(), DateUtils.getDateTimeZoneOfTenant());
+            final Integer termType = LoanTermVariationType.EMI_AMOUNT.getValue();
+            List<LoanRepaymentScheduleInstallment> installments = loan.getRepaymentScheduleInstallments();
+            for (LoanRepaymentScheduleInstallment installment : installments) {
+                if (installment.getDueDate().isEqual(rescheduleFromLocDate) || installment.getDueDate().isEqual(endDateLocDate)
+                        || (installment.getDueDate().isAfter(rescheduleFromLocDate) && installment.getDueDate().isBefore(endDateLocDate))) {
+                    createLoanTermVariations(termType, loan,
+                            Date.from(installment.getDueDate().atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant()),
+                            Date.from(installment.getDueDate().atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant()),
+                            loanRescheduleRequestToTermVariationMappings, isActive, true, emi, parent);
+                }
+                if (installment.getDueDate().isAfter(endDateLocDate)) {
+                    break;
+                }
+            }
+        }
 
         if (rescheduleFromDate != null && adjustedDueDate != null) {
             LoanTermVariations parent = null;
@@ -321,7 +345,7 @@ public class LoanRescheduleRequestWritePlatformServiceImpl implements LoanResche
             LoanTermVariations parent = null;
             parent = createLoanTermVariations(termType, loan, rescheduleFromDate, dueDate, loanRescheduleRequestToTermVariationMappings,
                     isActive, isSpecificToInstallment, BigDecimal.valueOf(graceOnPrincipal), parent);
-            
+
             BigDecimal extraTermsBasedOnGracePeriods = BigDecimal.valueOf(graceOnPrincipal);
             createLoanTermVariations(LoanTermVariationType.EXTEND_REPAYMENT_PERIOD.getValue(), loan, rescheduleFromDate, dueDate,
                     loanRescheduleRequestToTermVariationMappings, isActive, isSpecificToInstallment, extraTermsBasedOnGracePeriods, parent);
@@ -360,9 +384,8 @@ public class LoanRescheduleRequestWritePlatformServiceImpl implements LoanResche
         try {
             final Long loanRescheduleRequestId = jsonCommand.entityId();
 
-            final LoanRescheduleRequest loanRescheduleRequest = this.loanRescheduleRequestRepository.findOne(loanRescheduleRequestId);
-
-            if (loanRescheduleRequest == null) { throw new LoanRescheduleRequestNotFoundException(loanRescheduleRequestId); }
+            final LoanRescheduleRequest loanRescheduleRequest = this.loanRescheduleRequestRepository.findById(loanRescheduleRequestId)
+                    .orElseThrow(() -> new LoanRescheduleRequestNotFoundException(loanRescheduleRequestId));
 
             // validate the request in the JsonCommand object passed as
             // parameter
@@ -372,12 +395,12 @@ public class LoanRescheduleRequestWritePlatformServiceImpl implements LoanResche
             final Map<String, Object> changes = new LinkedHashMap<>();
 
             LocalDate approvedOnDate = jsonCommand.localDateValueOfParameterNamed("approvedOnDate");
-            final DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern(jsonCommand.dateFormat()).withLocale(
-                    jsonCommand.extractLocale());
+            final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(jsonCommand.dateFormat())
+                    .withLocale(jsonCommand.extractLocale());
 
             changes.put("locale", jsonCommand.locale());
             changes.put("dateFormat", jsonCommand.dateFormat());
-            changes.put("approvedOnDate", approvedOnDate.toString(dateTimeFormatter));
+            changes.put("approvedOnDate", approvedOnDate.format(dateTimeFormatter));
             changes.put("approvedByUserId", appUser.getId());
 
             Loan loan = loanRescheduleRequest.getLoan();
@@ -406,7 +429,8 @@ public class LoanRescheduleRequestWritePlatformServiceImpl implements LoanResche
                             && activeLoanTermVariation.fetchDateValue().equals(dueDateVariationInCurrentRequest.fetchTermApplicaDate())) {
                         activeLoanTermVariation.markAsInactive();
                         rescheduleFromDate = activeLoanTermVariation.fetchTermApplicaDate();
-                        dueDateVariationInCurrentRequest.setTermApplicableFrom(rescheduleFromDate.toDate());
+                        dueDateVariationInCurrentRequest.setTermApplicableFrom(
+                                Date.from(rescheduleFromDate.atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant()));
                     } else if (!activeLoanTermVariation.fetchTermApplicaDate().isBefore(fromScheduleDate)) {
                         while (currentScheduleDate.isBefore(activeLoanTermVariation.fetchTermApplicaDate())) {
                             currentScheduleDate = this.scheduledDateGenerator.generateNextRepaymentDate(currentScheduleDate,
@@ -416,8 +440,9 @@ public class LoanRescheduleRequestWritePlatformServiceImpl implements LoanResche
                             changeMap.put(currentScheduleDate, modifiedScheduleDate);
                         }
                         if (changeMap.containsKey(activeLoanTermVariation.fetchTermApplicaDate())) {
-                            activeLoanTermVariation.setTermApplicableFrom(changeMap.get(activeLoanTermVariation.fetchTermApplicaDate())
-                                    .toDate());
+                            activeLoanTermVariation
+                                    .setTermApplicableFrom(Date.from(changeMap.get(activeLoanTermVariation.fetchTermApplicaDate())
+                                            .atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant()));
                         }
                     }
                 }
@@ -434,17 +459,17 @@ public class LoanRescheduleRequestWritePlatformServiceImpl implements LoanResche
             loan.constructLoanTermVariations(scheduleGeneratorDTO.getFloatingRateDTO(), annualNominalInterestRate, loanTermVariations);
             loanApplicationTerms.getLoanTermVariations().setExceptionData(loanTermVariations);
 
-            /*for (LoanTermVariationsData loanTermVariation : loanApplicationTerms.getLoanTermVariations().getDueDateVariation()) {
-                if (rescheduleFromDate.isBefore(loanTermVariation.getTermApplicableFrom())) {
-                    LocalDate applicableDate = this.scheduledDateGenerator.generateNextRepaymentDate(rescheduleFromDate,
-                            loanApplicationTerms, false, loanApplicationTerms.getHolidayDetailDTO());
-                    if (loanTermVariation.getTermApplicableFrom().equals(applicableDate)) {
-                        LocalDate adjustedDate = this.scheduledDateGenerator.generateNextRepaymentDate(adjustedApplicableDate,
-                                loanApplicationTerms, false, loanApplicationTerms.getHolidayDetailDTO());
-                        loanTermVariation.setApplicableFromDate(adjustedDate);
-                    }
-                }
-            }*/
+            /*
+             * for (LoanTermVariationsData loanTermVariation :
+             * loanApplicationTerms.getLoanTermVariations().getDueDateVariation( )) { if
+             * (rescheduleFromDate.isBefore(loanTermVariation. getTermApplicableFrom())) { LocalDate applicableDate =
+             * this.scheduledDateGenerator.generateNextRepaymentDate( rescheduleFromDate, loanApplicationTerms, false,
+             * loanApplicationTerms.getHolidayDetailDTO()); if
+             * (loanTermVariation.getTermApplicableFrom().equals(applicableDate) ) { LocalDate adjustedDate =
+             * this.scheduledDateGenerator.generateNextRepaymentDate( adjustedApplicableDate, loanApplicationTerms,
+             * false, loanApplicationTerms.getHolidayDetailDTO());
+             * loanTermVariation.setApplicableFromDate(adjustedDate); } } }
+             */
 
             final RoundingMode roundingMode = MoneyHelper.getRoundingMode();
             final MathContext mathContext = new MathContext(8, roundingMode);
@@ -453,27 +478,26 @@ public class LoanRescheduleRequestWritePlatformServiceImpl implements LoanResche
             final LoanScheduleGenerator loanScheduleGenerator = this.loanScheduleFactory.create(loanApplicationTerms.getInterestMethod());
             final LoanLifecycleStateMachine loanLifecycleStateMachine = null;
             loan.setHelpers(loanLifecycleStateMachine, this.loanSummaryWrapper, this.loanRepaymentScheduleTransactionProcessorFactory);
-            final LoanScheduleDTO loanSchedule = loanScheduleGenerator.rescheduleNextInstallments(mathContext, loanApplicationTerms,
-                    loan, loanApplicationTerms.getHolidayDetailDTO(),
-                    loanRepaymentScheduleTransactionProcessor, rescheduleFromDate);
+            final LoanScheduleDTO loanSchedule = loanScheduleGenerator.rescheduleNextInstallments(mathContext, loanApplicationTerms, loan,
+                    loanApplicationTerms.getHolidayDetailDTO(), loanRepaymentScheduleTransactionProcessor, rescheduleFromDate);
 
             loan.updateLoanSchedule(loanSchedule.getInstallments(), appUser);
             loan.recalculateAllCharges();
-            ChangedTransactionDetail changedTransactionDetail =  loan.processTransactions();
+            ChangedTransactionDetail changedTransactionDetail = loan.processTransactions();
 
             for (LoanRepaymentScheduleHistory loanRepaymentScheduleHistory : loanRepaymentScheduleHistoryList) {
                 this.loanRepaymentScheduleHistoryRepository.save(loanRepaymentScheduleHistory);
             }
 
             loan.updateRescheduledByUser(appUser);
-            loan.updateRescheduledOnDate(new LocalDate());
+            loan.updateRescheduledOnDate(LocalDate.now(DateUtils.getDateTimeZoneOfTenant()));
 
             // update the status of the request
             loanRescheduleRequest.approve(appUser, approvedOnDate);
 
             // update the loan object
             saveAndFlushLoanWithDataIntegrityViolationChecks(loan);
-            
+
             if (changedTransactionDetail != null) {
                 for (final Map.Entry<Long, LoanTransaction> mapEntry : changedTransactionDetail.getNewTransactionMappings().entrySet()) {
                     this.loanTransactionRepository.save(mapEntry.getValue());
@@ -484,14 +508,15 @@ public class LoanRescheduleRequestWritePlatformServiceImpl implements LoanResche
                 }
             }
             postJournalEntries(loan, existingTransactionIds, existingReversedTransactionIds);
-            
+
             this.loanAccountDomainService.recalculateAccruals(loan, true);
 
             return new CommandProcessingResultBuilder().withCommandId(jsonCommand.commandId()).withEntityId(loanRescheduleRequestId)
-                    .withLoanId(loanRescheduleRequest.getLoan().getId()).with(changes).build();
+                    .withLoanId(loanRescheduleRequest.getLoan().getId()).with(changes).withClientId(loan.getClientId())
+                    .withOfficeId(loan.getOfficeId()).withGroupId(loan.getGroupId()).build();
         }
 
-        catch (final DataIntegrityViolationException dve) {
+        catch (final JpaSystemException | DataIntegrityViolationException dve) {
             // handle the data integrity violation
             handleDataIntegrityViolation(dve);
 
@@ -509,15 +534,17 @@ public class LoanRescheduleRequestWritePlatformServiceImpl implements LoanResche
                 }
             }
             this.loanRepositoryWrapper.saveAndFlush(loan);
-        } catch (final DataIntegrityViolationException e) {
+        } catch (final JpaSystemException | DataIntegrityViolationException e) {
             final Throwable realCause = e.getCause();
             final List<ApiParameterError> dataValidationErrors = new ArrayList<>();
             final DataValidatorBuilder baseDataValidator = new DataValidatorBuilder(dataValidationErrors).resource("loan.transaction");
             if (realCause.getMessage().toLowerCase().contains("external_id_unique")) {
                 baseDataValidator.reset().parameter("externalId").failWithCode("value.must.be.unique");
             }
-            if (!dataValidationErrors.isEmpty()) { throw new PlatformApiDataValidationException("validation.msg.validation.errors.exist",
-                    "Validation errors exist.", dataValidationErrors); }
+            if (!dataValidationErrors.isEmpty()) {
+                throw new PlatformApiDataValidationException("validation.msg.validation.errors.exist", "Validation errors exist.",
+                        dataValidationErrors, e);
+            }
         }
     }
 
@@ -537,9 +564,8 @@ public class LoanRescheduleRequestWritePlatformServiceImpl implements LoanResche
         try {
             final Long loanRescheduleRequestId = jsonCommand.entityId();
 
-            final LoanRescheduleRequest loanRescheduleRequest = loanRescheduleRequestRepository.findOne(loanRescheduleRequestId);
-
-            if (loanRescheduleRequest == null) { throw new LoanRescheduleRequestNotFoundException(loanRescheduleRequestId); }
+            final LoanRescheduleRequest loanRescheduleRequest = loanRescheduleRequestRepository.findById(loanRescheduleRequestId)
+                    .orElseThrow(() -> new LoanRescheduleRequestNotFoundException(loanRescheduleRequestId));
 
             // validate the request in the JsonCommand object passed as
             // parameter
@@ -549,12 +575,12 @@ public class LoanRescheduleRequestWritePlatformServiceImpl implements LoanResche
             final Map<String, Object> changes = new LinkedHashMap<>();
 
             LocalDate rejectedOnDate = jsonCommand.localDateValueOfParameterNamed("rejectedOnDate");
-            final DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern(jsonCommand.dateFormat()).withLocale(
-                    jsonCommand.extractLocale());
+            final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(jsonCommand.dateFormat())
+                    .withLocale(jsonCommand.extractLocale());
 
             changes.put("locale", jsonCommand.locale());
             changes.put("dateFormat", jsonCommand.dateFormat());
-            changes.put("rejectedOnDate", rejectedOnDate.toString(dateTimeFormatter));
+            changes.put("rejectedOnDate", rejectedOnDate.format(dateTimeFormatter));
             changes.put("rejectedByUserId", appUser.getId());
 
             if (!changes.isEmpty()) {
@@ -567,10 +593,12 @@ public class LoanRescheduleRequestWritePlatformServiceImpl implements LoanResche
             }
 
             return new CommandProcessingResultBuilder().withCommandId(jsonCommand.commandId()).withEntityId(loanRescheduleRequestId)
-                    .withLoanId(loanRescheduleRequest.getLoan().getId()).with(changes).build();
+                    .withLoanId(loanRescheduleRequest.getLoan().getId()).with(changes)
+                    .withClientId(loanRescheduleRequest.getLoan().getClientId()).withOfficeId(loanRescheduleRequest.getLoan().getOfficeId())
+                    .withGroupId(loanRescheduleRequest.getLoan().getGroupId()).build();
         }
 
-        catch (final DataIntegrityViolationException dve) {
+        catch (final JpaSystemException | DataIntegrityViolationException dve) {
             // handle the data integrity violation
             handleDataIntegrityViolation(dve);
 
@@ -580,16 +608,15 @@ public class LoanRescheduleRequestWritePlatformServiceImpl implements LoanResche
     }
 
     /**
-     * handles the data integrity violation exception for loan reschedule write
-     * services
+     * handles the data integrity violation exception for loan reschedule write services
      *
      * @param dve
      *            data integrity violation exception
-     * 
+     *
      **/
-    private void handleDataIntegrityViolation(final DataIntegrityViolationException dve) {
+    private void handleDataIntegrityViolation(final NonTransientDataAccessException dve) {
 
-        logger.error(dve.getMessage(), dve);
+        LOG.error("Error occured.", dve);
 
         throw new PlatformDataIntegrityException("error.msg.loan.reschedule.unknown.data.integrity.issue",
                 "Unknown data integrity issue with resource.");

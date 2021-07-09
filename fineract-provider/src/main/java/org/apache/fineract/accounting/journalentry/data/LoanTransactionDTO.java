@@ -21,7 +21,6 @@ package org.apache.fineract.accounting.journalentry.data;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
-
 import org.apache.fineract.portfolio.loanaccount.data.LoanTransactionEnumData;
 
 public class LoanTransactionDTO {
@@ -134,11 +133,11 @@ public class LoanTransactionDTO {
         return this.isAccountTransfer;
     }
 
-        public void setIsLoanToLoanTransfer(boolean isLoanToLoanTransfer) {
-                this.isLoanToLoanTransfer = isLoanToLoanTransfer;
-        }
+    public void setIsLoanToLoanTransfer(boolean isLoanToLoanTransfer) {
+        this.isLoanToLoanTransfer = isLoanToLoanTransfer;
+    }
 
-        public boolean isLoanToLoanTransfer(){
-            return this.isLoanToLoanTransfer;
-        }
+    public boolean isLoanToLoanTransfer() {
+        return this.isLoanToLoanTransfer;
+    }
 }

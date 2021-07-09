@@ -20,13 +20,16 @@ package org.apache.fineract.portfolio.interestratechart.service;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.apache.fineract.infrastructure.core.data.EnumOptionData;
 import org.apache.fineract.portfolio.interestratechart.incentive.InterestIncentiveAttributeName;
 import org.apache.fineract.portfolio.interestratechart.incentive.InterestIncentiveEntityType;
 import org.apache.fineract.portfolio.interestratechart.incentive.InterestIncentiveType;
 
-public class InterestIncentivesEnumerations {
+public final class InterestIncentivesEnumerations {
+
+    private InterestIncentivesEnumerations() {
+
+    }
 
     public static EnumOptionData attributeName(final Integer attributeName) {
         return attributeName(InterestIncentiveAttributeName.fromInt(attributeName));

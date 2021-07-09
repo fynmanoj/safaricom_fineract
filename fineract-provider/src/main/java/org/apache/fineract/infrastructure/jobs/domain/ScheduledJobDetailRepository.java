@@ -19,14 +19,14 @@
 package org.apache.fineract.infrastructure.jobs.domain;
 
 import javax.persistence.LockModeType;
-
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface ScheduledJobDetailRepository extends JpaRepository<ScheduledJobDetail, Long>, JpaSpecificationExecutor<ScheduledJobDetail> {
+public interface ScheduledJobDetailRepository
+        extends JpaRepository<ScheduledJobDetail, Long>, JpaSpecificationExecutor<ScheduledJobDetail> {
 
     @Query("select jobDetail from ScheduledJobDetail jobDetail where jobDetail.jobKey = :jobKey")
     ScheduledJobDetail findByJobKey(@Param("jobKey") String jobKey);

@@ -19,7 +19,6 @@
 package org.apache.fineract.batch.command.internal;
 
 import javax.ws.rs.core.UriInfo;
-
 import org.apache.fineract.batch.command.CommandStrategy;
 import org.apache.fineract.batch.domain.BatchRequest;
 import org.apache.fineract.batch.domain.BatchResponse;
@@ -30,16 +29,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * Implements {@link org.apache.fineract.batch.command.CommandStrategy} and
- * applies a new loan on an existing client. It passes the contents of the body
- * from the BatchRequest to
- * {@link org.apache.fineract.portfolio.loanaccount.api.LoansApiResource} and gets back
- * the response. This class will also catch any errors raised by
- * {@link org.apache.fineract.portfolio.loanaccount.api.LoansApiResource} and map those
+ * Implements {@link org.apache.fineract.batch.command.CommandStrategy} and applies a new loan on an existing client. It
+ * passes the contents of the body from the BatchRequest to
+ * {@link org.apache.fineract.portfolio.loanaccount.api.LoansApiResource} and gets back the response. This class will
+ * also catch any errors raised by {@link org.apache.fineract.portfolio.loanaccount.api.LoansApiResource} and map those
  * errors to appropriate status codes in BatchResponse.
- * 
+ *
  * @author Rishabh Shukla
- * 
+ *
  * @see org.apache.fineract.batch.command.CommandStrategy
  * @see org.apache.fineract.batch.domain.BatchRequest
  * @see org.apache.fineract.batch.domain.BatchResponse

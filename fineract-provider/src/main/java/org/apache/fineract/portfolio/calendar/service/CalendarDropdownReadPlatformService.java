@@ -19,7 +19,6 @@
 package org.apache.fineract.portfolio.calendar.service;
 
 import java.util.List;
-
 import org.apache.fineract.infrastructure.core.data.EnumOptionData;
 
 public interface CalendarDropdownReadPlatformService {
@@ -33,6 +32,7 @@ public interface CalendarDropdownReadPlatformService {
     List<EnumOptionData> retrieveCalendarFrequencyTypeOptions();
 
     List<EnumOptionData> retrieveCalendarWeekDaysTypeOptions();
+
     List<EnumOptionData> retrieveCalendarFrequencyNthDayTypeOptions();
 
 }

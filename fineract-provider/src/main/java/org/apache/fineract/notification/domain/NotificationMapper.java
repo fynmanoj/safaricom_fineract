@@ -18,15 +18,17 @@
  */
 package org.apache.fineract.notification.domain;
 
-
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 import org.apache.fineract.infrastructure.core.domain.AbstractPersistableCustom;
 import org.apache.fineract.useradministration.domain.AppUser;
 
-import javax.persistence.*;
-
 @Entity
 @Table(name = "notification_mapper")
-public class NotificationMapper extends AbstractPersistableCustom<Long> {
+public class NotificationMapper extends AbstractPersistableCustom {
 
     @ManyToOne
     @JoinColumn(name = "notification_id")
@@ -75,4 +77,9 @@ public class NotificationMapper extends AbstractPersistableCustom<Long> {
         isRead = read;
     }
 
+    @Override
+    public String toString() {
+        return "NotificationMapper [notification=" + this.notification + ", userId=" + this.userId + ", isRead=" + this.isRead
+                + ", createdAt=" + this.createdAt + ", getId()=" + this.getId() + "]";
+    }
 }

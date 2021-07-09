@@ -20,7 +20,6 @@ package org.apache.fineract.accounting.journalentry.domain;
 
 import java.math.BigDecimal;
 import java.util.Date;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -29,8 +28,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.fineract.accounting.glaccount.domain.GLAccount;
 import org.apache.fineract.infrastructure.core.domain.AbstractAuditableCustom;
 import org.apache.fineract.organisation.office.domain.Office;
@@ -38,11 +36,10 @@ import org.apache.fineract.portfolio.client.domain.ClientTransaction;
 import org.apache.fineract.portfolio.loanaccount.domain.LoanTransaction;
 import org.apache.fineract.portfolio.paymentdetail.domain.PaymentDetail;
 import org.apache.fineract.portfolio.savings.domain.SavingsAccountTransaction;
-import org.apache.fineract.useradministration.domain.AppUser;
 
 @Entity
 @Table(name = "acc_gl_journal_entry")
-public class JournalEntry extends AbstractAuditableCustom<AppUser, Long> {
+public class JournalEntry extends AbstractAuditableCustom {
 
     @ManyToOne
     @JoinColumn(name = "office_id", nullable = false)
@@ -176,6 +173,7 @@ public class JournalEntry extends AbstractAuditableCustom<AppUser, Long> {
     public void setAmount(BigDecimal amount) {
         this.amount = amount;
     }
+
     public void setReversalJournalEntry(final JournalEntry reversalJournalEntry) {
         this.reversalJournalEntry = reversalJournalEntry;
     }
@@ -220,7 +218,6 @@ public class JournalEntry extends AbstractAuditableCustom<AppUser, Long> {
         return this.entityType;
     }
 
-    
     public Long getShareTransactionId() {
         return this.shareTransactionId;
     }

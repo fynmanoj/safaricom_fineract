@@ -20,26 +20,24 @@ package org.apache.fineract.accounting.provisioning.service;
 
 import java.util.Collection;
 import java.util.Date;
-
 import org.apache.fineract.accounting.provisioning.data.LoanProductProvisioningEntryData;
 import org.apache.fineract.accounting.provisioning.data.ProvisioningEntryData;
 import org.apache.fineract.infrastructure.core.service.Page;
 import org.apache.fineract.infrastructure.core.service.SearchParameters;
 
-
 public interface ProvisioningEntriesReadPlatformService {
 
-    public Collection<LoanProductProvisioningEntryData> retrieveLoanProductsProvisioningData(Date date) ;
-    
-    public ProvisioningEntryData retrieveProvisioningEntryData(Long entryId) ;
-    
-    public Page<ProvisioningEntryData> retrieveAllProvisioningEntries(Integer offset, Integer limit) ;
-    
-    public ProvisioningEntryData retrieveProvisioningEntryData(String date) ;
-    
-    public ProvisioningEntryData retrieveProvisioningEntryDataByCriteriaId(Long criteriaId) ;
-    
-    public ProvisioningEntryData retrieveExistingProvisioningIdDateWithJournals() ;
-    
-    public Page<LoanProductProvisioningEntryData> retrieveProvisioningEntries(SearchParameters searchParams) ;
+    Collection<LoanProductProvisioningEntryData> retrieveLoanProductsProvisioningData(Date date);
+
+    ProvisioningEntryData retrieveProvisioningEntryData(Long entryId);
+
+    Page<ProvisioningEntryData> retrieveAllProvisioningEntries(Integer offset, Integer limit);
+
+    ProvisioningEntryData retrieveProvisioningEntryData(String date);
+
+    ProvisioningEntryData retrieveProvisioningEntryDataByCriteriaId(Long criteriaId);
+
+    ProvisioningEntryData retrieveExistingProvisioningIdDateWithJournals();
+
+    Page<LoanProductProvisioningEntryData> retrieveProvisioningEntries(SearchParameters searchParams);
 }

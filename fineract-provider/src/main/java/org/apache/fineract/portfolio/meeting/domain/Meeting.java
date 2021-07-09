@@ -23,13 +23,13 @@ import static org.apache.fineract.portfolio.meeting.MeetingApiConstants.clientId
 import static org.apache.fineract.portfolio.meeting.MeetingApiConstants.clientsAttendanceParamName;
 import static org.apache.fineract.portfolio.meeting.MeetingApiConstants.meetingDateParamName;
 
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
-
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -41,8 +41,8 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.UniqueConstraint;
-
 import org.apache.fineract.infrastructure.core.api.JsonCommand;
+import org.apache.fineract.infrastructure.core.domain.AbstractPersistableCustom;
 import org.apache.fineract.infrastructure.core.service.DateUtils;
 import org.apache.fineract.portfolio.calendar.domain.Calendar;
 import org.apache.fineract.portfolio.calendar.domain.CalendarEntityType;
@@ -50,12 +50,11 @@ import org.apache.fineract.portfolio.calendar.domain.CalendarInstance;
 import org.apache.fineract.portfolio.calendar.exception.NotValidRecurringDateException;
 import org.apache.fineract.portfolio.meeting.attendance.domain.ClientAttendance;
 import org.apache.fineract.portfolio.meeting.exception.MeetingDateException;
-import org.joda.time.LocalDate;
-import org.apache.fineract.infrastructure.core.domain.AbstractPersistableCustom;
 
 @Entity
-@Table(name = "m_meeting", uniqueConstraints = { @UniqueConstraint(columnNames = { "calendar_instance_id", "meeting_date" }, name = "unique_calendar_instance_id_meeting_date") })
-public class Meeting extends AbstractPersistableCustom<Long> {
+@Table(name = "m_meeting", uniqueConstraints = {
+        @UniqueConstraint(columnNames = { "calendar_instance_id", "meeting_date" }, name = "unique_calendar_instance_id_meeting_date") })
+public class Meeting extends AbstractPersistableCustom {
 
     @ManyToOne
     @JoinColumn(name = "calendar_instance_id", nullable = false)
@@ -77,12 +76,13 @@ public class Meeting extends AbstractPersistableCustom<Long> {
         this.meetingDate = meetingDate;
     }
 
-    public static Meeting createNew(final CalendarInstance calendarInstance, final Date meetingDate, Boolean isTransactionDateOnNonMeetingDate,
-    		final boolean isSkipRepaymentOnFirstMonth, final int numberOfDays) {
-    	
-    	if (!isTransactionDateOnNonMeetingDate && !isValidMeetingDate(calendarInstance, meetingDate,isSkipRepaymentOnFirstMonth, numberOfDays)) 
-    	{ throw new NotValidRecurringDateException("meeting", "The date '"
-                + meetingDate + "' is not a valid meeting date.", meetingDate); }
+    public static Meeting createNew(final CalendarInstance calendarInstance, final Date meetingDate,
+            Boolean isTransactionDateOnNonMeetingDate, final boolean isSkipRepaymentOnFirstMonth, final int numberOfDays) {
+
+        if (!isTransactionDateOnNonMeetingDate
+                && !isValidMeetingDate(calendarInstance, meetingDate, isSkipRepaymentOnFirstMonth, numberOfDays)) {
+            throw new NotValidRecurringDateException("meeting", "The date '" + meetingDate + "' is not a valid meeting date.", meetingDate);
+        }
         return new Meeting(calendarInstance, meetingDate);
     }
 
@@ -106,10 +106,11 @@ public class Meeting extends AbstractPersistableCustom<Long> {
             actualChanges.put(meetingDateParamName, valueAsInput);
             actualChanges.put("dateFormat", dateFormatAsInput);
             actualChanges.put("locale", localeAsInput);
-            this.meetingDate = newValue.toDate();
+            this.meetingDate = Date.from(newValue.atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant());
 
-            if (!isValidMeetingDate(this.calendarInstance, this.meetingDate, isSkipRepaymentOnFirstMonth, numberOfDays)) { throw new NotValidRecurringDateException("meeting",
-                    "Not a valid meeting date", this.meetingDate); }
+            if (!isValidMeetingDate(this.calendarInstance, this.meetingDate, isSkipRepaymentOnFirstMonth, numberOfDays)) {
+                throw new NotValidRecurringDateException("meeting", "Not a valid meeting date", this.meetingDate);
+            }
 
         }
 
@@ -166,7 +167,7 @@ public class Meeting extends AbstractPersistableCustom<Long> {
     public LocalDate getMeetingDateLocalDate() {
         LocalDate meetingDateLocalDate = null;
         if (this.meetingDate != null) {
-            meetingDateLocalDate = LocalDate.fromDateFields(this.meetingDate);
+            meetingDateLocalDate = LocalDate.ofInstant(this.meetingDate.toInstant(), DateUtils.getDateTimeZoneOfTenant());
         }
         return meetingDateLocalDate;
     }
@@ -180,14 +181,17 @@ public class Meeting extends AbstractPersistableCustom<Long> {
     }
 
     private static boolean isValidMeetingDate(final CalendarInstance calendarInstance, final Date meetingDate,
-    		final boolean isSkipRepaymentOnFirstMonth, final int numberOfDays) {
+            final boolean isSkipRepaymentOnFirstMonth, final int numberOfDays) {
         final Calendar calendar = calendarInstance.getCalendar();
         LocalDate meetingDateLocalDate = null;
         if (meetingDate != null) {
-            meetingDateLocalDate = LocalDate.fromDateFields(meetingDate);
+            meetingDateLocalDate = LocalDate.ofInstant(meetingDate.toInstant(), DateUtils.getDateTimeZoneOfTenant());
         }
 
-        if (meetingDateLocalDate == null || !calendar.isValidRecurringDate(meetingDateLocalDate, isSkipRepaymentOnFirstMonth, numberOfDays)) { return false; }
+        if (meetingDateLocalDate == null
+                || !calendar.isValidRecurringDate(meetingDateLocalDate, isSkipRepaymentOnFirstMonth, numberOfDays)) {
+            return false;
+        }
         return true;
     }
 

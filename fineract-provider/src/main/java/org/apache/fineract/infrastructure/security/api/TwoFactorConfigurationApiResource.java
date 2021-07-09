@@ -18,16 +18,13 @@
  */
 package org.apache.fineract.infrastructure.security.api;
 
-
 import java.util.Map;
-
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
-
 import org.apache.fineract.commands.domain.CommandWrapper;
 import org.apache.fineract.commands.service.CommandWrapperBuilder;
 import org.apache.fineract.commands.service.PortfolioCommandSourceWritePlatformService;
@@ -56,16 +53,14 @@ public class TwoFactorConfigurationApiResource {
     private final PortfolioCommandSourceWritePlatformService commandsSourceWritePlatformService;
 
     @Autowired
-    public TwoFactorConfigurationApiResource(PlatformSecurityContext context,
-             TwoFactorConfigurationService configurationService,
-             DefaultToApiJsonSerializer<Map<String, Object>> toApiJsonSerializer,
-             PortfolioCommandSourceWritePlatformService commandsSourceWritePlatformService) {
+    public TwoFactorConfigurationApiResource(PlatformSecurityContext context, TwoFactorConfigurationService configurationService,
+            DefaultToApiJsonSerializer<Map<String, Object>> toApiJsonSerializer,
+            PortfolioCommandSourceWritePlatformService commandsSourceWritePlatformService) {
         this.context = context;
         this.configurationService = configurationService;
         this.toApiJsonSerializer = toApiJsonSerializer;
         this.commandsSourceWritePlatformService = commandsSourceWritePlatformService;
     }
-
 
     @GET
     public String retrieveAll() {
@@ -76,10 +71,9 @@ public class TwoFactorConfigurationApiResource {
 
     @PUT
     public String updateConfiguration(final String apiRequestBodyAsJson) {
-        final CommandWrapper commandRequest = new CommandWrapperBuilder()
-                .updateTwoFactorConfiguration().withJson(apiRequestBodyAsJson).build();
-        final CommandProcessingResult result = this.commandsSourceWritePlatformService.
-                logCommandSource(commandRequest);
+        final CommandWrapper commandRequest = new CommandWrapperBuilder().updateTwoFactorConfiguration().withJson(apiRequestBodyAsJson)
+                .build();
+        final CommandProcessingResult result = this.commandsSourceWritePlatformService.logCommandSource(commandRequest);
 
         return this.toApiJsonSerializer.serialize(result);
     }

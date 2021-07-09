@@ -24,7 +24,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
 import org.apache.fineract.infrastructure.core.data.EnumOptionData;
 import org.apache.fineract.infrastructure.core.domain.JdbcSupport;
 import org.apache.fineract.infrastructure.core.service.Page;
@@ -49,8 +48,7 @@ public class ShareAccountDividendReadPlatformServiceImpl implements ShareAccount
     private final PaginationHelper<ShareAccountDividendData> paginationHelper = new PaginationHelper<>();
 
     @Autowired
-    public ShareAccountDividendReadPlatformServiceImpl(final RoutingDataSource dataSource,
-    		final ColumnValidator columnValidator) {
+    public ShareAccountDividendReadPlatformServiceImpl(final RoutingDataSource dataSource, final ColumnValidator columnValidator) {
         this.jdbcTemplate = new JdbcTemplate(dataSource);
         this.columnValidator = columnValidator;
     }
@@ -89,7 +87,7 @@ public class ShareAccountDividendReadPlatformServiceImpl implements ShareAccount
             if (searchParameters.isSortOrderProvided()) {
                 sqlBuilder.append(' ').append(searchParameters.getSortOrder());
                 this.columnValidator.validateSqlInjection(sqlBuilder.toString(), searchParameters.getSortOrder());
-                
+
             }
         }
 
@@ -110,7 +108,7 @@ public class ShareAccountDividendReadPlatformServiceImpl implements ShareAccount
 
         private final String sql;
 
-        public ShareAccountDividendMapper() {
+        ShareAccountDividendMapper() {
             StringBuilder sb = new StringBuilder();
             sb.append(" sadd.id as id, sadd.amount as amount,");
             sb.append(" sadd.status as status, sadd.savings_transaction_id as savingsTransactionId,");
@@ -131,7 +129,7 @@ public class ShareAccountDividendReadPlatformServiceImpl implements ShareAccount
             final Long id = rs.getLong("id");
             final BigDecimal amount = rs.getBigDecimal("amount");
             final Integer status = JdbcSupport.getInteger(rs, "status");
-            final EnumOptionData statusEnum = SharesEnumerations.ShareAccountDividendStatusEnum(status);
+            final EnumOptionData statusEnum = SharesEnumerations.shareAccountDividendStatusEnum(status);
             final Long savingsTransactionId = JdbcSupport.getLong(rs, "savingsTransactionId");
 
             final Long accounId = rs.getLong("accountId");

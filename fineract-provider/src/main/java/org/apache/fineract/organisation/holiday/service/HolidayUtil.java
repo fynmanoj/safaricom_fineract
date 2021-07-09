@@ -18,13 +18,16 @@
  */
 package org.apache.fineract.organisation.holiday.service;
 
+import java.time.LocalDate;
 import java.util.List;
-
 import org.apache.fineract.organisation.holiday.domain.Holiday;
 import org.apache.fineract.organisation.workingdays.data.AdjustedDateDetailsDTO;
-import org.joda.time.LocalDate;
 
-public class HolidayUtil {
+public final class HolidayUtil {
+
+    private HolidayUtil() {
+
+    }
 
     public static LocalDate getRepaymentRescheduleDateToIfHoliday(LocalDate repaymentDate, final List<Holiday> holidays) {
 
@@ -52,12 +55,14 @@ public class HolidayUtil {
     public static boolean isHoliday(final LocalDate date, final List<Holiday> holidays) {
         for (final Holiday holiday : holidays) {
             if (date.isEqual(holiday.getFromDateLocalDate()) || date.isEqual(holiday.getToDateLocalDate())
-                    || (date.isAfter(holiday.getFromDateLocalDate()) && date.isBefore(holiday.getToDateLocalDate()))) { return true; }
+                    || (date.isAfter(holiday.getFromDateLocalDate()) && date.isBefore(holiday.getToDateLocalDate()))) {
+                return true;
+            }
         }
 
         return false;
     }
-    
+
     public static Holiday getApplicableHoliday(final LocalDate repaymentDate, final List<Holiday> holidays) {
         Holiday referedHoliday = null;
         for (final Holiday holiday : holidays) {
@@ -67,6 +72,7 @@ public class HolidayUtil {
         }
         return referedHoliday;
     }
+
     public static void updateRepaymentRescheduleDateToWorkingDayIfItIsHoliday(final AdjustedDateDetailsDTO adjustedDateDetailsDTO,
             final Holiday holiday) {
         if (holiday.getReScheduleType().isRescheduleToSpecificDate()) {

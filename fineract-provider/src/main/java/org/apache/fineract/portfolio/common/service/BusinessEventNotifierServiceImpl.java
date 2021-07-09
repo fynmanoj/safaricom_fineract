@@ -22,95 +22,82 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.apache.fineract.portfolio.common.BusinessEventNotificationConstants.BUSINESS_ENTITY;
-import org.apache.fineract.portfolio.common.BusinessEventNotificationConstants.BUSINESS_EVENTS;
+import org.apache.fineract.portfolio.common.BusinessEventNotificationConstants.BusinessEntity;
+import org.apache.fineract.portfolio.common.BusinessEventNotificationConstants.BusinessEvents;
 import org.springframework.stereotype.Service;
 
 @Service
 public class BusinessEventNotifierServiceImpl implements BusinessEventNotifierService {
 
-    private final Map<BUSINESS_EVENTS, List<BusinessEventListner>> preListners = new HashMap<>(5);
-    private final Map<BUSINESS_EVENTS, List<BusinessEventListner>> postListners = new HashMap<>(5);
+    private final Map<BusinessEvents, List<BusinessEventListener>> preListeners = new HashMap<>(5);
+    private final Map<BusinessEvents, List<BusinessEventListener>> postListeners = new HashMap<>(5);
 
     /*
      * (non-Javadoc)
-     * 
-     * @see
-     * org.apache.fineract.portfolio.common.service.BusinessEventNotifierService
-     * #notifyBusinessEventToBeExecuted
-     * (org.apache.fineract.portfolio.common.BusinessEventNotificationConstants
-     * .BUSINESS_EVENTS,
+     *
+     * @see org.apache.fineract.portfolio.common.service.BusinessEventNotifierService #notifyBusinessEventToBeExecuted
+     * (org.apache.fineract.portfolio.common.BusinessEventNotificationConstants .BusinessEvents,
      * org.springframework.data.jpa.domain.AbstractPersistable)
      */
     @Override
-    public void notifyBusinessEventToBeExecuted(BUSINESS_EVENTS businessEvent, Map<BUSINESS_ENTITY, Object> businessEventEntity) {
-        List<BusinessEventListner> businessEventListners = this.preListners.get(businessEvent);
-        if (businessEventListners != null) {
-            for (BusinessEventListner eventListner : businessEventListners) {
-                eventListner.businessEventToBeExecuted(businessEventEntity);
+    public void notifyBusinessEventToBeExecuted(BusinessEvents businessEvent, Map<BusinessEntity, Object> businessEventEntity) {
+        List<BusinessEventListener> businessEventListeners = this.preListeners.get(businessEvent);
+        if (businessEventListeners != null) {
+            for (BusinessEventListener eventListener : businessEventListeners) {
+                eventListener.businessEventToBeExecuted(businessEventEntity);
             }
         }
     }
 
     /*
      * (non-Javadoc)
-     * 
-     * @see
-     * org.apache.fineract.portfolio.common.service.BusinessEventNotifierService
-     * #notifyBusinessEventWasExecuted
-     * (org.apache.fineract.portfolio.common.BusinessEventNotificationConstants
-     * .BUSINESS_EVENTS,
+     *
+     * @see org.apache.fineract.portfolio.common.service.BusinessEventNotifierService #notifyBusinessEventWasExecuted
+     * (org.apache.fineract.portfolio.common.BusinessEventNotificationConstants .BusinessEvents,
      * org.springframework.data.jpa.domain.AbstractPersistable)
      */
     @Override
-    public void notifyBusinessEventWasExecuted(BUSINESS_EVENTS businessEvent, Map<BUSINESS_ENTITY, Object> businessEventEntity) {
-        List<BusinessEventListner> businessEventListners = this.postListners.get(businessEvent);
-        if (businessEventListners != null) {
-            for (BusinessEventListner eventListner : businessEventListners) {
-                eventListner.businessEventWasExecuted(businessEventEntity);
+    public void notifyBusinessEventWasExecuted(BusinessEvents businessEvent, Map<BusinessEntity, Object> businessEventEntity) {
+        List<BusinessEventListener> businessEventListeners = this.postListeners.get(businessEvent);
+        if (businessEventListeners != null) {
+            for (BusinessEventListener eventListener : businessEventListeners) {
+                eventListener.businessEventWasExecuted(businessEventEntity);
             }
         }
     }
 
     /*
      * (non-Javadoc)
-     * 
-     * @see
-     * org.apache.fineract.portfolio.common.service.BusinessEventNotifierService
-     * #addBusinessEventPreListners
-     * (org.apache.fineract.portfolio.common.BusinessEventNotificationConstants
-     * .BUSINESS_EVENTS,
-     * org.apache.fineract.portfolio.common.service.BusinessEventListner)
+     *
+     * @see org.apache.fineract.portfolio.common.service.BusinessEventNotifierService #addBusinessEventPreListeners
+     * (org.apache.fineract.portfolio.common.BusinessEventNotificationConstants .BusinessEvents,
+     * org.apache.fineract.portfolio.common.service.BusinessEventListener)
      */
     @Override
-    public void addBusinessEventPreListners(BUSINESS_EVENTS businessEvent, BusinessEventListner businessEventListner) {
-        addBusinessEventListners(businessEvent, businessEventListner, preListners);
+    public void addBusinessEventPreListeners(BusinessEvents businessEvent, BusinessEventListener businessEventListener) {
+        addBusinessEventListeners(businessEvent, businessEventListener, preListeners);
     }
 
     /*
      * (non-Javadoc)
-     * 
-     * @see
-     * org.apache.fineract.portfolio.common.service.BusinessEventNotifierService
-     * #addBusinessEventPostListners
-     * (org.apache.fineract.portfolio.common.BusinessEventNotificationConstants
-     * .BUSINESS_EVENTS,
-     * org.apache.fineract.portfolio.common.service.BusinessEventListner)
+     *
+     * @see org.apache.fineract.portfolio.common.service.BusinessEventNotifierService #addBusinessEventPostListeners
+     * (org.apache.fineract.portfolio.common.BusinessEventNotificationConstants .BusinessEvents,
+     * org.apache.fineract.portfolio.common.service.BusinessEventListener)
      */
     @Override
-    public void addBusinessEventPostListners(BUSINESS_EVENTS businessEvent, BusinessEventListner businessEventListner) {
-        addBusinessEventListners(businessEvent, businessEventListner, postListners);
+    public void addBusinessEventPostListeners(BusinessEvents businessEvent, BusinessEventListener businessEventListener) {
+        addBusinessEventListeners(businessEvent, businessEventListener, postListeners);
     }
 
-    private void addBusinessEventListners(BUSINESS_EVENTS businessEvent, BusinessEventListner businessEventListner,
-            final Map<BUSINESS_EVENTS, List<BusinessEventListner>> businessEventListnerMap) {
-        List<BusinessEventListner> businessEventListners = businessEventListnerMap.get(businessEvent);
-        if (businessEventListners == null) {
-            businessEventListners = new ArrayList<>();
-            businessEventListnerMap.put(businessEvent, businessEventListners);
+    private void addBusinessEventListeners(BusinessEvents businessEvent, BusinessEventListener businessEventListener,
+            final Map<BusinessEvents, List<BusinessEventListener>> businessEventListenerMap) {
+        List<BusinessEventListener> businessEventListeners = businessEventListenerMap.get(businessEvent);
+        if (businessEventListeners == null) {
+            businessEventListeners = new ArrayList<>();
+            businessEventListenerMap.put(businessEvent, businessEventListeners);
         }
-        businessEventListners.add(businessEventListner);
+        businessEventListeners.add(businessEventListener);
     }
 
 }

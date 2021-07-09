@@ -28,11 +28,12 @@ import static org.apache.fineract.portfolio.account.service.AccountTransferEnume
 import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.MonthDay;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-
 import org.apache.fineract.infrastructure.core.data.EnumOptionData;
 import org.apache.fineract.infrastructure.core.domain.JdbcSupport;
 import org.apache.fineract.infrastructure.core.service.DateUtils;
@@ -59,8 +60,6 @@ import org.apache.fineract.portfolio.client.data.ClientData;
 import org.apache.fineract.portfolio.client.service.ClientReadPlatformService;
 import org.apache.fineract.portfolio.common.service.CommonEnumerations;
 import org.apache.fineract.portfolio.common.service.DropdownReadPlatformService;
-import org.joda.time.LocalDate;
-import org.joda.time.MonthDay;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -88,8 +87,7 @@ public class StandingInstructionReadPlatformServiceImpl implements StandingInstr
     public StandingInstructionReadPlatformServiceImpl(final RoutingDataSource dataSource,
             final ClientReadPlatformService clientReadPlatformService, final OfficeReadPlatformService officeReadPlatformService,
             final PortfolioAccountReadPlatformService portfolioAccountReadPlatformService,
-            final DropdownReadPlatformService dropdownReadPlatformService,
-            final ColumnValidator columnValidator) {
+            final DropdownReadPlatformService dropdownReadPlatformService, final ColumnValidator columnValidator) {
         this.jdbcTemplate = new JdbcTemplate(dataSource);
         this.clientReadPlatformService = clientReadPlatformService;
         this.officeReadPlatformService = officeReadPlatformService;
@@ -216,14 +214,10 @@ public class StandingInstructionReadPlatformServiceImpl implements StandingInstr
         }
 
         final Collection<EnumOptionData> transferTypeOptions = Arrays.asList(transferType(AccountTransferType.ACCOUNT_TRANSFER),
-                transferType(AccountTransferType.LOAN_REPAYMENT)/*
-                                                                 * ,
-                                                                 * transferType(
-                                                                 * AccountTransferType
-                                                                 * .
-                                                                 * CHARGE_PAYMENT
-                                                                 * )
-                                                                 */);
+                transferType(
+                        AccountTransferType.LOAN_REPAYMENT)/*
+                                                            * , transferType( AccountTransferType . CHARGE_PAYMENT )
+                                                            */);
         final Collection<EnumOptionData> statusOptions = Arrays.asList(standingInstructionStatus(StandingInstructionStatus.ACTIVE),
                 standingInstructionStatus(StandingInstructionStatus.DISABLED));
         final Collection<EnumOptionData> instructionTypeOptions = Arrays.asList(standingInstructionType(StandingInstructionType.FIXED),
@@ -338,8 +332,8 @@ public class StandingInstructionReadPlatformServiceImpl implements StandingInstr
         final StringBuilder sqlBuilder = new StringBuilder(200);
         sqlBuilder.append("select ");
         sqlBuilder.append(this.standingInstructionMapper.schema());
-        sqlBuilder
-                .append(" where atsi.status=? and CURRENT_DATE() >= atsi.valid_from and (atsi.valid_till IS NULL or CURRENT_DATE() < atsi.valid_till) ")
+        sqlBuilder.append(
+                " where atsi.status=? and CURRENT_DATE() >= atsi.valid_from and (atsi.valid_till IS NULL or CURRENT_DATE() < atsi.valid_till) ")
                 .append(" and  (atsi.last_run_date <> CURRENT_DATE() or atsi.last_run_date IS NULL)")
                 .append(" ORDER BY atsi.priority DESC");
         return this.jdbcTemplate.query(sqlBuilder.toString(), this.standingInstructionMapper, status);
@@ -353,7 +347,7 @@ public class StandingInstructionReadPlatformServiceImpl implements StandingInstr
 
             return this.jdbcTemplate.queryForObject(sql, this.standingInstructionMapper, new Object[] { instructionId });
         } catch (final EmptyResultDataAccessException e) {
-            throw new AccountTransferNotFoundException(instructionId);
+            throw new AccountTransferNotFoundException(instructionId, e);
         }
     }
 
@@ -368,7 +362,7 @@ public class StandingInstructionReadPlatformServiceImpl implements StandingInstr
 
         private final String schemaSql;
 
-        public StandingInstructionMapper() {
+        StandingInstructionMapper() {
             final StringBuilder sqlBuilder = new StringBuilder(400);
             sqlBuilder.append("atsi.id as id,atsi.name as name, atsi.priority as priority,");
             sqlBuilder.append("atsi.status as status, atsi.instruction_type as instructionType,");
@@ -442,23 +436,20 @@ public class StandingInstructionReadPlatformServiceImpl implements StandingInstr
             final Integer recurrenceOnDay = JdbcSupport.getInteger(rs, "recurrenceOnDay");
             final Integer recurrenceOnMonth = JdbcSupport.getInteger(rs, "recurrenceOnMonth");
             if (recurrenceOnDay != null) {
-                recurrenceOnMonthDay = new MonthDay(recurrenceOnMonth, recurrenceOnDay);
+                recurrenceOnMonthDay = MonthDay.now(DateUtils.getDateTimeZoneOfTenant()).withMonth(recurrenceOnMonth)
+                        .withDayOfMonth(recurrenceOnDay);
             }
 
             final Integer transferType = rs.getInt("transferType");
             EnumOptionData transferTypeEnum = AccountTransferEnumerations.transferType(transferType);
 
             /*
-             * final String currencyCode = rs.getString("currencyCode"); final
-             * String currencyName = rs.getString("currencyName"); final String
-             * currencyNameCode = rs.getString("currencyNameCode"); final String
-             * currencyDisplaySymbol = rs.getString("currencyDisplaySymbol");
-             * final Integer currencyDigits = JdbcSupport.getInteger(rs,
-             * "currencyDigits"); final Integer inMultiplesOf =
-             * JdbcSupport.getInteger(rs, "inMultiplesOf"); final CurrencyData
-             * currency = new CurrencyData(currencyCode, currencyName,
-             * currencyDigits, inMultiplesOf, currencyDisplaySymbol,
-             * currencyNameCode);
+             * final String currencyCode = rs.getString("currencyCode"); final String currencyName =
+             * rs.getString("currencyName"); final String currencyNameCode = rs.getString("currencyNameCode"); final
+             * String currencyDisplaySymbol = rs.getString("currencyDisplaySymbol"); final Integer currencyDigits =
+             * JdbcSupport.getInteger(rs, "currencyDigits"); final Integer inMultiplesOf = JdbcSupport.getInteger(rs,
+             * "inMultiplesOf"); final CurrencyData currency = new CurrencyData(currencyCode, currencyName,
+             * currencyDigits, inMultiplesOf, currencyDisplaySymbol, currencyNameCode);
              */
             final Long fromOfficeId = JdbcSupport.getLong(rs, "fromOfficeId");
             final String fromOfficeName = rs.getString("fromOfficeName");
@@ -527,7 +518,7 @@ public class StandingInstructionReadPlatformServiceImpl implements StandingInstr
 
         private final String schemaSql;
 
-        public StandingInstructionLoanDuesMapper() {
+        StandingInstructionLoanDuesMapper() {
             final StringBuilder sqlBuilder = new StringBuilder(400);
 
             sqlBuilder.append("max(ls.duedate) as dueDate,sum(ls.principal_amount) as principalAmount,");
@@ -575,8 +566,8 @@ public class StandingInstructionReadPlatformServiceImpl implements StandingInstr
             final BigDecimal penaltyChargesPaid = JdbcSupport.getBigDecimalDefaultToZeroIfNull(rs, "penalityCompleted");
             final BigDecimal penaltyChargesWrittenOff = JdbcSupport.getBigDecimalDefaultToZeroIfNull(rs, "penaltyWrittenOff");
             final BigDecimal penaltyChargesWaived = JdbcSupport.getBigDecimalDefaultToZeroIfNull(rs, "penaltyWaived");
-            final BigDecimal penaltyChargesActualDue = penaltyChargesExpectedDue.subtract(penaltyChargesWaived).subtract(
-                    penaltyChargesWrittenOff);
+            final BigDecimal penaltyChargesActualDue = penaltyChargesExpectedDue.subtract(penaltyChargesWaived)
+                    .subtract(penaltyChargesWrittenOff);
             final BigDecimal penaltyChargesOutstanding = penaltyChargesActualDue.subtract(penaltyChargesPaid);
 
             final BigDecimal feeChargesExpectedDue = JdbcSupport.getBigDecimalDefaultToZeroIfNull(rs, "feeAmount");

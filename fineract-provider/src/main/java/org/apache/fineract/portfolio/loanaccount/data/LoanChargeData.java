@@ -19,14 +19,13 @@
 package org.apache.fineract.portfolio.loanaccount.data;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Collection;
-
 import org.apache.fineract.infrastructure.core.data.EnumOptionData;
 import org.apache.fineract.organisation.monetary.data.CurrencyData;
 import org.apache.fineract.portfolio.charge.data.ChargeData;
 import org.apache.fineract.portfolio.charge.domain.ChargePaymentMode;
 import org.apache.fineract.portfolio.charge.domain.ChargeTimeType;
-import org.joda.time.LocalDate;
 
 /**
  * Immutable data object for loan charge data.
@@ -81,7 +80,6 @@ public class LoanChargeData {
     private BigDecimal amountAccrued;
 
     private BigDecimal amountUnrecognized;
-    
 
     public static LoanChargeData template(final Collection<ChargeData> chargeOptions) {
         return new LoanChargeData(null, null, null, null, null, null, null, null, chargeOptions, false, null, false, false, null, null,
@@ -89,8 +87,7 @@ public class LoanChargeData {
     }
 
     /**
-     * used when populating with details from charge definition (for crud on
-     * charges)
+     * used when populating with details from charge definition (for crud on charges)
      */
     public static LoanChargeData newLoanChargeDetails(final Long chargeId, final String name, final CurrencyData currency,
             final BigDecimal amount, final BigDecimal percentage, final EnumOptionData chargeTimeType,

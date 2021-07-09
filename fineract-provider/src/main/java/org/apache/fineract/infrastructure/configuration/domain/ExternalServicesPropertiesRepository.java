@@ -26,6 +26,7 @@ import org.springframework.data.repository.query.Param;
 public interface ExternalServicesPropertiesRepository extends JpaRepository<ExternalServicesProperties, ExternalServicePropertiesPK>,
         JpaSpecificationExecutor<ExternalServicesProperties> {
 
-	@Query("SELECT ep from ExternalServicesProperties ep where ep.externalServicePropertiesPK.name=:name and ep.externalServicePropertiesPK.externalServiceId=:externalServiceId")
-    ExternalServicesProperties findOneByExternalServicePropertiesPK(@Param("name") String name, @Param("externalServiceId") Long externalServiceId);
+    @Query("SELECT ep from ExternalServicesProperties ep where ep.externalServicePropertiesPK.name=:name and ep.externalServicePropertiesPK.externalServiceId=:externalServiceId")
+    ExternalServicesProperties findOneByExternalServicePropertiesPK(@Param("name") String name,
+            @Param("externalServiceId") Long externalServiceId);
 }

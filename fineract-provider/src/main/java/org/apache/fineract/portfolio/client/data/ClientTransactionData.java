@@ -19,16 +19,15 @@
 package org.apache.fineract.portfolio.client.data;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Collection;
-
 import org.apache.fineract.infrastructure.core.data.EnumOptionData;
 import org.apache.fineract.organisation.monetary.data.CurrencyData;
 import org.apache.fineract.portfolio.paymentdetail.data.PaymentDetailData;
 import org.apache.fineract.portfolio.paymenttype.data.PaymentTypeData;
-import org.joda.time.LocalDate;
 
 @SuppressWarnings("unused")
-public class ClientTransactionData {
+public final class ClientTransactionData {
 
     private final Long id;
     private final Long officeId;
@@ -56,7 +55,7 @@ public class ClientTransactionData {
     private ClientTransactionData(Long id, Long officeId, String officeName, EnumOptionData type, LocalDate date, CurrencyData currency,
             PaymentDetailData paymentDetailData, BigDecimal amount, String externalId, LocalDate submittedOnDate, boolean reversed,
             Collection<PaymentTypeData> paymentTypeOptions) {
-        super();
+
         this.id = id;
         this.officeId = officeId;
         this.officeName = officeName;

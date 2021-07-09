@@ -18,22 +18,18 @@
  */
 package org.apache.fineract.accounting.provisioning.constant;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-
 public interface ProvisioningEntriesApiConstants {
 
-    public final static String JSON_DATE_PARAM = "date" ;
-    
-    public final static String JSON_DATEFORMAT_PARAM = "dateFormat" ;
-    
-    public final static String JSON_LOCALE_PARAM = "locale" ;
-    
-    public final static String JSON_CREATEJOURNALENTRIES_PARAM = "createjournalentries" ;
+    String JSON_DATE_PARAM = "date";
 
-    public final static String PROVISIONINGENTRY_PARAM = "provisioningentry";
+    String JSON_DATEFORMAT_PARAM = "dateFormat";
 
-    public final static String ENTRIES_PARAM = "entries";
+    String JSON_LOCALE_PARAM = "locale";
+
+    String JSON_CREATEJOURNALENTRIES_PARAM = "createjournalentries";
+
+    String PROVISIONINGENTRY_PARAM = "provisioningentry";
+
+    String ENTRIES_PARAM = "entries";
 
 }

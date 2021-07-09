@@ -18,12 +18,13 @@
  */
 package org.apache.fineract.infrastructure.dataqueries.data;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
  * Immutable data object representing datatable data.
  */
-public class DatatableData {
+public final class DatatableData implements Serializable {
 
     @SuppressWarnings("unused")
     private final String applicationTableName;
@@ -31,7 +32,6 @@ public class DatatableData {
     private final String registeredTableName;
     @SuppressWarnings("unused")
     private final List<ResultsetColumnHeaderData> columnHeaderData;
-
 
     public static DatatableData create(final String applicationTableName, final String registeredTableName,
             final List<ResultsetColumnHeaderData> columnHeaderData) {
@@ -46,18 +46,20 @@ public class DatatableData {
 
     }
 
-    public boolean hasColumn(final String columnName){
+    public boolean hasColumn(final String columnName) {
 
-        for(ResultsetColumnHeaderData c : this.columnHeaderData){
+        for (ResultsetColumnHeaderData c : this.columnHeaderData) {
 
-            if(c.getColumnName().equals(columnName)) return true;
+            if (c.getColumnName().equals(columnName)) {
+                return true;
+            }
         }
 
         return false;
     }
 
-    public String getRegisteredTableName(){
+    public String getRegisteredTableName() {
         return registeredTableName;
     }
-    
+
 }

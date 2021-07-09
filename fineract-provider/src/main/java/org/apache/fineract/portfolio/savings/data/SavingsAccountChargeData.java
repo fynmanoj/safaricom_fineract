@@ -18,21 +18,21 @@
  */
 package org.apache.fineract.portfolio.savings.data;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.MonthDay;
 import java.util.Collection;
-
 import org.apache.fineract.infrastructure.core.data.EnumOptionData;
 import org.apache.fineract.organisation.monetary.data.CurrencyData;
 import org.apache.fineract.portfolio.charge.data.ChargeData;
 import org.apache.fineract.portfolio.charge.domain.ChargeTimeType;
-import org.joda.time.LocalDate;
-import org.joda.time.MonthDay;
 
 /**
  * Immutable data object for Savings Account charge data.
  */
 @SuppressWarnings("unused")
-public class SavingsAccountChargeData {
+public class SavingsAccountChargeData implements Serializable {
 
     private final Long id;
 
@@ -78,11 +78,11 @@ public class SavingsAccountChargeData {
 
     private final Collection<ChargeData> chargeOptions;
 
-    public SavingsAccountChargeData(Long chargeId,  BigDecimal amount,LocalDate dueDate) {
+    public SavingsAccountChargeData(Long chargeId, BigDecimal amount, LocalDate dueDate) {
         this.chargeId = chargeId;
         this.amount = amount;
         this.dueDate = dueDate;
-        this.id=null;
+        this.id = null;
         this.accountId = null;
         this.name = null;
         this.chargeTimeType = null;
@@ -183,14 +183,13 @@ public class SavingsAccountChargeData {
     public boolean isAnnualFee() {
         return ChargeTimeType.fromInt(this.chargeTimeType.getId().intValue()).isAnnualFee();
     }
-    
+
     public boolean isSavingsActivation() {
         return ChargeTimeType.fromInt(this.chargeTimeType.getId().intValue()).isSavingsActivation();
     }
 
     public BigDecimal getAmountOutstanding() {
         return this.amountOutstanding;
-    } 
-    
-    
+    }
+
 }

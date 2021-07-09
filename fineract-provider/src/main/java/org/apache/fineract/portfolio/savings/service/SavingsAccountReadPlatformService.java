@@ -18,15 +18,14 @@
  */
 package org.apache.fineract.portfolio.savings.service;
 
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
-
 import org.apache.fineract.infrastructure.core.service.Page;
 import org.apache.fineract.infrastructure.core.service.SearchParameters;
 import org.apache.fineract.portfolio.savings.DepositAccountType;
 import org.apache.fineract.portfolio.savings.data.SavingsAccountData;
 import org.apache.fineract.portfolio.savings.data.SavingsAccountTransactionData;
-import org.joda.time.LocalDate;
 
 public interface SavingsAccountReadPlatformService {
 
@@ -36,8 +35,8 @@ public interface SavingsAccountReadPlatformService {
 
     Collection<SavingsAccountData> retrieveActiveForLookup(Long clientId, DepositAccountType depositAccountType);
 
-    public Collection<SavingsAccountData> retrieveActiveForLookup(final Long clientId, DepositAccountType depositAccountType, String currencyCode) ;
-    
+    Collection<SavingsAccountData> retrieveActiveForLookup(Long clientId, DepositAccountType depositAccountType, String currencyCode);
+
     SavingsAccountData retrieveOne(Long savingsId);
 
     SavingsAccountData retrieveTemplate(Long clientId, Long groupId, Long productId, boolean staffInSelectedOfficeOnly);
@@ -52,14 +51,15 @@ public interface SavingsAccountReadPlatformService {
     SavingsAccountTransactionData retrieveSavingsTransaction(Long savingsId, Long transactionId, DepositAccountType depositAccountType);
 
     Collection<SavingsAccountData> retrieveForLookup(Long clientId, Boolean overdraft);
-    
+
     List<Long> retrieveSavingsIdsPendingInactive(LocalDate tenantLocalDate);
 
     List<Long> retrieveSavingsIdsPendingDormant(LocalDate tenantLocalDate);
 
     List<Long> retrieveSavingsIdsPendingEscheat(LocalDate tenantLocalDate);
-    boolean isAccountBelongsToClient(final Long clientId, final Long accountId, final DepositAccountType depositAccountType, final String currencyCode) ;
-    
-	String retrieveAccountNumberByAccountId(Long accountId);
+
+    boolean isAccountBelongsToClient(Long clientId, Long accountId, DepositAccountType depositAccountType, String currencyCode);
+
+    String retrieveAccountNumberByAccountId(Long accountId);
 
 }

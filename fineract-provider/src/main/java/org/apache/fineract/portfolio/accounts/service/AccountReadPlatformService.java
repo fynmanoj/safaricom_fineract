@@ -19,18 +19,17 @@
 package org.apache.fineract.portfolio.accounts.service;
 
 import java.util.Set;
-
 import org.apache.fineract.infrastructure.core.service.Page;
 import org.apache.fineract.portfolio.accounts.data.AccountData;
 
 public interface AccountReadPlatformService {
 
-    public AccountData retrieveTemplate(final Long clientId, final Long productId);
+    AccountData retrieveTemplate(Long clientId, Long productId);
 
-    public AccountData retrieveOne(Long id, boolean includeTemplate);
+    AccountData retrieveOne(Long id, boolean includeTemplate);
 
-    public Page<AccountData> retrieveAll(final Integer offSet, final Integer limit);
+    Page<AccountData> retrieveAll(Integer offSet, Integer limit);
 
-    public Set<String> getResponseDataParams();
+    Set<String> getResponseDataParams();
 
 }

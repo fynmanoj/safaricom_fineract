@@ -32,8 +32,9 @@ public interface TellerTransactionWritePlatformService {
     /**
      * Stores teller transactions into the data base.
      *
-     * @param command the command containing the teller transaction details
+     * @param command
+     *            the command containing the teller transaction details
      * @return the result i
      */
-    public CommandProcessingResult createTellerTransaction(JsonCommand command);
+    CommandProcessingResult createTellerTransaction(JsonCommand command);
 }

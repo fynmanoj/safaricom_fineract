@@ -21,13 +21,12 @@ package org.apache.fineract.batch.domain;
 import java.util.Set;
 
 /**
- * Provides an object for separate HTTP requests in the Batch Request for Batch
- * API. A requestId is also included as data field which takes care of
- * dependency issues among various requests. This class also provides getter and
- * setter functions to access Batch Request data fields.
- * 
+ * Provides an object for separate HTTP requests in the Batch Request for Batch API. A requestId is also included as
+ * data field which takes care of dependency issues among various requests. This class also provides getter and setter
+ * functions to access Batch Request data fields.
+ *
  * @author Rishabh Shukla
- * 
+ *
  * @see org.apache.fineract.batch.api.BatchApiResource
  * @see Header
  */
@@ -41,9 +40,9 @@ public class BatchRequest {
     private String body;
 
     /**
-     * Constructs a 'BatchRequest' with requestId, relativeUrl, method, headers,
-     * reference and body of the incoming request.
-     * 
+     * Constructs a 'BatchRequest' with requestId, relativeUrl, method, headers, reference and body of the incoming
+     * request.
+     *
      * @param requestId
      *            of HTTP request.
      * @param relativeUrl
@@ -56,7 +55,7 @@ public class BatchRequest {
      *            of HTTP request.
      * @param body
      *            of HTTP request.
-     * 
+     *
      * @see Header
      */
     public BatchRequest(Long requestId, String relativeUrl, String method, Set<Header> headers, Long reference, String body) {
@@ -78,7 +77,7 @@ public class BatchRequest {
 
     /**
      * Returns the value of 'requestId' of an object of this class.
-     * 
+     *
      * @return requestId of the HTTP request.
      */
     public Long getRequestId() {
@@ -87,7 +86,7 @@ public class BatchRequest {
 
     /**
      * Sets the value of 'requestId' of an object of this class.
-     * 
+     *
      * @param requestId
      */
     public void setRequestId(Long requestId) {
@@ -96,7 +95,7 @@ public class BatchRequest {
 
     /**
      * Returns the value of 'relativeUrl' of an object of this class.
-     * 
+     *
      * @return relativeUrl of the HTTP request.
      */
     public String getRelativeUrl() {
@@ -105,7 +104,7 @@ public class BatchRequest {
 
     /**
      * Sets the value of 'relativeUrl' of an object of this class.
-     * 
+     *
      * @param relativeUrl
      */
     public void setRelativeUrl(String relativeUrl) {
@@ -114,7 +113,7 @@ public class BatchRequest {
 
     /**
      * Returns the value of 'method' of an object of this class.
-     * 
+     *
      * @return method of the HTTP request.
      */
     public String getMethod() {
@@ -123,7 +122,7 @@ public class BatchRequest {
 
     /**
      * Sets the value of 'method' of the object of this class.
-     * 
+     *
      * @param method
      */
     public void setMethod(String method) {
@@ -131,9 +130,8 @@ public class BatchRequest {
     }
 
     /**
-     * Returns the values of 'headers' of {@link Header} type of an object of
-     * this class.
-     * 
+     * Returns the values of 'headers' of {@link Header} type of an object of this class.
+     *
      * @return headers of the HTTP request.
      * @see Header
      */
@@ -142,9 +140,8 @@ public class BatchRequest {
     }
 
     /**
-     * Sets the values of 'headers' of {@link Header} type of an object of this
-     * class.
-     * 
+     * Sets the values of 'headers' of {@link Header} type of an object of this class.
+     *
      * @param headers
      * @see Header
      */
@@ -154,7 +151,7 @@ public class BatchRequest {
 
     /**
      * Returns the value of 'reference' of an object of this class
-     * 
+     *
      * @return reference of the HTTP request
      */
     public Long getReference() {
@@ -163,7 +160,7 @@ public class BatchRequest {
 
     /**
      * Sets the value of 'reference' of an object of this class.
-     * 
+     *
      * @param reference
      */
     public void setReference(Long reference) {
@@ -172,7 +169,7 @@ public class BatchRequest {
 
     /**
      * Returns the value of 'body' of an object of this class.
-     * 
+     *
      * @return body of the HTTP request.
      */
     public String getBody() {
@@ -181,7 +178,7 @@ public class BatchRequest {
 
     /**
      * Sets the value of 'body' of an object of this class.
-     * 
+     *
      * @param body
      */
     public void setBody(String body) {

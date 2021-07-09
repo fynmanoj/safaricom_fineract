@@ -18,11 +18,11 @@
  */
 package org.apache.fineract.portfolio.paymentdetail;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+public final class PaymentDetailConstants {
 
-public class PaymentDetailConstants {
+    private PaymentDetailConstants() {
+
+    }
 
     // Code representing Payment Details
     public static final String paymentTypeCodeName = "PaymentType";

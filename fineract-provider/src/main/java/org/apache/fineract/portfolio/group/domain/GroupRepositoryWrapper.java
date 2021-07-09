@@ -18,18 +18,17 @@
  */
 package org.apache.fineract.portfolio.group.domain;
 
+import java.time.LocalDate;
 import java.util.Date;
-
+import org.apache.fineract.infrastructure.core.service.DateUtils;
 import org.apache.fineract.organisation.office.domain.Office;
 import org.apache.fineract.portfolio.group.exception.GroupNotFoundException;
-import org.joda.time.LocalDate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
  * <p>
- * Wrapper for {@link GroupRepository} that adds NULL checking and Error
- * handling capabilities
+ * Wrapper for {@link GroupRepository} that adds NULL checking and Error handling capabilities
  * </p>
  */
 @Service
@@ -43,14 +42,14 @@ public class GroupRepositoryWrapper {
     }
 
     public Group findOneWithNotFoundDetection(final Long id) {
-        final Group entity = this.repository.findOne(id);
-        if (entity == null) { throw new GroupNotFoundException(id); }
-        return entity;
+        return this.repository.findById(id).orElseThrow(() -> new GroupNotFoundException(id));
     }
 
     public Group findByOfficeWithNotFoundDetection(final Long id, final Office office) {
         final Group group = findOneWithNotFoundDetection(id);
-        if (group.getOffice().getId() != office.getId()) { throw new GroupNotFoundException(id); }
+        if (!group.getOffice().getId().equals(office.getId())) {
+            throw new GroupNotFoundException(id);
+        }
         return group;
     }
 
@@ -69,12 +68,12 @@ public class GroupRepositoryWrapper {
     public void flush() {
         this.repository.flush();
     }
-    
-	public LocalDate retrieveSubmittedOndate(final Long groupId) {
-		Date submittedOnDate = this.repository.retrieveGroupTypeSubmitteOndDate(groupId);
-		if (submittedOnDate != null) {
-			return new LocalDate(submittedOnDate);
-		}
-		return null;
-	}
+
+    public LocalDate retrieveSubmittedOndate(final Long groupId) {
+        Date submittedOnDate = this.repository.retrieveGroupTypeSubmitteOndDate(groupId);
+        if (submittedOnDate != null) {
+            return LocalDate.ofInstant(submittedOnDate.toInstant(), DateUtils.getDateTimeZoneOfTenant());
+        }
+        return null;
+    }
 }

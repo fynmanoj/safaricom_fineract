@@ -18,13 +18,9 @@
  */
 package org.apache.fineract.portfolio.savings.domain;
 
-import org.apache.fineract.organisation.monetary.domain.MonetaryCurrency;
-import org.apache.fineract.organisation.monetary.domain.Money;
-import org.apache.fineract.portfolio.loanaccount.guarantor.domain.GuarantorFundingTransaction;
-import org.apache.fineract.portfolio.savings.DepositAccountOnHoldTransactionType;
-import org.joda.time.LocalDate;
-import org.apache.fineract.infrastructure.core.domain.AbstractPersistableCustom;
-
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.Date;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -34,12 +30,16 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-import java.math.BigDecimal;
-import java.util.Date;
+import org.apache.fineract.infrastructure.core.domain.AbstractPersistableCustom;
+import org.apache.fineract.infrastructure.core.service.DateUtils;
+import org.apache.fineract.organisation.monetary.domain.MonetaryCurrency;
+import org.apache.fineract.organisation.monetary.domain.Money;
+import org.apache.fineract.portfolio.loanaccount.guarantor.domain.GuarantorFundingTransaction;
+import org.apache.fineract.portfolio.savings.DepositAccountOnHoldTransactionType;
 
 @Entity
 @Table(name = "m_deposit_account_on_hold_transaction")
-public class DepositAccountOnHoldTransaction extends AbstractPersistableCustom<Long> {
+public class DepositAccountOnHoldTransaction extends AbstractPersistableCustom {
 
     @ManyToOne
     @JoinColumn(name = "savings_account_id", nullable = true)
@@ -72,7 +72,7 @@ public class DepositAccountOnHoldTransaction extends AbstractPersistableCustom<L
         this.savingsAccount = savingsAccount;
         this.amount = amount;
         this.transactionType = transactionType.getValue();
-        this.transactionDate = transactionDate.toDate();
+        this.transactionDate = Date.from(transactionDate.atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant());
         this.createdDate = new Date();
         this.reversed = reversed;
     }
@@ -114,8 +114,8 @@ public class DepositAccountOnHoldTransaction extends AbstractPersistableCustom<L
 
     public LocalDate getTransactionDate() {
         LocalDate transactionDate = null;
-        if(this.transactionDate !=null){
-            transactionDate = LocalDate.fromDateFields(this.transactionDate);
+        if (this.transactionDate != null) {
+            transactionDate = LocalDate.ofInstant(this.transactionDate.toInstant(), DateUtils.getDateTimeZoneOfTenant());
         }
         return transactionDate;
     }

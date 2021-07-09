@@ -18,23 +18,29 @@
  */
 package org.apache.fineract.spm.domain;
 
-import org.apache.fineract.infrastructure.core.domain.AbstractPersistableCustom;
-
-import javax.persistence.*;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.OneToMany;
+import javax.persistence.OrderBy;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+import org.apache.fineract.infrastructure.core.domain.AbstractPersistableCustom;
 
 @Entity
 @Table(name = "m_surveys")
-public class Survey extends AbstractPersistableCustom<Long> {
+public class Survey extends AbstractPersistableCustom {
 
-    @OneToMany(mappedBy = "survey", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval=true)
+    @OneToMany(mappedBy = "survey", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("sequenceNo")
     private List<Component> components;
 
-    @OneToMany(mappedBy = "survey", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval=true)
+    @OneToMany(mappedBy = "survey", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("sequenceNo")
     private List<Question> questions;
 
@@ -59,7 +65,7 @@ public class Survey extends AbstractPersistableCustom<Long> {
     private Date validTo;
 
     public Survey() {
-        super();
+
     }
 
     public List<Component> getComponents() {
@@ -75,12 +81,12 @@ public class Survey extends AbstractPersistableCustom<Long> {
     }
 
     public void setQuestions(List<Question> questions) {
-        if(this.questions != null){
-            this.questions.clear();;
-        }else{
+        if (this.questions != null) {
+            this.questions.clear();
+        } else {
             this.questions = new ArrayList<>();
         }
-        
+
         this.questions.addAll(questions);
     }
 

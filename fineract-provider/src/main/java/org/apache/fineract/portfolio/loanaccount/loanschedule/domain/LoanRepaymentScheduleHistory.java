@@ -20,7 +20,6 @@ package org.apache.fineract.portfolio.loanaccount.loanschedule.domain;
 
 import java.math.BigDecimal;
 import java.util.Date;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
@@ -29,15 +28,14 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-
+import org.apache.fineract.infrastructure.core.domain.AbstractPersistableCustom;
 import org.apache.fineract.portfolio.loanaccount.domain.Loan;
 import org.apache.fineract.portfolio.loanaccount.rescheduleloan.domain.LoanRescheduleRequest;
 import org.apache.fineract.useradministration.domain.AppUser;
-import org.apache.fineract.infrastructure.core.domain.AbstractPersistableCustom;
 
 @Entity
 @Table(name = "m_loan_repayment_schedule_history")
-public class LoanRepaymentScheduleHistory extends AbstractPersistableCustom<Long> {
+public class LoanRepaymentScheduleHistory extends AbstractPersistableCustom {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "loan_id")
@@ -99,9 +97,8 @@ public class LoanRepaymentScheduleHistory extends AbstractPersistableCustom<Long
      **/
     private LoanRepaymentScheduleHistory(final Loan loan, final LoanRescheduleRequest loanRescheduleRequest,
             final Integer installmentNumber, final Date fromDate, final Date dueDate, final BigDecimal principal,
-            final BigDecimal interestCharged, final BigDecimal feeChargesCharged, final BigDecimal penaltyCharges,
-            final Date createdOnDate, final AppUser createdByUser, final AppUser lastModifiedByUser, final Date lastModifiedOnDate,
-            final Integer version) {
+            final BigDecimal interestCharged, final BigDecimal feeChargesCharged, final BigDecimal penaltyCharges, final Date createdOnDate,
+            final AppUser createdByUser, final AppUser lastModifiedByUser, final Date lastModifiedOnDate, final Integer version) {
 
         this.loan = loan;
         this.loanRescheduleRequest = loanRescheduleRequest;
@@ -124,9 +121,8 @@ public class LoanRepaymentScheduleHistory extends AbstractPersistableCustom<Long
      **/
     public static LoanRepaymentScheduleHistory instance(final Loan loan, final LoanRescheduleRequest loanRescheduleRequest,
             final Integer installmentNumber, final Date fromDate, final Date dueDate, final BigDecimal principal,
-            final BigDecimal interestCharged, final BigDecimal feeChargesCharged, final BigDecimal penaltyCharges,
-            final Date createdOnDate, final AppUser createdByUser, final AppUser lastModifiedByUser, final Date lastModifiedOnDate,
-            final Integer version) {
+            final BigDecimal interestCharged, final BigDecimal feeChargesCharged, final BigDecimal penaltyCharges, final Date createdOnDate,
+            final AppUser createdByUser, final AppUser lastModifiedByUser, final Date lastModifiedOnDate, final Integer version) {
 
         return new LoanRepaymentScheduleHistory(loan, loanRescheduleRequest, installmentNumber, fromDate, dueDate, principal,
                 interestCharged, feeChargesCharged, penaltyCharges, createdOnDate, createdByUser, lastModifiedByUser, lastModifiedOnDate,

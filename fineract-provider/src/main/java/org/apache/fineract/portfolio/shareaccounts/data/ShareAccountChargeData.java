@@ -18,18 +18,15 @@
  */
 package org.apache.fineract.portfolio.shareaccounts.data;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Collection;
-
 import org.apache.fineract.infrastructure.core.data.EnumOptionData;
 import org.apache.fineract.organisation.monetary.data.CurrencyData;
 import org.apache.fineract.portfolio.charge.data.ChargeData;
-import org.apache.fineract.portfolio.charge.domain.ChargeCalculationType;
-import org.joda.time.LocalDate;
-import org.joda.time.MonthDay;
 
 @SuppressWarnings("unused")
-public class ShareAccountChargeData {
+public class ShareAccountChargeData implements Serializable {
 
     private final Long id;
 
@@ -85,12 +82,11 @@ public class ShareAccountChargeData {
         this.chargeOptions = null;
     }
 
-
-    public ShareAccountChargeData(final Long id, final Long chargeId, final Long accountId, final String name,
-            final CurrencyData currency, final BigDecimal amount, final BigDecimal amountPaid, final BigDecimal amountWaived,
-            final BigDecimal amountWrittenOff, final BigDecimal amountOutstanding, final EnumOptionData chargeTimeType,
-            final EnumOptionData chargeCalculationType, final BigDecimal percentage, final BigDecimal amountPercentageAppliedTo,
-            final Collection<ChargeData> chargeOptions, final Boolean isActive, final BigDecimal chargeamountorpercentage) {
+    public ShareAccountChargeData(final Long id, final Long chargeId, final Long accountId, final String name, final CurrencyData currency,
+            final BigDecimal amount, final BigDecimal amountPaid, final BigDecimal amountWaived, final BigDecimal amountWrittenOff,
+            final BigDecimal amountOutstanding, final EnumOptionData chargeTimeType, final EnumOptionData chargeCalculationType,
+            final BigDecimal percentage, final BigDecimal amountPercentageAppliedTo, final Collection<ChargeData> chargeOptions,
+            final Boolean isActive, final BigDecimal chargeamountorpercentage) {
         this.id = id;
         this.chargeId = chargeId;
         this.accountId = accountId;
@@ -100,7 +96,7 @@ public class ShareAccountChargeData {
         this.percentage = percentage;
         this.amountPercentageAppliedTo = amountPercentageAppliedTo;
         this.currency = currency;
-        this.amount = amount;  
+        this.amount = amount;
         this.amountPaid = amountPaid;
         this.amountWaived = amountWaived;
         this.amountWrittenOff = amountWrittenOff;
@@ -110,8 +106,7 @@ public class ShareAccountChargeData {
         this.isActive = isActive;
     }
 
-    
     private BigDecimal getAmountOrPercentage() {
-        return (this.chargeCalculationType != null) && (this.chargeCalculationType.getId().intValue() > 1) ? this.percentage : this.amount;
+        return this.chargeCalculationType != null && this.chargeCalculationType.getId().intValue() > 1 ? this.percentage : this.amount;
     }
 }

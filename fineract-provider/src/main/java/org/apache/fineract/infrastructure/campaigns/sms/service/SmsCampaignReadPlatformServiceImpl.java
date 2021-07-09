@@ -20,13 +20,14 @@ package org.apache.fineract.infrastructure.campaigns.sms.service;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.fineract.infrastructure.campaigns.constants.CampaignType;
 import org.apache.fineract.infrastructure.campaigns.sms.constants.SmsCampaignTriggerType;
 import org.apache.fineract.infrastructure.campaigns.sms.data.SmsBusinessRulesData;
@@ -42,8 +43,6 @@ import org.apache.fineract.infrastructure.core.service.PaginationHelper;
 import org.apache.fineract.infrastructure.core.service.RoutingDataSource;
 import org.apache.fineract.infrastructure.core.service.SearchParameters;
 import org.apache.fineract.portfolio.calendar.service.CalendarDropdownReadPlatformService;
-import org.joda.time.DateTime;
-import org.joda.time.LocalDate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -64,7 +63,7 @@ public class SmsCampaignReadPlatformServiceImpl implements SmsCampaignReadPlatfo
 
     @Autowired
     public SmsCampaignReadPlatformServiceImpl(final RoutingDataSource dataSource,
-            SmsCampaignDropdownReadPlatformService smsCampaignDropdownReadPlatformService, 
+            SmsCampaignDropdownReadPlatformService smsCampaignDropdownReadPlatformService,
             final CalendarDropdownReadPlatformService calendarDropdownReadPlatformService) {
         this.jdbcTemplate = new JdbcTemplate(dataSource);
         businessRuleMapper = new BusinessRuleMapper();
@@ -80,7 +79,7 @@ public class SmsCampaignReadPlatformServiceImpl implements SmsCampaignReadPlatfo
             final String sql = "select " + this.smsCampaignMapper.schema + " where sc.id = ? and sc.is_visible = ?";
             return this.jdbcTemplate.queryForObject(sql, this.smsCampaignMapper, new Object[] { campaignId, isVisible });
         } catch (final EmptyResultDataAccessException e) {
-            throw new SmsCampaignNotFound(campaignId);
+            throw new SmsCampaignNotFound(campaignId, e);
         }
     }
 
@@ -118,7 +117,9 @@ public class SmsCampaignReadPlatformServiceImpl implements SmsCampaignReadPlatfo
         final Collection<EnumOptionData> frequencyTypeOptions = this.calendarDropdownReadPlatformService
                 .retrieveCalendarFrequencyTypeOptions();
         final Collection<EnumOptionData> periodFrequencyOptions = this.smsCampaignDropdownReadPlatformService.retrivePeriodFrequencyTypes();
-        //final Collection<TriggerTypeWithSubTypesData> triggerTypeSubTypeOptions = this.smsCampaignDropdownReadPlatformService.getTriggerTypeAndSubTypes();
+        // final Collection<TriggerTypeWithSubTypesData>
+        // triggerTypeSubTypeOptions =
+        // this.smsCampaignDropdownReadPlatformService.getTriggerTypeAndSubTypes();
         return SmsCampaignData.template(smsProviderOptions, campaignTypeOptions, businessRulesOptions, campaignTriggerTypeOptions, months,
                 weekDays, frequencyTypeOptions, periodFrequencyOptions);
     }
@@ -193,7 +194,7 @@ public class SmsCampaignReadPlatformServiceImpl implements SmsCampaignReadPlatfo
             return smsBusinessRulesDataList;
         }
     }
-    
+
     private static final class SmsCampaignMapper implements RowMapper<SmsCampaignData> {
 
         final String schema;
@@ -249,7 +250,7 @@ public class SmsCampaignReadPlatformServiceImpl implements SmsCampaignReadPlatfo
             final Integer triggerType = JdbcSupport.getInteger(rs, "triggerType");
             final EnumOptionData triggerTypeEnum = SmsCampaignTriggerType.triggerType(triggerType);
 
-            final DateTime nextTriggerDate = JdbcSupport.getDateTime(rs, "nextTriggerDate");
+            final ZonedDateTime nextTriggerDate = JdbcSupport.getDateTime(rs, "nextTriggerDate");
             final LocalDate lastTriggerDate = JdbcSupport.getLocalDate(rs, "lastTriggerDate");
 
             final LocalDate closedOnDate = JdbcSupport.getLocalDate(rs, "closedOnDate");
@@ -261,14 +262,15 @@ public class SmsCampaignReadPlatformServiceImpl implements SmsCampaignReadPlatfo
             final LocalDate activatedOnDate = JdbcSupport.getLocalDate(rs, "activatedOnDate");
             final String activatedByUsername = rs.getString("activatedByUsername");
             final String recurrence = rs.getString("recurrence");
-            final DateTime recurrenceStartDate = JdbcSupport.getDateTime(rs, "recurrenceStartDate");
+            final ZonedDateTime recurrenceStartDate = JdbcSupport.getDateTime(rs, "recurrenceStartDate");
             final SmsCampaignTimeLine smsCampaignTimeLine = new SmsCampaignTimeLine(submittedOnDate, submittedByUsername, activatedOnDate,
                     activatedByUsername, closedOnDate, closedByUsername);
             final String reportName = rs.getString("reportName");
             final Long providerId = rs.getLong("providerId");
             final Boolean isNotification = rs.getBoolean("isNotification");
-            return SmsCampaignData.instance(id, campaignName, campaignTypeEnum, triggerTypeEnum, runReportId, reportName, paramValue, status, message, nextTriggerDate, lastTriggerDate,
-                    smsCampaignTimeLine, recurrenceStartDate, recurrence, providerId, isNotification);
+            return SmsCampaignData.instance(id, campaignName, campaignTypeEnum, triggerTypeEnum, runReportId, reportName, paramValue,
+                    status, message, nextTriggerDate, lastTriggerDate, smsCampaignTimeLine, recurrenceStartDate, recurrence, providerId,
+                    isNotification);
         }
     }
 

@@ -30,11 +30,11 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @CommandType(entity = "CLIENT", action = "UPDATESAVINGSACCOUNT")
 public class UpdateClientSavingsAccountCommandHandler implements NewCommandSourceHandler {
-    
+
     private final ClientWritePlatformService clientWritePlatformService;
 
     @Autowired
-    public UpdateClientSavingsAccountCommandHandler(final ClientWritePlatformService clientWritePlatformService){
+    public UpdateClientSavingsAccountCommandHandler(final ClientWritePlatformService clientWritePlatformService) {
         this.clientWritePlatformService = clientWritePlatformService;
     }
 

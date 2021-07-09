@@ -21,8 +21,8 @@ package org.apache.fineract.portfolio.client.service;
 import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.Collection;
-
 import org.apache.fineract.infrastructure.core.data.EnumOptionData;
 import org.apache.fineract.infrastructure.core.domain.JdbcSupport;
 import org.apache.fineract.infrastructure.core.service.Page;
@@ -36,7 +36,6 @@ import org.apache.fineract.portfolio.charge.service.ChargeEnumerations;
 import org.apache.fineract.portfolio.client.api.ClientApiConstants;
 import org.apache.fineract.portfolio.client.data.ClientChargeData;
 import org.apache.fineract.portfolio.client.exception.ClientChargeNotFoundException;
-import org.joda.time.LocalDate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -127,7 +126,7 @@ public class ClientChargeReadPlatformServiceImpl implements ClientChargeReadPlat
 
             return this.jdbcTemplate.queryForObject(sql, rm, new Object[] { clientId, clientChargeId });
         } catch (final EmptyResultDataAccessException e) {
-            throw new ClientChargeNotFoundException(clientChargeId, clientId);
+            throw new ClientChargeNotFoundException(clientChargeId, clientId, e);
         }
     }
 

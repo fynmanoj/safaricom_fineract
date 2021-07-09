@@ -23,7 +23,10 @@ import static org.apache.fineract.portfolio.interestratechart.InterestRateChartA
 import static org.apache.fineract.portfolio.savings.DepositsApiConstants.FIXED_DEPOSIT_PRODUCT_RESOURCE_NAME;
 import static org.apache.fineract.portfolio.savings.DepositsApiConstants.maxDepositTermParamName;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -32,7 +35,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import javax.persistence.CascadeType;
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
@@ -42,7 +44,6 @@ import javax.persistence.JoinTable;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Transient;
-
 import org.apache.fineract.accounting.common.AccountingRuleType;
 import org.apache.fineract.infrastructure.core.api.JsonCommand;
 import org.apache.fineract.infrastructure.core.data.ApiParameterError;
@@ -60,10 +61,6 @@ import org.apache.fineract.portfolio.savings.SavingsInterestCalculationType;
 import org.apache.fineract.portfolio.savings.SavingsPeriodFrequencyType;
 import org.apache.fineract.portfolio.savings.SavingsPostingInterestPeriodType;
 import org.apache.fineract.portfolio.tax.domain.TaxGroup;
-import org.joda.time.LocalDate;
-
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 
 @Entity
 @DiscriminatorValue("200")
@@ -80,7 +77,7 @@ public class FixedDepositProduct extends SavingsProduct {
     protected InterestRateChartAssembler chartAssembler;
 
     protected FixedDepositProduct() {
-        super();
+
     }
 
     public static FixedDepositProduct createNew(final String name, final String shortName, final String description,
@@ -100,8 +97,7 @@ public class FixedDepositProduct extends SavingsProduct {
         return new FixedDepositProduct(name, shortName, description, currency, interestRate, interestCompoundingPeriodType,
                 interestPostingPeriodType, interestCalculationType, interestCalculationDaysInYearType, minRequiredOpeningBalance,
                 lockinPeriodFrequency, lockinPeriodFrequencyType, withdrawalFeeApplicableForTransfer, accountingRuleType, charges,
-                productTermAndPreClosure, charts, allowOverdraft, overdraftLimit, minBalanceForInterestCalculation, withHoldTax,
-                taxGroup);
+                productTermAndPreClosure, charts, allowOverdraft, overdraftLimit, minBalanceForInterestCalculation, withHoldTax, taxGroup);
     }
 
     protected FixedDepositProduct(final String name, final String shortName, final String description, final MonetaryCurrency currency,
@@ -223,7 +219,9 @@ public class FixedDepositProduct extends SavingsProduct {
     }
 
     private void throwExceptionIfValidationWarningsExist(final List<ApiParameterError> dataValidationErrors) {
-        if (!dataValidationErrors.isEmpty()) { throw new PlatformApiDataValidationException(dataValidationErrors); }
+        if (!dataValidationErrors.isEmpty()) {
+            throw new PlatformApiDataValidationException(dataValidationErrors);
+        }
     }
 
     @Override
@@ -231,7 +229,9 @@ public class FixedDepositProduct extends SavingsProduct {
         final Set<InterestRateChart> charts = setOfCharts();
 
         for (InterestRateChart chart : charts) {
-            if (chart.getId().equals(chartId)) { return chart; }
+            if (chart.getId().equals(chartId)) {
+                return chart;
+            }
         }
         return null;
     }
@@ -285,24 +285,19 @@ public class FixedDepositProduct extends SavingsProduct {
 
     public void validateInterestPostingAndCompoundingPeriodTypes(final DataValidatorBuilder baseDataValidator) {
         Map<SavingsPostingInterestPeriodType, List<SavingsCompoundingInterestPeriodType>> postingtoCompoundMap = new HashMap<>();
-        postingtoCompoundMap.put(
-                SavingsPostingInterestPeriodType.MONTHLY,
-                Arrays.asList(new SavingsCompoundingInterestPeriodType[] { SavingsCompoundingInterestPeriodType.DAILY,
-                        SavingsCompoundingInterestPeriodType.MONTHLY }));
+        postingtoCompoundMap.put(SavingsPostingInterestPeriodType.MONTHLY, Arrays.asList(new SavingsCompoundingInterestPeriodType[] {
+                SavingsCompoundingInterestPeriodType.DAILY, SavingsCompoundingInterestPeriodType.MONTHLY }));
 
-        postingtoCompoundMap.put(
-                SavingsPostingInterestPeriodType.QUATERLY,
+        postingtoCompoundMap.put(SavingsPostingInterestPeriodType.QUATERLY,
                 Arrays.asList(new SavingsCompoundingInterestPeriodType[] { SavingsCompoundingInterestPeriodType.DAILY,
                         SavingsCompoundingInterestPeriodType.MONTHLY, SavingsCompoundingInterestPeriodType.QUATERLY }));
 
-        postingtoCompoundMap.put(
-                SavingsPostingInterestPeriodType.BIANNUAL,
+        postingtoCompoundMap.put(SavingsPostingInterestPeriodType.BIANNUAL,
                 Arrays.asList(new SavingsCompoundingInterestPeriodType[] { SavingsCompoundingInterestPeriodType.DAILY,
                         SavingsCompoundingInterestPeriodType.MONTHLY, SavingsCompoundingInterestPeriodType.QUATERLY,
                         SavingsCompoundingInterestPeriodType.BI_ANNUAL }));
 
-        postingtoCompoundMap.put(
-                SavingsPostingInterestPeriodType.ANNUAL,
+        postingtoCompoundMap.put(SavingsPostingInterestPeriodType.ANNUAL,
                 Arrays.asList(new SavingsCompoundingInterestPeriodType[] { SavingsCompoundingInterestPeriodType.DAILY,
                         SavingsCompoundingInterestPeriodType.MONTHLY, SavingsCompoundingInterestPeriodType.QUATERLY,
                         SavingsCompoundingInterestPeriodType.BI_ANNUAL, SavingsCompoundingInterestPeriodType.ANNUAL }));

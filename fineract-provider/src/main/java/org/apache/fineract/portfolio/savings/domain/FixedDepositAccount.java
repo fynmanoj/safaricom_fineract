@@ -25,6 +25,8 @@ import static org.apache.fineract.portfolio.savings.DepositsApiConstants.onAccou
 
 import java.math.BigDecimal;
 import java.math.MathContext;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -32,14 +34,12 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-
 import javax.persistence.CascadeType;
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.OneToOne;
 import javax.persistence.Transient;
-
 import org.apache.fineract.infrastructure.core.api.JsonCommand;
 import org.apache.fineract.infrastructure.core.data.ApiParameterError;
 import org.apache.fineract.infrastructure.core.data.DataValidatorBuilder;
@@ -65,9 +65,6 @@ import org.apache.fineract.portfolio.savings.SavingsPostingInterestPeriodType;
 import org.apache.fineract.portfolio.savings.domain.interest.PostingPeriod;
 import org.apache.fineract.portfolio.savings.service.SavingsEnumerations;
 import org.apache.fineract.useradministration.domain.AppUser;
-import org.joda.time.LocalDate;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 
 @Entity
 @DiscriminatorValue("200")
@@ -86,15 +83,16 @@ public class FixedDepositAccount extends SavingsAccount {
         //
     }
 
-    public static FixedDepositAccount createNewApplicationForSubmittal(final Client client, final Group group,
-            final SavingsProduct product, final Staff fieldOfficer, final String accountNo, final String externalId,
-            final AccountType accountType, final LocalDate submittedOnDate, final AppUser submittedBy, final BigDecimal interestRate,
+    public static FixedDepositAccount createNewApplicationForSubmittal(final Client client, final Group group, final SavingsProduct product,
+            final Staff fieldOfficer, final String accountNo, final String externalId, final AccountType accountType,
+            final LocalDate submittedOnDate, final AppUser submittedBy, final BigDecimal interestRate,
             final SavingsCompoundingInterestPeriodType interestCompoundingPeriodType,
             final SavingsPostingInterestPeriodType interestPostingPeriodType, final SavingsInterestCalculationType interestCalculationType,
             final SavingsInterestCalculationDaysInYearType interestCalculationDaysInYearType, final BigDecimal minRequiredOpeningBalance,
             final Integer lockinPeriodFrequency, final SavingsPeriodFrequencyType lockinPeriodFrequencyType,
             final boolean withdrawalFeeApplicableForTransfer, final Set<SavingsAccountCharge> savingsAccountCharges,
-            final DepositAccountTermAndPreClosure accountTermAndPreClosure, final DepositAccountInterestRateChart chart, boolean withHoldTax) {
+            final DepositAccountTermAndPreClosure accountTermAndPreClosure, final DepositAccountInterestRateChart chart,
+            boolean withHoldTax) {
 
         final SavingsAccountStatusType status = SavingsAccountStatusType.SUBMITTED_AND_PENDING_APPROVAL;
         final boolean allowOverdraft = false;
@@ -141,7 +139,9 @@ public class FixedDepositAccount extends SavingsAccount {
         actualChanges.putAll(termAndPreClosureChanges);
         validateDomainRules(baseDataValidator);
         super.validateInterestPostingAndCompoundingPeriodTypes(baseDataValidator);
-        if (!dataValidationErrors.isEmpty()) { throw new PlatformApiDataValidationException(dataValidationErrors); }
+        if (!dataValidationErrors.isEmpty()) {
+            throw new PlatformApiDataValidationException(dataValidationErrors);
+        }
     }
 
     @Override
@@ -179,12 +179,12 @@ public class FixedDepositAccount extends SavingsAccount {
 
             if (applyPreMaturePenalty) {
                 applicableInterestRate = applicableInterestRate.subtract(penalInterest);
-                applicableInterestRate = applicableInterestRate.compareTo(BigDecimal.ZERO) == -1 ? BigDecimal.ZERO : applicableInterestRate;
+                applicableInterestRate = applicableInterestRate.compareTo(BigDecimal.ZERO) < 0 ? BigDecimal.ZERO : applicableInterestRate;
             }
         }
         this.nominalAnnualInterestRate = applicableInterestRate;
 
-        return applicableInterestRate.divide(BigDecimal.valueOf(100l), mc);
+        return applicableInterestRate.divide(BigDecimal.valueOf(100L), mc);
     }
 
     public void updateMaturityDateAndAmountBeforeAccountActivation(final MathContext mc, final boolean isPreMatureClosure,
@@ -250,7 +250,9 @@ public class FixedDepositAccount extends SavingsAccount {
         final SavingsAccountStatusType currentStatus = SavingsAccountStatusType.fromInt(this.status);
         if (!SavingsAccountStatusType.ACTIVE.hasStateOf(currentStatus)) {
             baseDataValidator.reset().failWithCodeNoParameterAddedToErrorCode("not.in.active.state");
-            if (!dataValidationErrors.isEmpty()) { throw new PlatformApiDataValidationException(dataValidationErrors); }
+            if (!dataValidationErrors.isEmpty()) {
+                throw new PlatformApiDataValidationException(dataValidationErrors);
+            }
         }
 
         final LocalDate todayDate = DateUtils.getLocalDateOfTenant();
@@ -297,8 +299,8 @@ public class FixedDepositAccount extends SavingsAccount {
 
         final SavingsInterestCalculationDaysInYearType daysInYearType = SavingsInterestCalculationDaysInYearType
                 .fromInt(this.interestCalculationDaysInYearType);
-        List<LocalDate> postedAsOnTransactionDates= getManualPostingDates();
-        
+        List<LocalDate> postedAsOnTransactionDates = getManualPostingDates();
+
         final List<LocalDateInterval> postingPeriodIntervals = this.savingsHelper.determineInterestPostingPeriods(
                 accountSubmittedOrActivationDate(), maturityDate, postingPeriodType, financialYearBeginningMonth,
                 postedAsOnTransactionDates);
@@ -317,9 +319,9 @@ public class FixedDepositAccount extends SavingsAccount {
             if (postedAsOnTransactionDates.contains(periodInterval.endDate())) {
                 isUserPosting = true;
             }
-            final PostingPeriod postingPeriod = PostingPeriod.createFrom(periodInterval, periodStartingBalance, transactions,
-                    this.currency, compoundingPeriodType, interestCalculationType, interestRateAsFraction, daysInYearType.getValue(),
-                    maturityDate, interestPostTransactions, isInterestTransfer, minBalanceForInterestCalculation,
+            final PostingPeriod postingPeriod = PostingPeriod.createFrom(periodInterval, periodStartingBalance, transactions, this.currency,
+                    compoundingPeriodType, interestCalculationType, interestRateAsFraction, daysInYearType.getValue(), maturityDate,
+                    interestPostTransactions, isInterestTransfer, minBalanceForInterestCalculation,
                     isSavingsInterestPostingAtCurrentPeriodEnd, isUserPosting, financialYearBeginningMonth);
 
             periodStartingBalance = postingPeriod.closingBalance();
@@ -343,35 +345,45 @@ public class FixedDepositAccount extends SavingsAccount {
         final SavingsAccountStatusType currentStatus = SavingsAccountStatusType.fromInt(this.status);
         if (!SavingsAccountStatusType.ACTIVE.hasStateOf(currentStatus)) {
             baseDataValidator.reset().failWithCodeNoParameterAddedToErrorCode("not.in.active.state");
-            if (!dataValidationErrors.isEmpty()) { throw new PlatformApiDataValidationException(dataValidationErrors); }
+            if (!dataValidationErrors.isEmpty()) {
+                throw new PlatformApiDataValidationException(dataValidationErrors);
+            }
         }
 
         final Locale locale = command.extractLocale();
-        final DateTimeFormatter fmt = DateTimeFormat.forPattern(command.dateFormat()).withLocale(locale);
+        final DateTimeFormatter fmt = DateTimeFormatter.ofPattern(command.dateFormat()).withLocale(locale);
         final LocalDate closedDate = command.localDateValueOfParameterNamed(SavingsApiConstants.closedOnDateParamName);
 
         if (closedDate.isBefore(getActivationLocalDate())) {
             baseDataValidator.reset().parameter(SavingsApiConstants.closedOnDateParamName).value(closedDate)
                     .failWithCode("must.be.after.activation.date");
-            if (!dataValidationErrors.isEmpty()) { throw new PlatformApiDataValidationException(dataValidationErrors); }
+            if (!dataValidationErrors.isEmpty()) {
+                throw new PlatformApiDataValidationException(dataValidationErrors);
+            }
         }
 
         if (isAccountLocked(closedDate)) {
             baseDataValidator.reset().parameter(SavingsApiConstants.closedOnDateParamName).value(closedDate)
                     .failWithCode("must.be.after.lockin.period");
-            if (!dataValidationErrors.isEmpty()) { throw new PlatformApiDataValidationException(dataValidationErrors); }
+            if (!dataValidationErrors.isEmpty()) {
+                throw new PlatformApiDataValidationException(dataValidationErrors);
+            }
         }
 
         if (closedDate.isAfter(maturityDate())) {
             baseDataValidator.reset().parameter(SavingsApiConstants.closedOnDateParamName).value(closedDate)
                     .failWithCode("must.be.before.maturity.date");
-            if (!dataValidationErrors.isEmpty()) { throw new PlatformApiDataValidationException(dataValidationErrors); }
+            if (!dataValidationErrors.isEmpty()) {
+                throw new PlatformApiDataValidationException(dataValidationErrors);
+            }
         }
 
         if (closedDate.isAfter(tenantsTodayDate)) {
             baseDataValidator.reset().parameter(SavingsApiConstants.closedOnDateParamName).value(closedDate)
                     .failWithCode("cannot.be.a.future.date");
-            if (!dataValidationErrors.isEmpty()) { throw new PlatformApiDataValidationException(dataValidationErrors); }
+            if (!dataValidationErrors.isEmpty()) {
+                throw new PlatformApiDataValidationException(dataValidationErrors);
+            }
         }
         final List<SavingsAccountTransaction> savingsAccountTransactions = retreiveListOfTransactions();
         if (savingsAccountTransactions.size() > 0) {
@@ -379,7 +391,9 @@ public class FixedDepositAccount extends SavingsAccount {
             if (accountTransaction.isAfter(closedDate)) {
                 baseDataValidator.reset().parameter(SavingsApiConstants.closedOnDateParamName).value(closedDate)
                         .failWithCode("must.be.after.last.transaction.date");
-                if (!dataValidationErrors.isEmpty()) { throw new PlatformApiDataValidationException(dataValidationErrors); }
+                if (!dataValidationErrors.isEmpty()) {
+                    throw new PlatformApiDataValidationException(dataValidationErrors);
+                }
             }
         }
 
@@ -391,23 +405,21 @@ public class FixedDepositAccount extends SavingsAccount {
         this.accountTermAndPreClosure.updateOnAccountClosureStatus(onClosureType);
 
         /*
-         * // withdraw deposit amount before closing the account final Money
-         * transactionAmountMoney = Money.of(this.currency,
-         * this.getAccountBalance()); final SavingsAccountTransaction withdraw =
-         * SavingsAccountTransaction.withdrawal(this, office(), paymentDetail,
-         * closedDate, transactionAmountMoney, new Date());
-         * this.transactions.add(withdraw);
+         * // withdraw deposit amount before closing the account final Money transactionAmountMoney =
+         * Money.of(this.currency, this.getAccountBalance()); final SavingsAccountTransaction withdraw =
+         * SavingsAccountTransaction.withdrawal(this, office(), paymentDetail, closedDate, transactionAmountMoney, new
+         * Date()); this.transactions.add(withdraw);
          */
         actualChanges.put(SavingsApiConstants.statusParamName, SavingsEnumerations.status(this.status));
         actualChanges.put(SavingsApiConstants.localeParamName, command.locale());
         actualChanges.put(SavingsApiConstants.dateFormatParamName, command.dateFormat());
-        actualChanges.put(SavingsApiConstants.closedOnDateParamName, closedDate.toString(fmt));
+        actualChanges.put(SavingsApiConstants.closedOnDateParamName, closedDate.format(fmt));
 
         this.rejectedOnDate = null;
         this.rejectedBy = null;
         this.withdrawnOnDate = null;
         this.withdrawnBy = null;
-        this.closedOnDate = closedDate.toDate();
+        this.closedOnDate = Date.from(closedDate.atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant());
         this.closedBy = currentUser;
         this.summary.updateSummary(this.currency, this.savingsAccountTransactionSummaryWrapper, this.transactions);
     }
@@ -427,27 +439,35 @@ public class FixedDepositAccount extends SavingsAccount {
         final SavingsAccountStatusType currentStatus = SavingsAccountStatusType.fromInt(this.status);
         if (!SavingsAccountStatusType.MATURED.hasStateOf(currentStatus)) {
             baseDataValidator.reset().failWithCodeNoParameterAddedToErrorCode("not.in.matured.state");
-            if (!dataValidationErrors.isEmpty()) { throw new PlatformApiDataValidationException(dataValidationErrors); }
+            if (!dataValidationErrors.isEmpty()) {
+                throw new PlatformApiDataValidationException(dataValidationErrors);
+            }
         }
 
         final Locale locale = command.extractLocale();
-        final DateTimeFormatter fmt = DateTimeFormat.forPattern(command.dateFormat()).withLocale(locale);
+        final DateTimeFormatter fmt = DateTimeFormatter.ofPattern(command.dateFormat()).withLocale(locale);
         final LocalDate closedDate = command.localDateValueOfParameterNamed(SavingsApiConstants.closedOnDateParamName);
 
         if (closedDate.isBefore(getActivationLocalDate())) {
             baseDataValidator.reset().parameter(SavingsApiConstants.closedOnDateParamName).value(closedDate)
                     .failWithCode("must.be.after.activation.date");
-            if (!dataValidationErrors.isEmpty()) { throw new PlatformApiDataValidationException(dataValidationErrors); }
+            if (!dataValidationErrors.isEmpty()) {
+                throw new PlatformApiDataValidationException(dataValidationErrors);
+            }
         }
         if (closedDate.isBefore(maturityDate())) {
             baseDataValidator.reset().parameter(SavingsApiConstants.closedOnDateParamName).value(closedDate)
                     .failWithCode("must.be.after.account.maturity.date");
-            if (!dataValidationErrors.isEmpty()) { throw new PlatformApiDataValidationException(dataValidationErrors); }
+            if (!dataValidationErrors.isEmpty()) {
+                throw new PlatformApiDataValidationException(dataValidationErrors);
+            }
         }
         if (closedDate.isAfter(tenantsTodayDate)) {
             baseDataValidator.reset().parameter(SavingsApiConstants.closedOnDateParamName).value(closedDate)
                     .failWithCode("cannot.be.a.future.date");
-            if (!dataValidationErrors.isEmpty()) { throw new PlatformApiDataValidationException(dataValidationErrors); }
+            if (!dataValidationErrors.isEmpty()) {
+                throw new PlatformApiDataValidationException(dataValidationErrors);
+            }
         }
 
         final List<SavingsAccountTransaction> savingsAccountTransactions = retreiveListOfTransactions();
@@ -456,7 +476,9 @@ public class FixedDepositAccount extends SavingsAccount {
             if (accountTransaction.isAfter(closedDate)) {
                 baseDataValidator.reset().parameter(SavingsApiConstants.closedOnDateParamName).value(closedDate)
                         .failWithCode("must.be.after.last.transaction.date");
-                if (!dataValidationErrors.isEmpty()) { throw new PlatformApiDataValidationException(dataValidationErrors); }
+                if (!dataValidationErrors.isEmpty()) {
+                    throw new PlatformApiDataValidationException(dataValidationErrors);
+                }
             }
         }
 
@@ -479,16 +501,24 @@ public class FixedDepositAccount extends SavingsAccount {
         actualChanges.put(SavingsApiConstants.statusParamName, SavingsEnumerations.status(this.status));
         actualChanges.put(SavingsApiConstants.localeParamName, command.locale());
         actualChanges.put(SavingsApiConstants.dateFormatParamName, command.dateFormat());
-        actualChanges.put(SavingsApiConstants.closedOnDateParamName, closedDate.toString(fmt));
+        actualChanges.put(SavingsApiConstants.closedOnDateParamName, closedDate.format(fmt));
 
         this.rejectedOnDate = null;
         this.rejectedBy = null;
         this.withdrawnOnDate = null;
         this.withdrawnBy = null;
-        this.closedOnDate = closedDate.toDate();
+        this.closedOnDate = Date.from(closedDate.atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant());
         this.closedBy = currentUser;
         // this.summary.updateSummary(this.currency,
         // this.savingsAccountTransactionSummaryWrapper, this.transactions);
+    }
+
+    public void updateClosedStatus() {
+        this.status = SavingsAccountStatusType.CLOSED.getValue();
+    }
+
+    public void updateOnAccountClosureStatus(DepositAccountOnClosureType onClosureType) {
+        this.accountTermAndPreClosure.updateOnAccountClosureStatus(onClosureType);
     }
 
     public void postMaturityInterest(final boolean isSavingsInterestPostingAtCurrentPeriodEnd, final Integer financialYearBeginningMonth) {
@@ -617,7 +647,7 @@ public class FixedDepositAccount extends SavingsAccount {
     @Override
     public List<PostingPeriod> calculateInterestUsing(final MathContext mc, final LocalDate postingDate, boolean isInterestTransfer,
             final boolean isSavingsInterestPostingAtCurrentPeriodEnd, final Integer financialYearBeginningMonth,
-            final LocalDate  postAsInterestOn) {
+            final LocalDate postAsInterestOn) {
         final LocalDate interestPostingUpToDate = interestPostingUpToDate(postingDate);
         return super.calculateInterestUsing(mc, interestPostingUpToDate, isInterestTransfer, isSavingsInterestPostingAtCurrentPeriodEnd,
                 financialYearBeginningMonth, postAsInterestOn);
@@ -691,15 +721,17 @@ public class FixedDepositAccount extends SavingsAccount {
                 .resource(FIXED_DEPOSIT_ACCOUNT_RESOURCE_NAME);
         validateDomainRules(baseDataValidator);
         super.validateInterestPostingAndCompoundingPeriodTypes(baseDataValidator);
-        if (!dataValidationErrors.isEmpty()) { throw new PlatformApiDataValidationException(dataValidationErrors); }
+        if (!dataValidationErrors.isEmpty()) {
+            throw new PlatformApiDataValidationException(dataValidationErrors);
+        }
     }
 
     private void validateDomainRules(final DataValidatorBuilder baseDataValidator) {
 
         final boolean isMinTermGreaterThanMax = this.accountTermAndPreClosure.depositTermDetail()
                 .isMinDepositTermGreaterThanMaxDepositTerm();
-        final boolean isValidDepositPeriod = this.accountTermAndPreClosure.depositTermDetail().isDepositBetweenMinAndMax(
-                depositStartDate(), calculateMaturityDate());
+        final boolean isValidDepositPeriod = this.accountTermAndPreClosure.depositTermDetail().isDepositBetweenMinAndMax(depositStartDate(),
+                calculateMaturityDate());
         // deposit period should be within min and max deposit term
         if (isMinTermGreaterThanMax) {
             final Integer maxTerm = this.accountTermAndPreClosure.depositTermDetail().maxDepositTerm();
@@ -738,9 +770,9 @@ public class FixedDepositAccount extends SavingsAccount {
             BigDecimal applicableInterestRate = this.chart.getApplicableInterestRate(depositAmount, depositStartDate(),
                     calculateMaturityDate(), this.client);
 
-            if (applicableInterestRate.equals(BigDecimal.ZERO)) {
-                baseDataValidator.reset().failWithCodeNoParameterAddedToErrorCode(
-                        "no.applicable.interest.rate.is.found.based.on.amount.and.deposit.period");
+            if (applicableInterestRate.compareTo(BigDecimal.ZERO) == 0 ? Boolean.TRUE : Boolean.FALSE) {
+                baseDataValidator.reset()
+                        .failWithCodeNoParameterAddedToErrorCode("no.applicable.interest.rate.is.found.based.on.amount.and.deposit.period");
             }
 
         } else if (this.nominalAnnualInterestRate == null || this.nominalAnnualInterestRate.compareTo(BigDecimal.ZERO) == 0) {
@@ -756,6 +788,14 @@ public class FixedDepositAccount extends SavingsAccount {
 
     public boolean isTransferToSavingsOnClosure() {
         return this.accountTermAndPreClosure.isTransferToSavingsOnClosure();
+    }
+
+    public Integer getOnAccountClosureId() {
+        return this.accountTermAndPreClosure.getOnAccountClosureType();
+    }
+
+    public Long getTransferToSavingsAccountId() {
+        return this.accountTermAndPreClosure.getTransferToSavingsAccountId();
     }
 
     public FixedDepositAccount reInvest(BigDecimal depositAmount) {
@@ -783,8 +823,8 @@ public class FixedDepositAccount extends SavingsAccount {
         final FixedDepositAccount reInvestedAccount = FixedDepositAccount.createNewApplicationForSubmittal(client, group, product,
                 savingsOfficer, accountNumber, externalId, accountType, getClosedOnDate(), closedBy, interestRate, compoundingPeriodType,
                 postingPeriodType, interestCalculationType, daysInYearType, minRequiredOpeningBalance, lockinPeriodFrequency,
-                lockinPeriodFrequencyType, withdrawalFeeApplicableForTransfer, savingsAccountCharges, newAccountTermAndPreClosure,
-                newChart, withHoldTax);
+                lockinPeriodFrequencyType, withdrawalFeeApplicableForTransfer, savingsAccountCharges, newAccountTermAndPreClosure, newChart,
+                withHoldTax);
 
         newAccountTermAndPreClosure.updateAccountReference(reInvestedAccount);
         newChart.updateDepositAccountReference(reInvestedAccount);
@@ -826,10 +866,24 @@ public class FixedDepositAccount extends SavingsAccount {
     public BigDecimal minBalanceForInterestCalculation() {
         return null;
     }
-    
+
     @Override
     public void loadLazyCollections() {
-    	super.loadLazyCollections();
-    	this.chart.getId() ;
+        super.loadLazyCollections();
+        this.chart.getId();
     }
+
+    public BigDecimal getDepositAmount() {
+        return this.accountTermAndPreClosure.depositAmount();
+    }
+
+    @Override
+    public BigDecimal getAccountBalance() {
+        return this.summary.getAccountBalance(this.currency).getAmount();
+    }
+
+    public boolean isMatured() {
+        return SavingsAccountStatusType.MATURED.getValue().equals(this.status);
+    }
+
 }

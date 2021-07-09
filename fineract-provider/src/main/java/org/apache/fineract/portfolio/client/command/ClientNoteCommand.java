@@ -20,7 +20,6 @@ package org.apache.fineract.portfolio.client.command;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.apache.fineract.infrastructure.core.data.ApiParameterError;
 import org.apache.fineract.infrastructure.core.data.DataValidatorBuilder;
 import org.apache.fineract.infrastructure.core.exception.PlatformApiDataValidationException;
@@ -43,7 +42,9 @@ public class ClientNoteCommand {
 
         baseDataValidator.reset().parameter("note").value(this.note).notBlank().notExceedingLengthOf(1000);
 
-        if (!dataValidationErrors.isEmpty()) { throw new PlatformApiDataValidationException("validation.msg.validation.errors.exist",
-                "Validation errors exist.", dataValidationErrors); }
+        if (!dataValidationErrors.isEmpty()) {
+            throw new PlatformApiDataValidationException("validation.msg.validation.errors.exist", "Validation errors exist.",
+                    dataValidationErrors);
+        }
     }
 }

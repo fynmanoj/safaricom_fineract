@@ -21,7 +21,6 @@ package org.apache.fineract.useradministration.service;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
-
 import org.apache.fineract.infrastructure.core.service.RoutingDataSource;
 import org.apache.fineract.infrastructure.security.service.PlatformSecurityContext;
 import org.apache.fineract.useradministration.data.PermissionData;
@@ -35,7 +34,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class PermissionReadPlatformServiceImpl implements PermissionReadPlatformService {
 
-    private final static Logger logger = LoggerFactory.getLogger(PermissionReadPlatformService.class);
+    private static final Logger LOG = LoggerFactory.getLogger(PermissionReadPlatformServiceImpl.class);
 
     private final JdbcTemplate jdbcTemplate;
     private final PlatformSecurityContext context;
@@ -53,7 +52,7 @@ public class PermissionReadPlatformServiceImpl implements PermissionReadPlatform
 
         final PermissionUsageDataMapper mapper = new PermissionUsageDataMapper();
         final String sql = mapper.permissionSchema();
-        logger.info("retrieveAllPermissions: " + sql);
+        LOG.info("retrieveAllPermissions: {}", sql);
         return this.jdbcTemplate.query(sql, mapper, new Object[] {});
     }
 
@@ -64,7 +63,7 @@ public class PermissionReadPlatformServiceImpl implements PermissionReadPlatform
 
         final PermissionUsageDataMapper mapper = new PermissionUsageDataMapper();
         final String sql = mapper.makerCheckerablePermissionSchema();
-        logger.info("retrieveAllMakerCheckerablePermissions: " + sql);
+        LOG.info("retrieveAllMakerCheckerablePermissions: {}", sql);
 
         return this.jdbcTemplate.query(sql, mapper, new Object[] {});
     }
@@ -74,7 +73,7 @@ public class PermissionReadPlatformServiceImpl implements PermissionReadPlatform
 
         final PermissionUsageDataMapper mapper = new PermissionUsageDataMapper();
         final String sql = mapper.rolePermissionSchema();
-        logger.info("retrieveAllRolePermissions: " + sql);
+        LOG.info("retrieveAllRolePermissions: {}", sql);
 
         return this.jdbcTemplate.query(sql, mapper, new Object[] { roleId });
     }
@@ -102,21 +101,19 @@ public class PermissionReadPlatformServiceImpl implements PermissionReadPlatform
 
         public String makerCheckerablePermissionSchema() {
             /*
-             * get all 'Maker-Checkerable' permissions - Maintenance permissions
-             * (i.e. exclude the 'special' grouping, the READ permissions and
-             * the CHECKER permissions
+             * get all 'Maker-Checkerable' permissions - Maintenance permissions (i.e. exclude the 'special' grouping,
+             * the READ permissions and the CHECKER permissions
              */
 
-            return "select p.`grouping`, p.code, p.entity_name as entityName, p.action_name as actionName, p.can_maker_checker as selected"
+            return "select p.grouping, p.code, p.entity_name as entityName, p.action_name as actionName, p.can_maker_checker as selected"
                     + " from m_permission p " + " where `grouping` != 'special' and code not like 'READ_%' and code not like '%\\_CHECKER'"
-                    + " order by p.`grouping`, ifnull(entity_name, ''), p.code";
+                    + " order by p.grouping, ifnull(entity_name, ''), p.code";
         }
 
         public String rolePermissionSchema() {
-            return "select p.`grouping`, p.code, p.entity_name as entityName, p.action_name as actionName, if(isnull(rp.role_id), false, true) as selected "
-                    + " from m_permission p "
-                    + " left join m_role_permission rp on rp.permission_id = p.id and rp.role_id = ? "
-                    + " order by p.`grouping`, ifnull(entity_name, ''), p.code";
+            return "select p.grouping, p.code, p.entity_name as entityName, p.action_name as actionName, if(isnull(rp.role_id), false, true) as selected "
+                    + " from m_permission p " + " left join m_role_permission rp on rp.permission_id = p.id and rp.role_id = ? "
+                    + " order by p.grouping, ifnull(entity_name, ''), p.code";
         }
     }
 

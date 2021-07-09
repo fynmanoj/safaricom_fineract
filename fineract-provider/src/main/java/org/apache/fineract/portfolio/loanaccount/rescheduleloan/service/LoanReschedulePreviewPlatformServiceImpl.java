@@ -20,10 +20,12 @@ package org.apache.fineract.portfolio.loanaccount.rescheduleloan.service;
 
 import java.math.MathContext;
 import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
-
+import org.apache.fineract.infrastructure.core.service.DateUtils;
 import org.apache.fineract.organisation.monetary.domain.MoneyHelper;
 import org.apache.fineract.portfolio.loanaccount.data.LoanTermVariationsData;
 import org.apache.fineract.portfolio.loanaccount.data.ScheduleGeneratorDTO;
@@ -44,7 +46,6 @@ import org.apache.fineract.portfolio.loanaccount.rescheduleloan.domain.LoanResch
 import org.apache.fineract.portfolio.loanaccount.rescheduleloan.domain.LoanRescheduleRequestRepositoryWrapper;
 import org.apache.fineract.portfolio.loanaccount.rescheduleloan.exception.LoanRescheduleRequestNotFoundException;
 import org.apache.fineract.portfolio.loanaccount.service.LoanUtilService;
-import org.joda.time.LocalDate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -72,9 +73,12 @@ public class LoanReschedulePreviewPlatformServiceImpl implements LoanRescheduleP
 
     @Override
     public LoanScheduleModel previewLoanReschedule(Long requestId) {
-        final LoanRescheduleRequest loanRescheduleRequest = this.loanRescheduleRequestRepository.findOneWithNotFoundDetection(requestId, true);
+        final LoanRescheduleRequest loanRescheduleRequest = this.loanRescheduleRequestRepository.findOneWithNotFoundDetection(requestId,
+                true);
 
-        if (loanRescheduleRequest == null) { throw new LoanRescheduleRequestNotFoundException(requestId); }
+        if (loanRescheduleRequest == null) {
+            throw new LoanRescheduleRequestNotFoundException(requestId);
+        }
 
         Loan loan = loanRescheduleRequest.getLoan();
 
@@ -84,7 +88,7 @@ public class LoanReschedulePreviewPlatformServiceImpl implements LoanRescheduleP
         List<LoanTermVariationsData> removeLoanTermVariationsData = new ArrayList<>();
         final LoanApplicationTerms loanApplicationTerms = loan.constructLoanApplicationTerms(scheduleGeneratorDTO);
         LoanTermVariations dueDateVariationInCurrentRequest = loanRescheduleRequest.getDueDateTermVariationIfExists();
-        if(dueDateVariationInCurrentRequest != null){
+        if (dueDateVariationInCurrentRequest != null) {
             for (LoanTermVariationsData loanTermVariation : loanApplicationTerms.getLoanTermVariations().getDueDateVariation()) {
                 if (loanTermVariation.getDateValue().equals(dueDateVariationInCurrentRequest.fetchTermApplicaDate())) {
                     rescheduleFromDate = loanTermVariation.getTermApplicableFrom();
@@ -98,19 +102,20 @@ public class LoanReschedulePreviewPlatformServiceImpl implements LoanRescheduleP
         }
         List<LoanTermVariationsData> loanTermVariationsData = new ArrayList<>();
         LocalDate adjustedApplicableDate = null;
-        Set<LoanRescheduleRequestToTermVariationMapping> loanRescheduleRequestToTermVariationMappings = loanRescheduleRequest.getLoanRescheduleRequestToTermVariationMappings();
+        Set<LoanRescheduleRequestToTermVariationMapping> loanRescheduleRequestToTermVariationMappings = loanRescheduleRequest
+                .getLoanRescheduleRequestToTermVariationMappings();
         if (!loanRescheduleRequestToTermVariationMappings.isEmpty()) {
             for (LoanRescheduleRequestToTermVariationMapping loanRescheduleRequestToTermVariationMapping : loanRescheduleRequestToTermVariationMappings) {
                 if (loanRescheduleRequestToTermVariationMapping.getLoanTermVariations().getTermType().isDueDateVariation()
                         && rescheduleFromDate != null) {
                     adjustedApplicableDate = loanRescheduleRequestToTermVariationMapping.getLoanTermVariations().fetchDateValue();
                     loanRescheduleRequestToTermVariationMapping.getLoanTermVariations().setTermApplicableFrom(
-                            rescheduleFromDate.toDate());
+                            Date.from(rescheduleFromDate.atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant()));
                 }
                 loanTermVariationsData.add(loanRescheduleRequestToTermVariationMapping.getLoanTermVariations().toData());
             }
         }
-        
+
         for (LoanTermVariationsData loanTermVariation : loanApplicationTerms.getLoanTermVariations().getDueDateVariation()) {
             if (rescheduleFromDate.isBefore(loanTermVariation.getTermApplicableFrom())) {
                 LocalDate applicableDate = this.scheduledDateGenerator.generateNextRepaymentDate(rescheduleFromDate, loanApplicationTerms,
@@ -123,7 +128,7 @@ public class LoanReschedulePreviewPlatformServiceImpl implements LoanRescheduleP
                 }
             }
         }
-        
+
         loanApplicationTerms.getLoanTermVariations().updateLoanTermVariationsData(loanTermVariationsData);
         final RoundingMode roundingMode = MoneyHelper.getRoundingMode();
         final MathContext mathContext = new MathContext(8, roundingMode);
@@ -132,13 +137,12 @@ public class LoanReschedulePreviewPlatformServiceImpl implements LoanRescheduleP
         final LoanScheduleGenerator loanScheduleGenerator = this.loanScheduleFactory.create(loanApplicationTerms.getInterestMethod());
         final LoanLifecycleStateMachine loanLifecycleStateMachine = null;
         loan.setHelpers(loanLifecycleStateMachine, this.loanSummaryWrapper, this.loanRepaymentScheduleTransactionProcessorFactory);
-        final LoanScheduleDTO loanSchedule = loanScheduleGenerator.rescheduleNextInstallments(mathContext, loanApplicationTerms,
-                loan, loanApplicationTerms.getHolidayDetailDTO(),
-                loanRepaymentScheduleTransactionProcessor, rescheduleFromDate);
+        final LoanScheduleDTO loanSchedule = loanScheduleGenerator.rescheduleNextInstallments(mathContext, loanApplicationTerms, loan,
+                loanApplicationTerms.getHolidayDetailDTO(), loanRepaymentScheduleTransactionProcessor, rescheduleFromDate);
         final LoanScheduleModel loanScheduleModel = loanSchedule.getLoanScheduleModel();
         LoanScheduleModel loanScheduleModels = LoanScheduleModel.withLoanScheduleModelPeriods(loanScheduleModel.getPeriods(),
                 loanScheduleModel);
-        
+
         return loanScheduleModels;
     }
 

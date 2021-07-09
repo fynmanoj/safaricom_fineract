@@ -18,16 +18,15 @@
  */
 package org.apache.fineract.portfolio.savings.service;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Set;
-
 import org.apache.fineract.infrastructure.core.api.JsonCommand;
 import org.apache.fineract.infrastructure.core.data.CommandProcessingResult;
 import org.apache.fineract.organisation.office.domain.Office;
 import org.apache.fineract.organisation.staff.domain.Staff;
 import org.apache.fineract.portfolio.savings.domain.SavingsAccount;
 import org.apache.fineract.portfolio.savings.domain.SavingsAccountTransaction;
-import org.joda.time.LocalDate;
-import org.joda.time.format.DateTimeFormatter;
 
 public interface SavingsAccountWritePlatformService {
 
@@ -37,7 +36,7 @@ public interface SavingsAccountWritePlatformService {
 
     CommandProcessingResult withdrawal(Long savingsId, JsonCommand command);
 
-    CommandProcessingResult applyAnnualFee(final Long savingsAccountChargeId, final Long accountId);
+    CommandProcessingResult applyAnnualFee(Long savingsAccountChargeId, Long accountId);
 
     CommandProcessingResult calculateInterest(Long savingsId);
 
@@ -71,24 +70,23 @@ public interface SavingsAccountWritePlatformService {
 
     CommandProcessingResult unassignFieldOfficer(Long savingsAccountId, JsonCommand command);
 
-    void applyChargeDue(final Long savingsAccountChargeId, final Long accountId);
+    void applyChargeDue(Long savingsAccountChargeId, Long accountId);
 
     void processPostActiveActions(SavingsAccount account, DateTimeFormatter fmt, Set<Long> existingTransactionIds,
             Set<Long> existingReversedTransactionIds);
 
-
     CommandProcessingResult modifyWithHoldTax(Long savingsAccountId, JsonCommand command);
 
-	void setSubStatusInactive(Long savingsId);
+    void setSubStatusInactive(Long savingsId);
 
-	void setSubStatusDormant(Long savingsId);
+    void setSubStatusDormant(Long savingsId);
 
-	void escheat(Long savingsId);
+    void escheat(Long savingsId);
 
     CommandProcessingResult postInterest(JsonCommand command);
 
     void postInterest(SavingsAccount account, boolean postInterestAs, LocalDate transactionDate);
-    
+
     CommandProcessingResult blockAccount(Long savingsId);
 
     CommandProcessingResult unblockAccount(Long savingsId);
@@ -104,4 +102,10 @@ public interface SavingsAccountWritePlatformService {
     CommandProcessingResult unblockDebits(Long savingsId);
 
     CommandProcessingResult releaseAmount(Long savingsId, Long transactionId);
+
+    CommandProcessingResult gsimActivate(Long gsimId, JsonCommand command);
+
+    CommandProcessingResult gsimDeposit(Long gsimId, JsonCommand command);
+
+    CommandProcessingResult bulkGSIMClose(Long gsimId, JsonCommand command);
 }

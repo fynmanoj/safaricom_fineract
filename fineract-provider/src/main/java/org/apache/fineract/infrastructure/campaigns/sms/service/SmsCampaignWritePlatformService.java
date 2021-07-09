@@ -19,7 +19,6 @@
 package org.apache.fineract.infrastructure.campaigns.sms.service;
 
 import java.util.Map;
-
 import org.apache.fineract.infrastructure.campaigns.sms.data.CampaignPreviewData;
 import org.apache.fineract.infrastructure.campaigns.sms.domain.SmsCampaign;
 import org.apache.fineract.infrastructure.core.api.JsonCommand;
@@ -50,10 +49,10 @@ public interface SmsCampaignWritePlatformService {
 
     CampaignPreviewData previewMessage(JsonQuery query);
 
-    public void storeTemplateMessageIntoSmsOutBoundTable() throws JobExecutionException;
+    void storeTemplateMessageIntoSmsOutBoundTable() throws JobExecutionException;
 
-    public void insertDirectCampaignIntoSmsOutboundTable(final Client client, final SmsCampaign smsCampaign) ;
-    
-    public void insertDirectCampaignIntoSmsOutboundTable(final SavingsAccount savingsAccount, final SmsCampaign smsCampaign) ;
+    void insertDirectCampaignIntoSmsOutboundTable(Client client, SmsCampaign smsCampaign);
+
+    void insertDirectCampaignIntoSmsOutboundTable(SavingsAccount savingsAccount, SmsCampaign smsCampaign);
 
 }

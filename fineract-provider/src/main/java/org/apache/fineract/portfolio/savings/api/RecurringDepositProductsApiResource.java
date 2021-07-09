@@ -18,7 +18,30 @@
  */
 package org.apache.fineract.portfolio.savings.api;
 
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.UriInfo;
 import org.apache.fineract.accounting.common.AccountingDropdownReadPlatformService;
 import org.apache.fineract.accounting.common.AccountingEnumerations;
 import org.apache.fineract.accounting.common.AccountingRuleType;
@@ -44,7 +67,12 @@ import org.apache.fineract.portfolio.interestratechart.data.InterestRateChartDat
 import org.apache.fineract.portfolio.interestratechart.service.InterestRateChartReadPlatformService;
 import org.apache.fineract.portfolio.paymenttype.data.PaymentTypeData;
 import org.apache.fineract.portfolio.paymenttype.service.PaymentTypeReadPlatformService;
-import org.apache.fineract.portfolio.savings.*;
+import org.apache.fineract.portfolio.savings.DepositAccountType;
+import org.apache.fineract.portfolio.savings.DepositsApiConstants;
+import org.apache.fineract.portfolio.savings.SavingsCompoundingInterestPeriodType;
+import org.apache.fineract.portfolio.savings.SavingsInterestCalculationDaysInYearType;
+import org.apache.fineract.portfolio.savings.SavingsInterestCalculationType;
+import org.apache.fineract.portfolio.savings.SavingsPostingInterestPeriodType;
 import org.apache.fineract.portfolio.savings.data.RecurringDepositProductData;
 import org.apache.fineract.portfolio.savings.service.DepositProductReadPlatformService;
 import org.apache.fineract.portfolio.savings.service.DepositsDropdownReadPlatformService;
@@ -57,19 +85,14 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
-import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.UriInfo;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-
 @Path("/recurringdepositproducts")
 @Component
 @Scope("singleton")
-@Api(value = "Recurring Deposit Product", description = "Recurring Deposits are a special kind of Term Deposits offered by MFI's. The Recurring Deposit Products (aka RD) product offerings are modeled using this API.\n" + "\n" + "Recurring Deposits help people with regular incomes to deposit a fixed amount every month (specified recurring frequency) into their Recurring Deposit account.\n" + "\n" + "When creating recurring deposit accounts, the details from the recurring deposit product are used to auto fill details of the recurring deposit account application process.")
+@Tag(name = "Recurring Deposit Product", description = "Recurring Deposits are a special kind of Term Deposits offered by MFI's. The Recurring Deposit Products (aka RD) product offerings are modeled using this API.\n"
+        + "\n"
+        + "Recurring Deposits help people with regular incomes to deposit a fixed amount every month (specified recurring frequency) into their Recurring Deposit account.\n"
+        + "\n"
+        + "When creating recurring deposit accounts, the details from the recurring deposit product are used to auto fill details of the recurring deposit account application process.")
 public class RecurringDepositProductsApiResource {
 
     private final DepositProductReadPlatformService depositProductReadPlatformService;
@@ -124,10 +147,14 @@ public class RecurringDepositProductsApiResource {
     @POST
     @Consumes({ MediaType.APPLICATION_JSON })
     @Produces({ MediaType.APPLICATION_JSON })
-    @ApiOperation(value = "Create a Recurring Deposit Product", httpMethod = "POST", notes = "Creates a Recurring Deposit Product\n\n" + "Mandatory Fields: name, shortName, description, currencyCode, digitsAfterDecimal,inMultiplesOf, interestCompoundingPeriodType, interestCalculationType, interestCalculationDaysInYearType, minDepositTerm, minDepositTermTypeId, recurringDepositFrequency, recurringDepositFrequencyTypeId, accountingRule, depositAmount\n\n" + "Mandatory Fields for Cash based accounting (accountingRule = 2): savingsReferenceAccountId, savingsControlAccountId, interestOnSavingsAccountId, incomeFromFeeAccountId, transfersInSuspenseAccountId, incomeFromPenaltyAccountId\n\n" + "Optional Fields: lockinPeriodFrequency, lockinPeriodFrequencyType, maxDepositTerm, maxDepositTermTypeId, inMultiplesOfDepositTerm, inMultiplesOfDepositTermTypeId, preClosurePenalApplicable, preClosurePenalInterest, preClosurePenalInterestOnTypeId, feeToIncomeAccountMappings, penaltyToIncomeAccountMappings, charges, charts, minDepositAmount, maxDepositAmount, withHoldTax, taxGroupId")
-    @ApiImplicitParams({@ApiImplicitParam(value = "body", required = true, paramType = "body", dataType = "body", format = "body", dataTypeClass = RecurringDepositProductsApiResourceSwagger.PostRecurringDepositProductsRequest.class)})
-    @ApiResponses({@ApiResponse(code = 200, message = "OK", response = RecurringDepositProductsApiResourceSwagger.PostRecurringDepositProductsResponse.class)})
-    public String create(@ApiParam(hidden = true) final String apiRequestBodyAsJson) {
+    @Operation(summary = "Create a Recurring Deposit Product", description = "Creates a Recurring Deposit Product\n\n"
+            + "Mandatory Fields: name, shortName, description, currencyCode, digitsAfterDecimal,inMultiplesOf, interestCompoundingPeriodType, interestCalculationType, interestCalculationDaysInYearType, minDepositTerm, minDepositTermTypeId, recurringDepositFrequency, recurringDepositFrequencyTypeId, accountingRule, depositAmount\n\n"
+            + "Mandatory Fields for Cash based accounting (accountingRule = 2): savingsReferenceAccountId, savingsControlAccountId, interestOnSavingsAccountId, incomeFromFeeAccountId, transfersInSuspenseAccountId, incomeFromPenaltyAccountId\n\n"
+            + "Optional Fields: lockinPeriodFrequency, lockinPeriodFrequencyType, maxDepositTerm, maxDepositTermTypeId, inMultiplesOfDepositTerm, inMultiplesOfDepositTermTypeId, preClosurePenalApplicable, preClosurePenalInterest, preClosurePenalInterestOnTypeId, feeToIncomeAccountMappings, penaltyToIncomeAccountMappings, charges, charts, minDepositAmount, maxDepositAmount, withHoldTax, taxGroupId")
+    @RequestBody(required = true, content = @Content(schema = @Schema(implementation = RecurringDepositProductsApiResourceSwagger.PostRecurringDepositProductsRequest.class)))
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = RecurringDepositProductsApiResourceSwagger.PostRecurringDepositProductsResponse.class))) })
+    public String create(@Parameter(hidden = true) final String apiRequestBodyAsJson) {
 
         final CommandWrapper commandRequest = new CommandWrapperBuilder().createRecurringDepositProduct().withJson(apiRequestBodyAsJson)
                 .build();
@@ -141,10 +168,12 @@ public class RecurringDepositProductsApiResource {
     @Path("{productId}")
     @Consumes({ MediaType.APPLICATION_JSON })
     @Produces({ MediaType.APPLICATION_JSON })
-    @ApiOperation(value = "Update a Recurring Deposit Product", httpMethod = "PUT", notes = "Updates a Recurring Deposit Product")
-    @ApiImplicitParams({@ApiImplicitParam(value = "body", required = true, paramType = "body", dataType = "body", format = "body", dataTypeClass = RecurringDepositProductsApiResourceSwagger.PutRecurringDepositProductsRequest.class)})
-    @ApiResponses({@ApiResponse(code = 200, message = "OK", response = RecurringDepositProductsApiResourceSwagger.PutRecurringDepositProductsResponse.class)})
-    public String update(@PathParam("productId") @ApiParam(value = "productId") final Long productId, @ApiParam(hidden = true) final String apiRequestBodyAsJson) {
+    @Operation(summary = "Update a Recurring Deposit Product", description = "Updates a Recurring Deposit Product")
+    @RequestBody(required = true, content = @Content(schema = @Schema(implementation = RecurringDepositProductsApiResourceSwagger.PutRecurringDepositProductsRequest.class)))
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = RecurringDepositProductsApiResourceSwagger.PutRecurringDepositProductsResponse.class))) })
+    public String update(@PathParam("productId") @Parameter(description = "productId") final Long productId,
+            @Parameter(hidden = true) final String apiRequestBodyAsJson) {
 
         final CommandWrapper commandRequest = new CommandWrapperBuilder().updateRecurringDepositProduct(productId)
                 .withJson(apiRequestBodyAsJson).build();
@@ -158,8 +187,10 @@ public class RecurringDepositProductsApiResource {
     @GET
     @Consumes({ MediaType.APPLICATION_JSON })
     @Produces({ MediaType.APPLICATION_JSON })
-    @ApiOperation(value = "List Recuring Deposit Products", httpMethod = "GET", notes = "Lists Recuring Deposit Products\n\n" + "Example Requests:\n" + "\n" + "recurringdepositproducts\n" + "\n" + "\n" + "recurringdepositproducts?fields=name")
-    @ApiResponses({@ApiResponse(code = 200, message = "OK", responseContainer = "List", response = RecurringDepositProductsApiResourceSwagger.GetRecurringDepositProductsResponse.class)})
+    @Operation(summary = "List Recuring Deposit Products", description = "Lists Recuring Deposit Products\n\n" + "Example Requests:\n"
+            + "\n" + "recurringdepositproducts\n" + "\n" + "\n" + "recurringdepositproducts?fields=name")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "OK", content = @Content(array = @ArraySchema(schema = @Schema(implementation = RecurringDepositProductsApiResourceSwagger.GetRecurringDepositProductsResponse.class)))) })
     public String retrieveAll(@Context final UriInfo uriInfo) {
 
         this.context.authenticatedUser().validateHasReadPermission(DepositsApiConstants.RECURRING_DEPOSIT_PRODUCT_RESOURCE_NAME);
@@ -177,9 +208,13 @@ public class RecurringDepositProductsApiResource {
     @Path("{productId}")
     @Consumes({ MediaType.APPLICATION_JSON })
     @Produces({ MediaType.APPLICATION_JSON })
-    @ApiOperation(value = "Retrieve a Recurring Deposit Product", httpMethod = "GET", notes = "Retrieves a Recurring Deposit Product\n\n" + "Example Requests:\n" + "\n" + "recurringdepositproducts/1\n" + "\n" + "\n" + "recurringdepositproducts/1?template=true\n" + "\n" + "\n" + "recurringdepositproducts/1?fields=name,description")
-    @ApiResponses({@ApiResponse(code = 200, message = "OK", response = RecurringDepositProductsApiResourceSwagger.GetRecurringDepositProductsProductIdResponse.class)})
-    public String retrieveOne(@PathParam("productId") @ApiParam(value = "productId") final Long productId, @Context final UriInfo uriInfo) {
+    @Operation(summary = "Retrieve a Recurring Deposit Product", description = "Retrieves a Recurring Deposit Product\n\n"
+            + "Example Requests:\n" + "\n" + "recurringdepositproducts/1\n" + "\n" + "\n" + "recurringdepositproducts/1?template=true\n"
+            + "\n" + "\n" + "recurringdepositproducts/1?fields=name,description")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = RecurringDepositProductsApiResourceSwagger.GetRecurringDepositProductsProductIdResponse.class))) })
+    public String retrieveOne(@PathParam("productId") @Parameter(description = "productId") final Long productId,
+            @Context final UriInfo uriInfo) {
 
         this.context.authenticatedUser().validateHasReadPermission(DepositsApiConstants.RECURRING_DEPOSIT_PRODUCT_RESOURCE_NAME);
 
@@ -203,8 +238,8 @@ public class RecurringDepositProductsApiResource {
                     .fetchFeeToIncomeAccountMappingsForSavingsProduct(productId);
             Collection<ChargeToGLAccountMapper> penaltyToGLAccountMappings = this.accountMappingReadPlatformService
                     .fetchPenaltyToIncomeAccountMappingsForSavingsProduct(productId);
-            recurringDepositProductData = RecurringDepositProductData.withAccountingDetails(recurringDepositProductData,
-                    accountingMappings, paymentChannelToFundSourceMappings, feeToGLAccountMappings, penaltyToGLAccountMappings);
+            recurringDepositProductData = RecurringDepositProductData.withAccountingDetails(recurringDepositProductData, accountingMappings,
+                    paymentChannelToFundSourceMappings, feeToGLAccountMappings, penaltyToGLAccountMappings);
         }
 
         if (settings.isTemplate()) {
@@ -315,9 +350,10 @@ public class RecurringDepositProductsApiResource {
     @Path("{productId}")
     @Consumes({ MediaType.APPLICATION_JSON })
     @Produces({ MediaType.APPLICATION_JSON })
-    @ApiOperation(value = "Delete a Recurring Deposit Product", httpMethod = "DELETE", notes = "Deletes a Recurring Deposit Product")
-    @ApiResponses({@ApiResponse(code = 200, message = "OK", response = RecurringDepositProductsApiResourceSwagger.DeleteRecurringDepositProductsProductIdResponse.class)})
-    public String delete(@PathParam("productId") @ApiParam(value = "productId") final Long productId) {
+    @Operation(summary = "Delete a Recurring Deposit Product", description = "Deletes a Recurring Deposit Product")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = RecurringDepositProductsApiResourceSwagger.DeleteRecurringDepositProductsProductIdResponse.class))) })
+    public String delete(@PathParam("productId") @Parameter(description = "productId") final Long productId) {
 
         final CommandWrapper commandRequest = new CommandWrapperBuilder().deleteRecurringDepositProduct(productId).build();
 

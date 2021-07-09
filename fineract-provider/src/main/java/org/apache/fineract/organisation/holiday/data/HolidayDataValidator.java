@@ -18,7 +18,12 @@
  */
 package org.apache.fineract.organisation.holiday.data;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -26,8 +31,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.fineract.infrastructure.core.data.ApiParameterError;
 import org.apache.fineract.infrastructure.core.data.DataValidatorBuilder;
 import org.apache.fineract.infrastructure.core.exception.InvalidJsonException;
@@ -35,25 +39,18 @@ import org.apache.fineract.infrastructure.core.exception.PlatformApiDataValidati
 import org.apache.fineract.infrastructure.core.serialization.FromJsonHelper;
 import org.apache.fineract.organisation.holiday.api.HolidayApiConstants;
 import org.apache.fineract.organisation.holiday.domain.RescheduleType;
-import org.joda.time.LocalDate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.reflect.TypeToken;
 
 @Component
 public class HolidayDataValidator {
 
     private final FromJsonHelper fromApiJsonHelper;
-	private static final Set<String> HOLIDAY_CREATE_OR_UPDATE_REQUEST_DATA_PARAMETERS = new HashSet<>(
-			Arrays.asList(HolidayApiConstants.localeParamName, HolidayApiConstants.dateFormatParamName,
-					HolidayApiConstants.nameParamName, HolidayApiConstants.fromDateParamName,
-					HolidayApiConstants.toDateParamName, HolidayApiConstants.descriptionParamName,
-					HolidayApiConstants.officesParamName, HolidayApiConstants.repaymentsRescheduledToParamName,
-					HolidayApiConstants.reschedulingType));
+    private static final Set<String> HOLIDAY_CREATE_OR_UPDATE_REQUEST_DATA_PARAMETERS = new HashSet<>(
+            Arrays.asList(HolidayApiConstants.localeParamName, HolidayApiConstants.dateFormatParamName, HolidayApiConstants.nameParamName,
+                    HolidayApiConstants.fromDateParamName, HolidayApiConstants.toDateParamName, HolidayApiConstants.descriptionParamName,
+                    HolidayApiConstants.officesParamName, HolidayApiConstants.repaymentsRescheduledToParamName,
+                    HolidayApiConstants.reschedulingType));
 
     @Autowired
     public HolidayDataValidator(final FromJsonHelper fromApiJsonHelper) {
@@ -62,11 +59,12 @@ public class HolidayDataValidator {
 
     public void validateForCreate(final String json) {
 
-        if (StringUtils.isBlank(json)) { throw new InvalidJsonException(); }
+        if (StringUtils.isBlank(json)) {
+            throw new InvalidJsonException();
+        }
 
         final Type typeOfMap = new TypeToken<Map<String, Object>>() {}.getType();
-		this.fromApiJsonHelper.checkForUnsupportedParameters(typeOfMap, json,
-				HOLIDAY_CREATE_OR_UPDATE_REQUEST_DATA_PARAMETERS);
+        this.fromApiJsonHelper.checkForUnsupportedParameters(typeOfMap, json, HOLIDAY_CREATE_OR_UPDATE_REQUEST_DATA_PARAMETERS);
         final JsonElement element = this.fromApiJsonHelper.parse(json);
 
         final List<ApiParameterError> dataValidationErrors = new ArrayList<>();
@@ -82,17 +80,18 @@ public class HolidayDataValidator {
 
         final LocalDate toDate = this.fromApiJsonHelper.extractLocalDateNamed(HolidayApiConstants.toDateParamName, element);
         baseDataValidator.reset().parameter(HolidayApiConstants.toDateParamName).value(toDate).notNull();
-        
+
         Integer reschedulingType = null;
-        if(this.fromApiJsonHelper.parameterExists(HolidayApiConstants.reschedulingType, element)){
+        if (this.fromApiJsonHelper.parameterExists(HolidayApiConstants.reschedulingType, element)) {
             reschedulingType = this.fromApiJsonHelper.extractIntegerNamed(HolidayApiConstants.reschedulingType, element, Locale.ENGLISH);
         }
-       
+
         LocalDate repaymentsRescheduledTo = null;
-        if(reschedulingType == null || reschedulingType.equals(RescheduleType.RESCHEDULETOSPECIFICDATE.getValue())){
-            repaymentsRescheduledTo = this.fromApiJsonHelper.extractLocalDateNamed(
-                    HolidayApiConstants.repaymentsRescheduledToParamName, element);
-            baseDataValidator.reset().parameter(HolidayApiConstants.repaymentsRescheduledToParamName).value(repaymentsRescheduledTo).notNull();
+        if (reschedulingType == null || reschedulingType.equals(RescheduleType.RESCHEDULETOSPECIFICDATE.getValue())) {
+            repaymentsRescheduledTo = this.fromApiJsonHelper.extractLocalDateNamed(HolidayApiConstants.repaymentsRescheduledToParamName,
+                    element);
+            baseDataValidator.reset().parameter(HolidayApiConstants.repaymentsRescheduledToParamName).value(repaymentsRescheduledTo)
+                    .notNull();
         }
         Set<Long> offices = null;
         final JsonObject topLevelJsonElement = element.getAsJsonObject();
@@ -117,11 +116,12 @@ public class HolidayDataValidator {
 
     public void validateForUpdate(final String json) {
 
-        if (StringUtils.isBlank(json)) { throw new InvalidJsonException(); }
+        if (StringUtils.isBlank(json)) {
+            throw new InvalidJsonException();
+        }
 
         final Type typeOfMap = new TypeToken<Map<String, Object>>() {}.getType();
-		this.fromApiJsonHelper.checkForUnsupportedParameters(typeOfMap, json,
-				HOLIDAY_CREATE_OR_UPDATE_REQUEST_DATA_PARAMETERS);
+        this.fromApiJsonHelper.checkForUnsupportedParameters(typeOfMap, json, HOLIDAY_CREATE_OR_UPDATE_REQUEST_DATA_PARAMETERS);
         final JsonElement element = this.fromApiJsonHelper.parse(json);
 
         final List<ApiParameterError> dataValidationErrors = new ArrayList<>();
@@ -145,8 +145,8 @@ public class HolidayDataValidator {
         }
 
         if (this.fromApiJsonHelper.parameterExists(HolidayApiConstants.repaymentsRescheduledToParamName, element)) {
-            final LocalDate repaymentsRescheduledTo = this.fromApiJsonHelper.extractLocalDateNamed(
-                    HolidayApiConstants.repaymentsRescheduledToParamName, element);
+            final LocalDate repaymentsRescheduledTo = this.fromApiJsonHelper
+                    .extractLocalDateNamed(HolidayApiConstants.repaymentsRescheduledToParamName, element);
             baseDataValidator.reset().parameter(HolidayApiConstants.repaymentsRescheduledToParamName).value(repaymentsRescheduledTo)
                     .notNull();
         }

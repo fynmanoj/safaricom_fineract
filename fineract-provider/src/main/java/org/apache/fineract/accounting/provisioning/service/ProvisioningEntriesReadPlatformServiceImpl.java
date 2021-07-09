@@ -25,16 +25,15 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
 import org.apache.fineract.accounting.provisioning.data.LoanProductProvisioningEntryData;
 import org.apache.fineract.accounting.provisioning.data.ProvisioningEntryData;
 import org.apache.fineract.infrastructure.core.service.Page;
 import org.apache.fineract.infrastructure.core.service.PaginationHelper;
 import org.apache.fineract.infrastructure.core.service.RoutingDataSource;
 import org.apache.fineract.infrastructure.core.service.SearchParameters;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -44,6 +43,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class ProvisioningEntriesReadPlatformServiceImpl implements ProvisioningEntriesReadPlatformService {
 
+    private static final Logger LOG = LoggerFactory.getLogger(ProvisioningEntriesReadPlatformServiceImpl.class);
     private final JdbcTemplate jdbcTemplate;
 
     private final PaginationHelper<LoanProductProvisioningEntryData> loanProductProvisioningEntryDataPaginationHelper = new PaginationHelper<>();
@@ -57,29 +57,27 @@ public class ProvisioningEntriesReadPlatformServiceImpl implements ProvisioningE
     @Override
     public Collection<LoanProductProvisioningEntryData> retrieveLoanProductsProvisioningData(Date date) {
         String formattedDate = new SimpleDateFormat("yyyy-MM-dd").format(date);
-        formattedDate = "'" + formattedDate + "'";
-        LoanProductProvisioningEntryMapper mapper = new LoanProductProvisioningEntryMapper(formattedDate);
+        LoanProductProvisioningEntryMapper mapper = new LoanProductProvisioningEntryMapper();
         final String sql = mapper.schema();
-        return this.jdbcTemplate.query(sql, mapper, new Object[] {});
+        return this.jdbcTemplate.query(sql, mapper, new Object[] { formattedDate, formattedDate, formattedDate });
     }
 
     private static final class LoanProductProvisioningEntryMapper implements RowMapper<LoanProductProvisioningEntryData> {
 
         private final StringBuilder sqlQuery;
 
-        protected LoanProductProvisioningEntryMapper(String formattedDate) {
-            sqlQuery = new StringBuilder()
-                    .append("select if(loan.loan_type_enum=1, mclient.office_id, mgroup.office_id) as office_id, loan.loan_type_enum, pcd.criteria_id as criteriaid, loan.product_id,loan.currency_code,")
-                    .append("GREATEST(datediff(")
-                    .append(formattedDate)
+        private LoanProductProvisioningEntryMapper() {
+            sqlQuery = new StringBuilder().append(
+                    "select if(loan.loan_type_enum=1, mclient.office_id, mgroup.office_id) as office_id, loan.loan_type_enum, pcd.criteria_id as criteriaid, loan.product_id,loan.currency_code,")
+                    .append("GREATEST(datediff(?")
                     .append(",sch.duedate),0) as numberofdaysoverdue,sch.duedate, pcd.category_id, pcd.provision_percentage,")
                     .append("loan.total_outstanding_derived as outstandingbalance, pcd.liability_account, pcd.expense_account from m_loan_repayment_schedule sch")
                     .append(" LEFT JOIN m_loan loan on sch.loan_id = loan.id")
                     .append(" JOIN m_loanproduct_provisioning_mapping lpm on lpm.product_id = loan.product_id")
                     .append(" JOIN m_provisioning_criteria_definition pcd on pcd.criteria_id = lpm.criteria_id and ")
-                    .append("(pcd.min_age <= GREATEST(datediff(").append(formattedDate).append(",sch.duedate),0) and ")
-                    .append("GREATEST(datediff(").append(formattedDate).append(",sch.duedate),0) <= pcd.max_age) and ")
-                    .append("pcd.criteria_id is not null ").append("LEFT JOIN m_client mclient ON mclient.id = loan.client_id ")
+                    .append("(pcd.min_age <= GREATEST(datediff(?,sch.duedate),0) and GREATEST(datediff(?")
+                    .append(",sch.duedate),0) <= pcd.max_age) and pcd.criteria_id is not null ")
+                    .append("LEFT JOIN m_client mclient ON mclient.id = loan.client_id ")
                     .append("LEFT JOIN m_group mgroup ON mgroup.id = loan.group_id ")
                     .append("where loan.loan_status_id=300 and sch.duedate = ")
                     .append("(select MIN(sch1.duedate) from m_loan_repayment_schedule sch1 where sch1.loan_id=loan.id and sch1.completed_derived=false)");
@@ -148,8 +146,8 @@ public class ProvisioningEntriesReadPlatformServiceImpl implements ProvisioningE
 
     private static final class LoanProductProvisioningEntryRowMapper implements RowMapper<LoanProductProvisioningEntryData> {
 
-        private final StringBuilder sqlQuery = new StringBuilder()
-                .append(" entry.id, entry.history_id as historyId, office_id, entry.criteria_id as criteriaid, office.name as officename, product.name as productname, entry.product_id, ")
+        private final StringBuilder sqlQuery = new StringBuilder().append(
+                " entry.id, entry.history_id as historyId, office_id, entry.criteria_id as criteriaid, office.name as officename, product.name as productname, entry.product_id, ")
                 .append("category_id, category.category_name, liability.id as liabilityid, liability.gl_code as liabilitycode, liability.name as liabilityname, ")
                 .append("expense.id as expenseid, expense.gl_code as expensecode, expense.name as expensename, entry.currency_code, entry.overdue_in_days, entry.reseve_amount from m_loanproduct_provisioning_entry entry ")
                 .append("left join m_office office ON office.id = entry.office_id ")
@@ -226,13 +224,13 @@ public class ProvisioningEntriesReadPlatformServiceImpl implements ProvisioningE
         sqlBuilder.append("select SQL_CALC_FOUND_ROWS ");
         sqlBuilder.append(mapper.getSchema());
         sqlBuilder.append(" order by entry.created_date");
-        if(limit != null ) {
-            sqlBuilder.append(" limit ").append(limit);    
+        if (limit != null) {
+            sqlBuilder.append(" limit ").append(limit);
         }
-        if(offset != null) {
-            sqlBuilder.append(" offset ").append(offset);    
+        if (offset != null) {
+            sqlBuilder.append(" offset ").append(offset);
         }
-        
+
         final String sqlCountRows = "SELECT FOUND_ROWS()";
         Object[] whereClauseItemsitems = new Object[] {};
         return this.provisioningEntryDataPaginationHelper.fetchPage(this.jdbcTemplate, sqlCountRows, sqlBuilder.toString(),
@@ -242,13 +240,13 @@ public class ProvisioningEntriesReadPlatformServiceImpl implements ProvisioningE
     @Override
     public ProvisioningEntryData retrieveProvisioningEntryData(String date) {
         ProvisioningEntryDataMapper mapper1 = new ProvisioningEntryDataMapper();
-        date = date+"%";
+        date = date + "%";
         final String sql1 = "select " + mapper1.getSchema() + " where entry.created_date like ? ";
         ProvisioningEntryData data = null;
         try {
-            data = this.jdbcTemplate.queryForObject(sql1, mapper1, new Object[] {date});
+            data = this.jdbcTemplate.queryForObject(sql1, mapper1, new Object[] { date });
         } catch (EmptyResultDataAccessException e) {
-
+            LOG.error("Problem occurred in retrieveProvisioningEntryData function", e);
         }
 
         return data;
@@ -284,14 +282,12 @@ public class ProvisioningEntriesReadPlatformServiceImpl implements ProvisioningE
 
     private static final class ProvisioningEntryIdDateRowMapper implements RowMapper<ProvisioningEntryData> {
 
-        StringBuffer buff = new StringBuffer().append("select history1.id, history1.created_date from m_provisioning_history history1 ")
+        StringBuilder buff = new StringBuilder().append("select history1.id, history1.created_date from m_provisioning_history history1 ")
                 .append("where history1.created_date = (select max(history2.created_date) from m_provisioning_history history2 ")
                 .append("where history2.journal_entry_created='1')");
 
         @Override
-        @SuppressWarnings("unused")
         public ProvisioningEntryData mapRow(ResultSet rs, int rowNum) throws SQLException {
-            Map<String, Object> map = new HashMap<>();
             Long id = rs.getLong("id");
             Date createdDate = rs.getDate("created_date");
             Long createdBy = null;

@@ -18,16 +18,15 @@
  */
 package org.apache.fineract.portfolio.loanaccount.rescheduleloan.data;
 
+import java.time.LocalDate;
 import java.util.Collection;
-
 import org.apache.fineract.infrastructure.codes.data.CodeValueData;
 import org.apache.fineract.portfolio.loanaccount.data.LoanTermVariationsData;
-import org.joda.time.LocalDate;
 
 /**
  * Immutable data object representing loan reschedule request data.
  **/
-public class LoanRescheduleRequestData {
+public final class LoanRescheduleRequestData {
 
     private final Long id;
     private final Long loanId;
@@ -45,10 +44,12 @@ public class LoanRescheduleRequestData {
     private final Collection<CodeValueData> rescheduleReasons;
     @SuppressWarnings("unused")
     private final Collection<LoanTermVariationsData> loanTermVariationsData;
-    
+
     /**
      * LoanRescheduleRequestData constructor
-     * @param loanTermVariationsData TODO
+     *
+     * @param loanTermVariationsData
+     *            TODO
      **/
     private LoanRescheduleRequestData(Long id, Long loanId, LoanRescheduleRequestStatusEnumData statusEnum,
             Integer rescheduleFromInstallment, LocalDate rescheduleFromDate, CodeValueData rescheduleReasonCodeValue,
@@ -68,12 +69,13 @@ public class LoanRescheduleRequestData {
         this.loanAccountNumber = loanAccountNumber;
         this.clientId = clientId;
         this.recalculateInterest = recalculateInterest;
-        this.rescheduleReasons = rescheduleReasons ;
+        this.rescheduleReasons = rescheduleReasons;
         this.loanTermVariationsData = loanTermVariationsData;
     }
 
     /**
-     * @param loanTermVariationsData TODO
+     * @param loanTermVariationsData
+     *            TODO
      * @return an instance of the LoanRescheduleRequestData class
      **/
     public static LoanRescheduleRequestData instance(Long id, Long loanId, LoanRescheduleRequestStatusEnumData statusEnum,
@@ -86,10 +88,10 @@ public class LoanRescheduleRequestData {
                 rescheduleReasonCodeValue, rescheduleReasonComment, timeline, clientName, loanAccountNumber, clientId, recalculateInterest,
                 rescheduleReasons, loanTermVariationsData);
     }
-    
+
     /**
      * LoanRescheduleRequestData constructor
-     * 
+     *
      * @param loanTermVariationsData
      *            TODO
      **/
@@ -123,6 +125,7 @@ public class LoanRescheduleRequestData {
         return new LoanRescheduleRequestData(id, loanId, statusEnum, clientName, loanAccountNumber, clientId, rescheduleFromDate,
                 rescheduleReasonCodeValue);
     }
+
     /**
      * @return the id
      */

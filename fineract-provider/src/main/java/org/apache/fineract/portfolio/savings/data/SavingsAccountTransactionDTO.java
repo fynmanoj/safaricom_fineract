@@ -19,12 +19,11 @@
 package org.apache.fineract.portfolio.savings.data;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
-
 import org.apache.fineract.portfolio.paymentdetail.domain.PaymentDetail;
 import org.apache.fineract.useradministration.domain.AppUser;
-import org.joda.time.LocalDate;
-import org.joda.time.format.DateTimeFormatter;
 
 public class SavingsAccountTransactionDTO {
 
@@ -38,7 +37,8 @@ public class SavingsAccountTransactionDTO {
     private final Integer depositAccountType;
 
     public SavingsAccountTransactionDTO(final DateTimeFormatter formatter, final LocalDate transactionDate,
-            final BigDecimal transactionAmount, final PaymentDetail paymentDetail, final Date createdDate, final AppUser appUser, final Integer depositAccountType) {
+            final BigDecimal transactionAmount, final PaymentDetail paymentDetail, final Date createdDate, final AppUser appUser,
+            final Integer depositAccountType) {
         this.formatter = formatter;
         this.transactionDate = transactionDate;
         this.transactionAmount = transactionAmount;
@@ -51,7 +51,7 @@ public class SavingsAccountTransactionDTO {
 
     /**
      * This constructor is used for bulk deposit transactions
-     * 
+     *
      * @param formatter
      * @param transactionDate
      * @param transactionAmount
@@ -99,9 +99,8 @@ public class SavingsAccountTransactionDTO {
         return this.appUser;
     }
 
-	public Integer getAccountType() {
-		return this.depositAccountType;
-	}
-    
-    
+    public Integer getAccountType() {
+        return this.depositAccountType;
+    }
+
 }

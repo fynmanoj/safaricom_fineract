@@ -21,7 +21,6 @@ package org.apache.fineract.useradministration.service;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.apache.fineract.infrastructure.core.api.JsonCommand;
 import org.apache.fineract.infrastructure.core.data.CommandProcessingResult;
 import org.apache.fineract.infrastructure.core.data.CommandProcessingResultBuilder;
@@ -70,7 +69,9 @@ public class PermissionWritePlatformServiceJpaRepositoryImpl implements Permissi
             final Permission permission = findPermissionInCollectionByCode(allPermissions, permissionCode);
 
             if (permission.getCode().endsWith("_CHECKER") || permission.getCode().startsWith("READ_")
-                    || permission.getGrouping().equalsIgnoreCase("special")) { throw new PermissionNotFoundException(permissionCode); }
+                    || permission.getGrouping().equalsIgnoreCase("special")) {
+                throw new PermissionNotFoundException(permissionCode);
+            }
 
             final boolean isSelected = commandPermissions.get(permissionCode).booleanValue();
             final boolean changed = permission.enableMakerChecker(isSelected);
@@ -91,7 +92,9 @@ public class PermissionWritePlatformServiceJpaRepositoryImpl implements Permissi
 
         if (allPermissions != null) {
             for (final Permission permission : allPermissions) {
-                if (permission.hasCode(permissionCode)) { return permission; }
+                if (permission.hasCode(permissionCode)) {
+                    return permission;
+                }
             }
         }
 

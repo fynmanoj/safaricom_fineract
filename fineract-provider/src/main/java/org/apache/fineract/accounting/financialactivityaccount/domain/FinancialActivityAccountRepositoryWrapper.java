@@ -19,15 +19,13 @@
 package org.apache.fineract.accounting.financialactivityaccount.domain;
 
 import java.util.List;
-
 import org.apache.fineract.accounting.financialactivityaccount.exception.FinancialActivityAccountNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
  * <p>
- * Wrapper for {@link FinancialActivityAccountRepository} that adds NULL
- * checking and Error handling capabilities
+ * Wrapper for {@link FinancialActivityAccountRepository} that adds NULL checking and Error handling capabilities
  * </p>
  */
 @Service
@@ -41,14 +39,14 @@ public class FinancialActivityAccountRepositoryWrapper {
     }
 
     public FinancialActivityAccount findOneWithNotFoundDetection(final Long id) {
-        final FinancialActivityAccount financialActivityAccount = this.repository.findOne(id);
-        if (financialActivityAccount == null) { throw new FinancialActivityAccountNotFoundException(id); }
-        return financialActivityAccount;
+        return this.repository.findById(id).orElseThrow(() -> new FinancialActivityAccountNotFoundException(id));
     }
 
     public FinancialActivityAccount findByFinancialActivityTypeWithNotFoundDetection(final int financialActivityType) {
         FinancialActivityAccount financialActivityAccount = this.repository.findByFinancialActivityType(financialActivityType);
-        if (financialActivityAccount == null) { throw new FinancialActivityAccountNotFoundException(financialActivityType); }
+        if (financialActivityAccount == null) {
+            throw new FinancialActivityAccountNotFoundException(financialActivityType);
+        }
         return financialActivityAccount;
     }
 

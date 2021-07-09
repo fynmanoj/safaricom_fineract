@@ -18,37 +18,38 @@
  */
 package org.apache.fineract.infrastructure.reportmailingjob.api;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import io.swagger.annotations.ApiParam;
-import org.joda.time.DateTime;
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.ZonedDateTime;
 
 /**
  * Created by sanyam on 13/8/17.
  */
 final class ReportMailingJobRunHistoryApiResourceSwagger {
-    private ReportMailingJobRunHistoryApiResourceSwagger(){
+
+    private ReportMailingJobRunHistoryApiResourceSwagger() {
 
     }
 
-    @ApiModel(value = "GetReportMailingJobRunHistoryResponse")
+    @Schema(description = "GetReportMailingJobRunHistoryResponse")
     public static final class GetReportMailingJobRunHistoryResponse {
-        private GetReportMailingJobRunHistoryResponse(){
+
+        private GetReportMailingJobRunHistoryResponse() {
 
         }
-        @ApiModelProperty(example = "1")
+
+        @Schema(example = "1")
         public Long id;
-        @ApiModelProperty(example = "1")
+        @Schema(example = "1")
         public Long reportMailingJobId;
-        @ApiModelProperty(example = "1469627093050")
-        public DateTime startDateTime;
-        @ApiModelProperty(example = "1469627093050")
-        public DateTime endDateTime;
-        @ApiModelProperty(example = "success")
+        @Schema(example = "1469627093050")
+        public ZonedDateTime startDateTime;
+        @Schema(example = "1469627093050")
+        public ZonedDateTime endDateTime;
+        @Schema(example = "success")
         public String status;
-        @ApiModelProperty(example = "")
+        @Schema(example = "")
         public String errorMessage;
-        @ApiModelProperty(example = "")
+        @Schema(example = "")
         public String errorLog;
     }
 }

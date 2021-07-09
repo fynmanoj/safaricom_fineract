@@ -27,12 +27,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import javax.persistence.CascadeType;
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 import javax.persistence.OneToOne;
-
 import org.apache.fineract.accounting.common.AccountingRuleType;
 import org.apache.fineract.infrastructure.core.api.JsonCommand;
 import org.apache.fineract.infrastructure.core.data.ApiParameterError;
@@ -57,7 +55,7 @@ public class RecurringDepositProduct extends FixedDepositProduct {
     private DepositProductRecurringDetail recurringDetail;
 
     protected RecurringDepositProduct() {
-        super();
+
     }
 
     public static RecurringDepositProduct createNew(final String name, final String shortName, final String description,
@@ -131,7 +129,9 @@ public class RecurringDepositProduct extends FixedDepositProduct {
     }
 
     private void throwExceptionIfValidationWarningsExist(final List<ApiParameterError> dataValidationErrors) {
-        if (!dataValidationErrors.isEmpty()) { throw new PlatformApiDataValidationException(dataValidationErrors); }
+        if (!dataValidationErrors.isEmpty()) {
+            throw new PlatformApiDataValidationException(dataValidationErrors);
+        }
     }
 
     public DepositProductRecurringDetail depositRecurringDetail() {

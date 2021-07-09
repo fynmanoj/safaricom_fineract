@@ -18,21 +18,27 @@
  */
 package org.apache.fineract.infrastructure.campaigns.email.service;
 
-import org.joda.time.DateTime;
-import org.joda.time.LocalDate;
-import org.apache.fineract.infrastructure.core.data.EnumOptionData;
-import org.apache.fineract.infrastructure.core.domain.JdbcSupport;
-import org.apache.fineract.infrastructure.core.service.RoutingDataSource;
-import org.apache.fineract.infrastructure.dataqueries.data.ReportData;
-import org.apache.fineract.infrastructure.campaigns.email.data.ScheduledEmailEnumerations;
-import org.apache.fineract.infrastructure.campaigns.email.exception.EmailBusinessRuleNotFound;
-import org.apache.fineract.infrastructure.campaigns.email.exception.EmailCampaignNotFound;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.apache.fineract.infrastructure.campaigns.email.data.EmailBusinessRulesData;
 import org.apache.fineract.infrastructure.campaigns.email.data.EmailCampaignData;
 import org.apache.fineract.infrastructure.campaigns.email.data.EmailCampaignTimeLine;
+import org.apache.fineract.infrastructure.campaigns.email.data.ScheduledEmailEnumerations;
 import org.apache.fineract.infrastructure.campaigns.email.domain.EmailCampaignStatus;
 import org.apache.fineract.infrastructure.campaigns.email.domain.EmailCampaignStatusEnumerations;
 import org.apache.fineract.infrastructure.campaigns.email.domain.EmailCampaignType;
+import org.apache.fineract.infrastructure.campaigns.email.exception.EmailBusinessRuleNotFound;
+import org.apache.fineract.infrastructure.campaigns.email.exception.EmailCampaignNotFound;
+import org.apache.fineract.infrastructure.core.data.EnumOptionData;
+import org.apache.fineract.infrastructure.core.domain.JdbcSupport;
+import org.apache.fineract.infrastructure.core.service.RoutingDataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -41,13 +47,8 @@ import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Service;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.*;
-
 @Service
 public class EmailCampaignReadPlatformServiceImpl implements EmailCampaignReadPlatformService {
-
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -62,8 +63,7 @@ public class EmailCampaignReadPlatformServiceImpl implements EmailCampaignReadPl
         this.emailCampaignMapper = new EmailCampaignMapper();
     }
 
-
-    private static final class EmailCampaignMapper implements RowMapper<EmailCampaignData>{
+    private static final class EmailCampaignMapper implements RowMapper<EmailCampaignData> {
 
         final String schema;
 
@@ -101,6 +101,7 @@ public class EmailCampaignReadPlatformServiceImpl implements EmailCampaignReadPl
 
             this.schema = sql.toString();
         }
+
         public String schema() {
             return this.schema;
         }
@@ -130,39 +131,36 @@ public class EmailCampaignReadPlatformServiceImpl implements EmailCampaignReadPl
             final boolean coreReport = rs.getBoolean("coreReport");
             final boolean useReport = rs.getBoolean("useReport");
 
-            final ReportData stretchyReport = new ReportData(reportId, reportName, reportType, reportSubType, reportCategory,
-                    reportDescription, reportSql, coreReport, useReport, null);
+            /*
+             * final ReportData stretchyReport = new ReportData(reportId, reportName, reportType, reportSubType,
+             * reportCategory, reportDescription, reportSql, coreReport, useReport, null);
+             */
 
             final Integer statusId = JdbcSupport.getInteger(rs, "statusEnum");
             final EnumOptionData status = EmailCampaignStatusEnumerations.status(statusId);
-            final DateTime nextTriggerDate = JdbcSupport.getDateTime(rs, "nextTriggerDate");
-            final LocalDate  lastTriggerDate = JdbcSupport.getLocalDate(rs, "lastTriggerDate");
-
+            final ZonedDateTime nextTriggerDate = JdbcSupport.getDateTime(rs, "nextTriggerDate");
+            final LocalDate lastTriggerDate = JdbcSupport.getLocalDate(rs, "lastTriggerDate");
 
             final LocalDate closedOnDate = JdbcSupport.getLocalDate(rs, "closedOnDate");
             final String closedByUsername = rs.getString("closedByUsername");
-
 
             final LocalDate submittedOnDate = JdbcSupport.getLocalDate(rs, "submittedOnDate");
             final String submittedByUsername = rs.getString("submittedByUsername");
 
             final LocalDate activatedOnDate = JdbcSupport.getLocalDate(rs, "activatedOnDate");
             final String activatedByUsername = rs.getString("activatedByUsername");
-            final String recurrence  =rs.getString("recurrence");
-            final DateTime recurrenceStartDate = JdbcSupport.getDateTime(rs, "recurrenceStartDate");
-            final EmailCampaignTimeLine emailCampaignTimeLine = new EmailCampaignTimeLine(submittedOnDate,submittedByUsername,
-                    activatedOnDate,activatedByUsername,closedOnDate,closedByUsername);
+            final String recurrence = rs.getString("recurrence");
+            final ZonedDateTime recurrenceStartDate = JdbcSupport.getDateTime(rs, "recurrenceStartDate");
+            final EmailCampaignTimeLine emailCampaignTimeLine = new EmailCampaignTimeLine(submittedOnDate, submittedByUsername,
+                    activatedOnDate, activatedByUsername, closedOnDate, closedByUsername);
 
-
-
-            return EmailCampaignData.instance(id,campaignName,campaignType,businessRuleId,paramValue,status,emailSubject,emailMessage,
-                    emailAttachmentFileFormatString,reportId,stretchyReportParamMap,nextTriggerDate,lastTriggerDate,emailCampaignTimeLine,
-                    recurrenceStartDate,recurrence);
+            return EmailCampaignData.instance(id, campaignName, campaignType, businessRuleId, paramValue, status, emailSubject,
+                    emailMessage, emailAttachmentFileFormatString, reportId, stretchyReportParamMap, nextTriggerDate, lastTriggerDate,
+                    emailCampaignTimeLine, recurrenceStartDate, recurrence);
         }
     }
 
-
-    private static final class BusinessRuleMapper implements ResultSetExtractor<List<EmailBusinessRulesData>>{
+    private static final class BusinessRuleMapper implements ResultSetExtractor<List<EmailBusinessRulesData>> {
 
         final String schema;
 
@@ -184,7 +182,7 @@ public class EmailCampaignReadPlatformServiceImpl implements EmailCampaignReadPl
             this.schema = sql.toString();
         }
 
-        public String schema(){
+        public String schema() {
             return this.schema;
         }
 
@@ -194,33 +192,34 @@ public class EmailCampaignReadPlatformServiceImpl implements EmailCampaignReadPl
 
             EmailBusinessRulesData emailBusinessRulesData = null;
 
-            Map<Long,EmailBusinessRulesData> mapOfSameObjects = new HashMap<Long, EmailBusinessRulesData>();
+            Map<Long, EmailBusinessRulesData> mapOfSameObjects = new HashMap<Long, EmailBusinessRulesData>();
 
-            while(rs.next()){
+            while (rs.next()) {
                 final Long id = rs.getLong("id");
-                emailBusinessRulesData  = mapOfSameObjects.get(id);
-                if(emailBusinessRulesData == null){
-                    final String reportName = rs.getString("reportName") ;
+                emailBusinessRulesData = mapOfSameObjects.get(id);
+                if (emailBusinessRulesData == null) {
+                    final String reportName = rs.getString("reportName");
                     final String reportType = rs.getString("reportType");
                     final String reportSubType = rs.getString("reportSubType");
-                    final String paramName  = rs.getString("paramName");
+                    final String paramName = rs.getString("paramName");
                     final String paramLabel = rs.getString("paramLabel");
                     final String description = rs.getString("description");
 
-                    Map<String,Object> hashMap = new HashMap<String, Object>();
-                    hashMap.put(paramLabel,paramName);
-                    emailBusinessRulesData = EmailBusinessRulesData.instance(id,reportName,reportType,hashMap,reportSubType,description);
-                    mapOfSameObjects.put(id,emailBusinessRulesData);
-                    //add to the list
+                    Map<String, Object> hashMap = new HashMap<String, Object>();
+                    hashMap.put(paramLabel, paramName);
+                    emailBusinessRulesData = EmailBusinessRulesData.instance(id, reportName, reportType, hashMap, reportSubType,
+                            description);
+                    mapOfSameObjects.put(id, emailBusinessRulesData);
+                    // add to the list
                     emailBusinessRulesDataList.add(emailBusinessRulesData);
                 }
-                //add new paramType to the existing object
-                Map<String,Object> hashMap = new HashMap<String, Object>();
-                final String paramName  = rs.getString("paramName");
+                // add new paramType to the existing object
+                Map<String, Object> hashMap = new HashMap<String, Object>();
+                final String paramName = rs.getString("paramName");
                 final String paramLabel = rs.getString("paramLabel");
-                hashMap.put(paramLabel,paramName);
+                hashMap.put(paramLabel, paramName);
 
-                //get existing map and add new items to it
+                // get existing map and add new items to it
                 emailBusinessRulesData.getReportParamName().putAll(hashMap);
             }
 
@@ -242,25 +241,24 @@ public class EmailCampaignReadPlatformServiceImpl implements EmailCampaignReadPl
 
         final String sql = "select " + this.businessRuleMapper.schema() + " where sr.report_type = ? and sr.id = ?";
 
-        List<EmailBusinessRulesData> retrieveOne =  this.jdbcTemplate.query(sql, this.businessRuleMapper, searchType,resourceId);
-        try{
+        List<EmailBusinessRulesData> retrieveOne = this.jdbcTemplate.query(sql, this.businessRuleMapper, searchType, resourceId);
+        try {
             EmailBusinessRulesData emailBusinessRulesData = retrieveOne.get(0);
             return emailBusinessRulesData;
-        }
-        catch (final IndexOutOfBoundsException e){
-            throw new EmailBusinessRuleNotFound(resourceId);
+        } catch (final IndexOutOfBoundsException e) {
+            throw new EmailBusinessRuleNotFound(resourceId, e);
         }
 
     }
 
     @Override
     public EmailCampaignData retrieveOne(Long resourceId) {
-        final Integer isVisible =1;
-        try{
+        final Integer isVisible = 1;
+        try {
             final String sql = "select " + this.emailCampaignMapper.schema + " where ec.id = ? and ec.is_visible = ?";
-            return this.jdbcTemplate.queryForObject(sql, this.emailCampaignMapper, resourceId,isVisible);
+            return this.jdbcTemplate.queryForObject(sql, this.emailCampaignMapper, resourceId, isVisible);
         } catch (final EmptyResultDataAccessException e) {
-            throw new EmailCampaignNotFound(resourceId);
+            throw new EmailCampaignNotFound(resourceId, e);
         }
     }
 
@@ -274,12 +272,11 @@ public class EmailCampaignReadPlatformServiceImpl implements EmailCampaignReadPl
     @Override
     public Collection<EmailCampaignData> retrieveAllScheduleActiveCampaign() {
         final Integer scheduleCampaignType = EmailCampaignType.SCHEDULE.getValue();
-        final Integer statusEnum  = EmailCampaignStatus.ACTIVE.getValue();
-        final Integer visible     = 1;
-        final String sql = "select " + this.emailCampaignMapper.schema() + " where ec.status_enum = ? and ec.campaign_type = ? and ec.is_visible = ?";
-        return this.jdbcTemplate.query(sql,this.emailCampaignMapper, statusEnum,scheduleCampaignType,visible);
+        final Integer statusEnum = EmailCampaignStatus.ACTIVE.getValue();
+        final Integer visible = 1;
+        final String sql = "select " + this.emailCampaignMapper.schema()
+                + " where ec.status_enum = ? and ec.campaign_type = ? and ec.is_visible = ?";
+        return this.jdbcTemplate.query(sql, this.emailCampaignMapper, statusEnum, scheduleCampaignType, visible);
     }
-
-
 
 }

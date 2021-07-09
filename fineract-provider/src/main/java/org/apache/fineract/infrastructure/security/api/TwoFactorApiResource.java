@@ -18,9 +18,9 @@
  */
 package org.apache.fineract.infrastructure.security.api;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.Map;
-
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -30,7 +30,6 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
-
 import org.apache.fineract.commands.domain.CommandWrapper;
 import org.apache.fineract.commands.service.CommandWrapperBuilder;
 import org.apache.fineract.commands.service.PortfolioCommandSourceWritePlatformService;
@@ -54,8 +53,8 @@ import org.springframework.stereotype.Component;
 @Component
 @Profile("twofactor")
 @Scope("singleton")
+@Tag(name = "Two Factor", description = "")
 public class TwoFactorApiResource {
-
 
     private final ToApiJsonSerializer<OTPMetadata> otpRequestSerializer;
     private final ToApiJsonSerializer<OTPDeliveryMethod> otpDeliveryMethodSerializer;
@@ -66,17 +65,11 @@ public class TwoFactorApiResource {
     private final PortfolioCommandSourceWritePlatformService commandsSourceWritePlatformService;
     private final TwoFactorService twoFactorService;
 
-
-
     @Autowired
     public TwoFactorApiResource(ToApiJsonSerializer<OTPMetadata> otpRequestSerializer,
-                                ToApiJsonSerializer<OTPDeliveryMethod> otpDeliveryMethodSerializer,
-                                ToApiJsonSerializer<AccessTokenData> accessTokenSerializer,
-                                DefaultToApiJsonSerializer<Map<String, Object>> toApiJsonSerializer,
-                                PlatformSecurityContext context,
-                                PortfolioCommandSourceWritePlatformService
-                                            commandsSourceWritePlatformService,
-                                TwoFactorService twoFactorService) {
+            ToApiJsonSerializer<OTPDeliveryMethod> otpDeliveryMethodSerializer, ToApiJsonSerializer<AccessTokenData> accessTokenSerializer,
+            DefaultToApiJsonSerializer<Map<String, Object>> toApiJsonSerializer, PlatformSecurityContext context,
+            PortfolioCommandSourceWritePlatformService commandsSourceWritePlatformService, TwoFactorService twoFactorService) {
         this.otpRequestSerializer = otpRequestSerializer;
         this.otpDeliveryMethodSerializer = otpDeliveryMethodSerializer;
         this.accessTokenSerializer = accessTokenSerializer;
@@ -85,7 +78,6 @@ public class TwoFactorApiResource {
         this.commandsSourceWritePlatformService = commandsSourceWritePlatformService;
         this.twoFactorService = twoFactorService;
     }
-
 
     @GET
     @Produces({ MediaType.APPLICATION_JSON })
@@ -99,8 +91,7 @@ public class TwoFactorApiResource {
     @POST
     @Produces({ MediaType.APPLICATION_JSON })
     public String requestToken(@QueryParam("deliveryMethod") final String deliveryMethod,
-                               @QueryParam("extendedToken") @DefaultValue("false") boolean extendedAccessToken,
-                               @Context final UriInfo uriInfo) {
+            @QueryParam("extendedToken") @DefaultValue("false") boolean extendedAccessToken, @Context final UriInfo uriInfo) {
         final AppUser user = context.authenticatedUser();
 
         final OTPRequest request = twoFactorService.createNewOTPToken(user, deliveryMethod, extendedAccessToken);
@@ -122,10 +113,9 @@ public class TwoFactorApiResource {
     @POST
     @Produces({ MediaType.APPLICATION_JSON })
     public String updateConfiguration(final String apiRequestBodyAsJson) {
-        final CommandWrapper commandRequest = new CommandWrapperBuilder()
-                .invalidateTwoFactorAccessToken().withJson(apiRequestBodyAsJson).build();
-        final CommandProcessingResult result = this.commandsSourceWritePlatformService.
-                logCommandSource(commandRequest);
+        final CommandWrapper commandRequest = new CommandWrapperBuilder().invalidateTwoFactorAccessToken().withJson(apiRequestBodyAsJson)
+                .build();
+        final CommandProcessingResult result = this.commandsSourceWritePlatformService.logCommandSource(commandRequest);
 
         return this.toApiJsonSerializer.serialize(result);
     }

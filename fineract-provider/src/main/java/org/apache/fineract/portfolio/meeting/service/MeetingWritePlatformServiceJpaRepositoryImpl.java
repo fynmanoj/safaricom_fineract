@@ -26,17 +26,21 @@ import static org.apache.fineract.portfolio.meeting.MeetingApiConstants.clientId
 import static org.apache.fineract.portfolio.meeting.MeetingApiConstants.clientsAttendanceParamName;
 import static org.apache.fineract.portfolio.meeting.MeetingApiConstants.meetingDateParamName;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
-
 import org.apache.fineract.infrastructure.configuration.domain.ConfigurationDomainService;
 import org.apache.fineract.infrastructure.core.api.JsonCommand;
 import org.apache.fineract.infrastructure.core.data.CommandProcessingResult;
 import org.apache.fineract.infrastructure.core.data.CommandProcessingResultBuilder;
 import org.apache.fineract.infrastructure.core.exception.PlatformDataIntegrityException;
 import org.apache.fineract.infrastructure.core.serialization.FromJsonHelper;
+import org.apache.fineract.infrastructure.core.service.DateUtils;
 import org.apache.fineract.portfolio.calendar.domain.Calendar;
 import org.apache.fineract.portfolio.calendar.domain.CalendarEntityType;
 import org.apache.fineract.portfolio.calendar.domain.CalendarInstance;
@@ -54,14 +58,10 @@ import org.apache.fineract.portfolio.meeting.data.MeetingDataValidator;
 import org.apache.fineract.portfolio.meeting.domain.Meeting;
 import org.apache.fineract.portfolio.meeting.domain.MeetingRepository;
 import org.apache.fineract.portfolio.meeting.domain.MeetingRepositoryWrapper;
-import org.joda.time.LocalDate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.orm.jpa.JpaSystemException;
 import org.springframework.stereotype.Service;
-
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 
 @Service
 public class MeetingWritePlatformServiceJpaRepositoryImpl implements MeetingWritePlatformService {
@@ -80,8 +80,8 @@ public class MeetingWritePlatformServiceJpaRepositoryImpl implements MeetingWrit
     public MeetingWritePlatformServiceJpaRepositoryImpl(final MeetingRepositoryWrapper meetingRepositoryWrapper,
             final MeetingRepository meetingRepository, final MeetingDataValidator meetingDataValidator,
             final CalendarInstanceRepository calendarInstanceRepository, final CalendarRepository calendarRepository,
-            final ClientRepositoryWrapper clientRepositoryWrapper, final GroupRepository groupRepository, final FromJsonHelper fromApiJsonHelper,
-            final ConfigurationDomainService configurationDomainService) {
+            final ClientRepositoryWrapper clientRepositoryWrapper, final GroupRepository groupRepository,
+            final FromJsonHelper fromApiJsonHelper, final ConfigurationDomainService configurationDomainService) {
         this.meetingRepositoryWrapper = meetingRepositoryWrapper;
         this.meetingRepository = meetingRepository;
         this.meetingDataValidator = meetingDataValidator;
@@ -98,15 +98,15 @@ public class MeetingWritePlatformServiceJpaRepositoryImpl implements MeetingWrit
 
         this.meetingDataValidator.validateForCreate(command);
 
-        final Date meetingDate = command.DateValueOfParameterNamed(meetingDateParamName);
+        final Date meetingDate = command.dateValueOfParameterNamed(meetingDateParamName);
         final Boolean isTransactionDateOnNonMeetingDate = false;
-        /*Boolean isSkipRepaymentOnFirstMonth = false;
-        Integer numberOfDays = 0;
-        boolean isSkipRepaymentOnFirstMonthEnabled = configurationDomainService.isSkippingMeetingOnFirstDayOfMonthEnabled();
-        if(isSkipRepaymentOnFirstMonthEnabled){
-            isSkipRepaymentOnFirstMonth = isLoanRepaymentsSyncWithMeeting(loan.group(), calendar);
-            if(isSkipRepaymentOnFirstMonth) { numberOfDays = configurationDomainService.retreivePeroidInNumberOfDaysForSkipMeetingDate().intValue(); } 
-        }*/
+        /*
+         * Boolean isSkipRepaymentOnFirstMonth = false; Integer numberOfDays = 0; boolean
+         * isSkipRepaymentOnFirstMonthEnabled = configurationDomainService.isSkippingMeetingOnFirstDayOfMonthEnabled( );
+         * if(isSkipRepaymentOnFirstMonthEnabled){ isSkipRepaymentOnFirstMonth =
+         * isLoanRepaymentsSyncWithMeeting(loan.group(), calendar); if(isSkipRepaymentOnFirstMonth) { numberOfDays =
+         * configurationDomainService. retreivePeroidInNumberOfDaysForSkipMeetingDate().intValue(); } }
+         */
 
         try {
             final CalendarInstance calendarInstance = getCalendarInstance(command);
@@ -114,11 +114,16 @@ public class MeetingWritePlatformServiceJpaRepositoryImpl implements MeetingWrit
             Boolean isSkipRepaymentOnFirstMonth = false;
             Integer numberOfDays = 0;
             boolean isSkipRepaymentOnFirstMonthEnabled = configurationDomainService.isSkippingMeetingOnFirstDayOfMonthEnabled();
-            if(isSkipRepaymentOnFirstMonthEnabled){
-            	if(calendarInstance != null){isSkipRepaymentOnFirstMonth = true;}
-                if(isSkipRepaymentOnFirstMonth) { numberOfDays = configurationDomainService.retreivePeroidInNumberOfDaysForSkipMeetingDate().intValue(); } 
+            if (isSkipRepaymentOnFirstMonthEnabled) {
+                if (calendarInstance != null) {
+                    isSkipRepaymentOnFirstMonth = true;
+                }
+                if (isSkipRepaymentOnFirstMonth) {
+                    numberOfDays = configurationDomainService.retreivePeroidInNumberOfDaysForSkipMeetingDate().intValue();
+                }
             }
-            final Meeting newMeeting = Meeting.createNew(calendarInstance, meetingDate, isTransactionDateOnNonMeetingDate, isSkipRepaymentOnFirstMonth, numberOfDays);
+            final Meeting newMeeting = Meeting.createNew(calendarInstance, meetingDate, isTransactionDateOnNonMeetingDate,
+                    isSkipRepaymentOnFirstMonth, numberOfDays);
 
             final Collection<ClientAttendance> clientsAttendance = getClientsAttendance(newMeeting, command);
             if (clientsAttendance != null && !clientsAttendance.isEmpty()) {
@@ -131,8 +136,9 @@ public class MeetingWritePlatformServiceJpaRepositoryImpl implements MeetingWrit
                     .withEntityId(newMeeting.getId()) //
                     .withGroupId(groupId).build();
 
-        } catch (final DataIntegrityViolationException dve) {
-            handleMeetingDataIntegrityIssues(meetingDate, dve);
+        } catch (final DataIntegrityViolationException | JpaSystemException dve) {
+            final Throwable throwable = dve.getMostSpecificCause();
+            handleMeetingDataIntegrityIssues(meetingDate, throwable, dve);
             return new CommandProcessingResultBuilder() //
                     .build();
         }
@@ -141,8 +147,8 @@ public class MeetingWritePlatformServiceJpaRepositoryImpl implements MeetingWrit
     private CalendarInstance getCalendarInstance(final JsonCommand command) {
 
         final Long calendarId = command.longValueOfParameterNamed(calendarIdParamName);
-        final Calendar calendarForUpdate = this.calendarRepository.findOne(calendarId);
-        if (calendarForUpdate == null) { throw new CalendarNotFoundException(calendarId); }
+        final Calendar calendarForUpdate = this.calendarRepository.findById(calendarId)
+                .orElseThrow(() -> new CalendarNotFoundException(calendarId));
 
         Long entityId = null;// command.getSupportedEntityId();
         CalendarEntityType entityType = CalendarEntityType.INVALID;// CalendarEntityType.valueOf(command.getSupportedEntityType().toUpperCase());
@@ -156,10 +162,9 @@ public class MeetingWritePlatformServiceJpaRepositoryImpl implements MeetingWrit
             entityId = command.getGroupId();
             entityType = CalendarEntityType.GROUPS;
             /*
-             * If group is within a center then center entityType should be
-             * passed for retrieving CalendarInstance.
+             * If group is within a center then center entityType should be passed for retrieving CalendarInstance.
              */
-            final Group group = this.groupRepository.findOne(entityId);
+            final Group group = this.groupRepository.findById(entityId).get();
             if (group.isCenter()) {
                 entityType = CalendarEntityType.CENTERS;
             } else if (group.isChildGroup()) {
@@ -168,8 +173,8 @@ public class MeetingWritePlatformServiceJpaRepositoryImpl implements MeetingWrit
             }
         }
 
-        final CalendarInstance calendarInstance = this.calendarInstanceRepository.findByCalendarIdAndEntityIdAndEntityTypeId(
-                calendarForUpdate.getId(), entityId, entityType.getValue());
+        final CalendarInstance calendarInstance = this.calendarInstanceRepository
+                .findByCalendarIdAndEntityIdAndEntityTypeId(calendarForUpdate.getId(), entityId, entityType.getValue());
         if (calendarInstance == null) {
             final String postFix = "for." + entityType.name().toLowerCase() + "not.found";
             final String defaultUserMessage = "No Calendar Instance details found for group with identifier " + entityId
@@ -232,21 +237,20 @@ public class MeetingWritePlatformServiceJpaRepositoryImpl implements MeetingWrit
     @Override
     public CommandProcessingResult updateMeeting(final JsonCommand command) {
         this.meetingDataValidator.validateForUpdate(command);
-        
-		final CalendarInstance calendarInstance = getCalendarInstance(command);
-		
-		// create new meeting
-		Boolean isSkipRepaymentOnFirstMonth = false;
-		
-		Integer numberOfDays = 0;
-		boolean isSkipRepaymentOnFirstMonthEnabled = configurationDomainService
-				.isSkippingMeetingOnFirstDayOfMonthEnabled();
-		if (isSkipRepaymentOnFirstMonthEnabled) {
-			if (calendarInstance != null) {
-				isSkipRepaymentOnFirstMonth = true;
-				numberOfDays = configurationDomainService.retreivePeroidInNumberOfDaysForSkipMeetingDate().intValue();
-			}
-		}
+
+        final CalendarInstance calendarInstance = getCalendarInstance(command);
+
+        // create new meeting
+        Boolean isSkipRepaymentOnFirstMonth = false;
+
+        Integer numberOfDays = 0;
+        boolean isSkipRepaymentOnFirstMonthEnabled = configurationDomainService.isSkippingMeetingOnFirstDayOfMonthEnabled();
+        if (isSkipRepaymentOnFirstMonthEnabled) {
+            if (calendarInstance != null) {
+                isSkipRepaymentOnFirstMonth = true;
+                numberOfDays = configurationDomainService.retreivePeroidInNumberOfDaysForSkipMeetingDate().intValue();
+            }
+        }
         final Meeting meetingForUpdate = this.meetingRepositoryWrapper.findOneWithNotFoundDetection(command.entityId());
         final Map<String, Object> changes = meetingForUpdate.update(command, isSkipRepaymentOnFirstMonth, numberOfDays);
 
@@ -254,8 +258,9 @@ public class MeetingWritePlatformServiceJpaRepositoryImpl implements MeetingWrit
             if (!changes.isEmpty()) {
                 this.meetingRepositoryWrapper.saveAndFlush(meetingForUpdate);
             }
-        } catch (final DataIntegrityViolationException dve) {
-            handleMeetingDataIntegrityIssues(meetingForUpdate.getMeetingDate(), dve);
+        } catch (final DataIntegrityViolationException | JpaSystemException dve) {
+            final Throwable throwable = dve.getMostSpecificCause();
+            handleMeetingDataIntegrityIssues(meetingForUpdate.getMeetingDate(), throwable, dve);
             return new CommandProcessingResultBuilder() //
                     .build();
         }
@@ -293,12 +298,11 @@ public class MeetingWritePlatformServiceJpaRepositoryImpl implements MeetingWrit
                 .build();
     }
 
-    private void handleMeetingDataIntegrityIssues(final Date meetingDate, final DataIntegrityViolationException dve) {
-        final Throwable realCause = dve.getMostSpecificCause();
+    private void handleMeetingDataIntegrityIssues(final Date meetingDate, final Throwable realCause, final Exception dve) {
         if (realCause.getMessage().contains("unique_calendar_instance_id_meeting_date")) {
-            final LocalDate meetingDateLocal = LocalDate.fromDateFields(meetingDate);
-            throw new PlatformDataIntegrityException("error.msg.meeting.duplicate", "A meeting with date '" + meetingDateLocal
-                    + "' already exists", meetingDateParamName, meetingDateLocal);
+            final LocalDate meetingDateLocal = LocalDate.ofInstant(meetingDate.toInstant(), DateUtils.getDateTimeZoneOfTenant());
+            throw new PlatformDataIntegrityException("error.msg.meeting.duplicate",
+                    "A meeting with date '" + meetingDateLocal + "' already exists", meetingDateParamName, meetingDateLocal);
         }
 
         throw new PlatformDataIntegrityException("error.msg.meeting.unknown.data.integrity.issue",
@@ -307,28 +311,27 @@ public class MeetingWritePlatformServiceJpaRepositoryImpl implements MeetingWrit
 
     @Override
     public void updateCollectionSheetAttendance(final JsonCommand command) {
-        final Date meetingDate = command.DateValueOfParameterNamed(transactionDateParamName);
-        final Boolean isTransactionDateOnNonMeetingDate = command.booleanPrimitiveValueOfParameterNamed(isTransactionDateOnNonMeetingDateParamName);
+        final Date meetingDate = command.dateValueOfParameterNamed(transactionDateParamName);
+        final Boolean isTransactionDateOnNonMeetingDate = command
+                .booleanPrimitiveValueOfParameterNamed(isTransactionDateOnNonMeetingDateParamName);
 
         try {
             final CalendarInstance calendarInstance = getCalendarInstance(command);
-            
-			final Meeting meeting = this.meetingRepository
-					.findByCalendarInstanceIdAndMeetingDate(calendarInstance.getId(), meetingDate);
-			Boolean isSkipRepaymentOnFirstMonth = false;
-			Integer numberOfDays = 0;
-			boolean isSkipRepaymentOnFirstMonthEnabled = configurationDomainService
-					.isSkippingMeetingOnFirstDayOfMonthEnabled();
-			if (isSkipRepaymentOnFirstMonthEnabled) {
-					isSkipRepaymentOnFirstMonth = true;
-				if (isSkipRepaymentOnFirstMonth) {
-					numberOfDays = configurationDomainService.retreivePeroidInNumberOfDaysForSkipMeetingDate()
-							.intValue();
-				}
-			}
+
+            final Meeting meeting = this.meetingRepository.findByCalendarInstanceIdAndMeetingDate(calendarInstance.getId(), meetingDate);
+            Boolean isSkipRepaymentOnFirstMonth = false;
+            Integer numberOfDays = 0;
+            boolean isSkipRepaymentOnFirstMonthEnabled = configurationDomainService.isSkippingMeetingOnFirstDayOfMonthEnabled();
+            if (isSkipRepaymentOnFirstMonthEnabled) {
+                isSkipRepaymentOnFirstMonth = true;
+                if (isSkipRepaymentOnFirstMonth) {
+                    numberOfDays = configurationDomainService.retreivePeroidInNumberOfDaysForSkipMeetingDate().intValue();
+                }
+            }
             // create new meeting
-            final Meeting newMeeting = (meeting != null) ? meeting : Meeting.createNew(calendarInstance, meetingDate, isTransactionDateOnNonMeetingDate,
-            		isSkipRepaymentOnFirstMonth, numberOfDays);
+            final Meeting newMeeting = (meeting != null) ? meeting
+                    : Meeting.createNew(calendarInstance, meetingDate, isTransactionDateOnNonMeetingDate, isSkipRepaymentOnFirstMonth,
+                            numberOfDays);
 
             final Collection<ClientAttendance> clientsAttendance = getClientsAttendance(newMeeting, command);
             if (clientsAttendance != null && !clientsAttendance.isEmpty()) {
@@ -336,8 +339,9 @@ public class MeetingWritePlatformServiceJpaRepositoryImpl implements MeetingWrit
             }
             // save meeting details
             this.meetingRepositoryWrapper.save(newMeeting);
-        } catch (final DataIntegrityViolationException dve) {
-            handleMeetingDataIntegrityIssues(meetingDate, dve);
+        } catch (final JpaSystemException | DataIntegrityViolationException dve) {
+            final Throwable throwable = dve.getMostSpecificCause();
+            handleMeetingDataIntegrityIssues(meetingDate, throwable, dve);
         }
 
     }

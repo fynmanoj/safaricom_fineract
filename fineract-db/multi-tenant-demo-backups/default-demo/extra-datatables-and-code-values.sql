@@ -44,8 +44,8 @@ join m_code_value mv on mv.code_id = mc.id
 where mc.`code_name` = "YesNo";
 
 INSERT INTO `m_code`
-(`code_name`, `is_system_defined`) 
-VALUES 
+(`code_name`, `is_system_defined`)
+VALUES
 ('Education',1);
 
 INSERT INTO `m_code_value`(`code_id`,`code_value`,`order_position`)
@@ -70,45 +70,45 @@ where mc.`code_name` = "Education";
 
 DROP TABLE IF EXISTS `extra_client_details`;
 CREATE TABLE `extra_client_details` (
-  `client_id` bigint(20) NOT NULL,
+  `client_id` BIGINT NOT NULL,
   `Business Description` varchar(100) DEFAULT NULL,
-  `Years in Business` int(11) DEFAULT NULL,
-  `Gender_cd` int(11) DEFAULT NULL,
+  `Years in Business` INT DEFAULT NULL,
+  `Gender_cd` INT DEFAULT NULL,
   `Education_cv` varchar(60) DEFAULT NULL,
   `Next Visit` date DEFAULT NULL,
   `Highest Rate Paid` decimal(19,6) DEFAULT NULL,
   `Comment` text,
   PRIMARY KEY (`client_id`),
   CONSTRAINT `FK_extra_client_details` FOREIGN KEY (`client_id`) REFERENCES `m_client` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=UTF8MB4;
 
 DROP TABLE IF EXISTS `extra_family_details`;
 CREATE TABLE `extra_family_details` (
-  `id` bigint(20) NOT NULL AUTO_INCREMENT,
-  `client_id` bigint(20) NOT NULL,
+  `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `client_id` BIGINT NOT NULL,
   `Name` varchar(40) DEFAULT NULL,
   `Date of Birth` date DEFAULT NULL,
-  `Points Score` int(11) DEFAULT NULL,
-  `Education_cd_Highest` int(11) DEFAULT NULL,
+  `Points Score` INT DEFAULT NULL,
+  `Education_cd_Highest` INT DEFAULT NULL,
   `Other Notes` text,
   PRIMARY KEY (`id`),
   KEY `FK_Extra Family Details Data_1` (`client_id`),
   CONSTRAINT `FK_family_details` FOREIGN KEY (`client_id`) REFERENCES `m_client` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=UTF8MB4;
 
 DROP TABLE IF EXISTS `extra_loan_details`;
 CREATE TABLE `extra_loan_details` (
-  `loan_id` bigint(20) NOT NULL,
+  `loan_id` BIGINT NOT NULL,
   `Business Description` varchar(100) DEFAULT NULL,
-  `Years in Business` int(11) DEFAULT NULL,
-  `Gender_cd` int(11) DEFAULT NULL,
+  `Years in Business` INT DEFAULT NULL,
+  `Gender_cd` INT DEFAULT NULL,
   `Education_cv` varchar(60) DEFAULT NULL,
   `Next Visit` date DEFAULT NULL,
   `Highest Rate Paid` decimal(19,6) DEFAULT NULL,
   `Comment` text,
   PRIMARY KEY (`loan_id`),
   CONSTRAINT `FK_extra_loan_details` FOREIGN KEY (`loan_id`) REFERENCES `m_loan` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=UTF8MB4;
 
 -- datatables mapping
 INSERT INTO `x_registered_table`
@@ -141,7 +141,7 @@ from x_registered_table r;
 
 -- ==== Chart of Accounts =====
 truncate `acc_gl_account`;
-INSERT INTO `acc_gl_account` VALUES 
+INSERT INTO `acc_gl_account` VALUES
 (1,'Petty Cash Balances',NULL,'11100',0,1,2,1,NULL),
 (2,'Cash in Valut 1',NULL,'11101',0,1,1,1,NULL),
 (3,'Bank Balances',NULL,'11200',0,1,2,1,NULL),

@@ -20,10 +20,13 @@ package org.apache.fineract.portfolio.client.domain;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.apache.fineract.infrastructure.core.data.EnumOptionData;
 
-public class ClientEnumerations {
+public final class ClientEnumerations {
+
+    private ClientEnumerations() {
+
+    }
 
     public static EnumOptionData status(final Integer statusId) {
         return status(ClientStatus.fromInt(statusId));
@@ -60,23 +63,20 @@ public class ClientEnumerations {
                 optionData = new EnumOptionData(ClientStatus.TRANSFER_ON_HOLD.getValue().longValue(),
                         ClientStatus.TRANSFER_ON_HOLD.getCode(), "Transfer on hold");
             break;
-            default:
-            break;
         }
 
         return optionData;
     }
-    
+
     public static EnumOptionData legalForm(final Integer statusId) {
         return legalForm(LegalForm.fromInt(statusId));
     }
-    
+
     public static EnumOptionData legalForm(final LegalForm legalForm) {
-    	final EnumOptionData optionData = new EnumOptionData(legalForm.getValue().longValue(), legalForm.getCode(),
-                legalForm.toString());
+        final EnumOptionData optionData = new EnumOptionData(legalForm.getValue().longValue(), legalForm.getCode(), legalForm.toString());
         return optionData;
     }
-    
+
     public static List<EnumOptionData> legalForm(final LegalForm[] legalForms) {
         final List<EnumOptionData> optionDatas = new ArrayList<>();
         for (final LegalForm legalForm : legalForms) {

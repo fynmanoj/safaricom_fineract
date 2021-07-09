@@ -21,15 +21,16 @@ package org.apache.fineract.portfolio.charge.service;
 import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.MonthDay;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.apache.fineract.accounting.common.AccountingDropdownReadPlatformService;
 import org.apache.fineract.accounting.glaccount.data.GLAccountData;
 import org.apache.fineract.infrastructure.core.data.EnumOptionData;
 import org.apache.fineract.infrastructure.core.domain.JdbcSupport;
+import org.apache.fineract.infrastructure.core.service.DateUtils;
 import org.apache.fineract.infrastructure.core.service.RoutingDataSource;
 import org.apache.fineract.infrastructure.entityaccess.domain.FineractEntityType;
 import org.apache.fineract.infrastructure.entityaccess.service.FineractEntityAccessUtil;
@@ -43,7 +44,6 @@ import org.apache.fineract.portfolio.common.service.CommonEnumerations;
 import org.apache.fineract.portfolio.common.service.DropdownReadPlatformService;
 import org.apache.fineract.portfolio.tax.data.TaxGroupData;
 import org.apache.fineract.portfolio.tax.service.TaxReadPlatformService;
-import org.joda.time.MonthDay;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -54,7 +54,7 @@ import org.springframework.stereotype.Service;
 
 /**
  * @author vishwas
- * 
+ *
  */
 @Service
 public class ChargeReadPlatformServiceImpl implements ChargeReadPlatformService {
@@ -108,7 +108,7 @@ public class ChargeReadPlatformServiceImpl implements ChargeReadPlatformService 
 
         sql += " order by c.name ";
 
-        return this.jdbcTemplate.query(sql, rm, new Object[] {currencyCode});
+        return this.jdbcTemplate.query(sql, rm, new Object[] { currencyCode });
     }
 
     @Override
@@ -120,10 +120,10 @@ public class ChargeReadPlatformServiceImpl implements ChargeReadPlatformService 
 
             sql += addInClauseToSQL_toLimitChargesMappedToOffice_ifOfficeSpecificProductsEnabled();
 
-            sql = sql + " ;" ;
+            sql = sql + " ;";
             return this.jdbcTemplate.queryForObject(sql, rm, new Object[] { chargeId });
         } catch (final EmptyResultDataAccessException e) {
-            throw new ChargeNotFoundException(chargeId);
+            throw new ChargeNotFoundException(chargeId, e);
         }
     }
 
@@ -225,6 +225,7 @@ public class ChargeReadPlatformServiceImpl implements ChargeReadPlatformService 
                 sb.append(excludeChargeTimes[i].getValue());
             }
             excludeClause = excludeClause.append(" and c.charge_time_enum not in(" + sb.toString() + ") ");
+            excludeClause.append(" ");
         }
     }
 
@@ -264,7 +265,7 @@ public class ChargeReadPlatformServiceImpl implements ChargeReadPlatformService 
         // charges mapped to current user's office
         String inClause = fineractEntityAccessUtil
                 .getSQLWhereClauseForProductIDsForUserOffice_ifGlobalConfigEnabled(FineractEntityType.CHARGE);
-        if ((inClause != null) && (!(inClause.trim().isEmpty()))) {
+        if ((inClause != null) && !inClause.trim().isEmpty()) {
             sql += " and c.id in ( " + inClause + " ) ";
         }
 
@@ -342,7 +343,7 @@ public class ChargeReadPlatformServiceImpl implements ChargeReadPlatformService 
             final Integer feeOnMonth = JdbcSupport.getInteger(rs, "feeOnMonth");
             final Integer feeOnDay = JdbcSupport.getInteger(rs, "feeOnDay");
             if (feeOnDay != null && feeOnMonth != null) {
-                feeOnMonthDay = new MonthDay(feeOnMonth, feeOnDay);
+                feeOnMonthDay = MonthDay.now(DateUtils.getDateTimeZoneOfTenant()).withDayOfMonth(feeOnDay).withMonth(feeOnMonth);
             }
             final BigDecimal minCap = rs.getBigDecimal("minCap");
             final BigDecimal maxCap = rs.getBigDecimal("maxCap");

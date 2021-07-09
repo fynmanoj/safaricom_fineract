@@ -19,7 +19,6 @@
 package org.apache.fineract.infrastructure.gcm.domain;
 
 import java.util.Date;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
@@ -27,59 +26,59 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-
 import org.apache.fineract.infrastructure.core.domain.AbstractPersistableCustom;
 import org.apache.fineract.infrastructure.core.service.DateUtils;
 import org.apache.fineract.portfolio.client.domain.Client;
 
 @Entity
 @Table(name = "client_device_registration")
-public class DeviceRegistration extends AbstractPersistableCustom<Long> {
+public final class DeviceRegistration extends AbstractPersistableCustom {
 
-	@OneToOne
-	@JoinColumn(name = "client_id", nullable = false, unique = true)
-	private Client client;
+    @OneToOne
+    @JoinColumn(name = "client_id", nullable = false, unique = true)
+    private Client client;
 
-	@Column(name = "registration_id", nullable = false, unique = true)
-	private String registrationId;
+    @Column(name = "registration_id", nullable = false, unique = true)
+    private String registrationId;
 
-	@Column(name = "updatedon_date", nullable = false)
-	@Temporal(TemporalType.TIMESTAMP)
-	private Date updatedOnDate;
+    @Column(name = "updatedon_date", nullable = false)
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date updatedOnDate;
 
-	private DeviceRegistration(final Client client, final String registrationId) {
-		this.client = client;
-		this.registrationId = registrationId;
-		this.updatedOnDate = DateUtils.getLocalDateTimeOfTenant().toDate();
-	}
+    private DeviceRegistration() {}
 
-	public static DeviceRegistration instance(final Client client,
-			final String registrationId) {
-		return new DeviceRegistration(client, registrationId);
-	}
+    private DeviceRegistration(final Client client, final String registrationId) {
+        this.client = client;
+        this.registrationId = registrationId;
+        this.updatedOnDate = Date.from(DateUtils.getLocalDateTimeOfTenant().atZone(DateUtils.getDateTimeZoneOfTenant()).toInstant());
+    }
 
-	public Client getClient() {
-		return this.client;
-	}
+    public static DeviceRegistration instance(final Client client, final String registrationId) {
+        return new DeviceRegistration(client, registrationId);
+    }
 
-	public void setClient(Client client) {
-		this.client = client;
-	}
+    public Client getClient() {
+        return this.client;
+    }
 
-	public String getRegistrationId() {
-		return this.registrationId;
-	}
+    public void setClient(Client client) {
+        this.client = client;
+    }
 
-	public void setRegistrationId(String registrationId) {
-		this.registrationId = registrationId;
-	}
+    public String getRegistrationId() {
+        return this.registrationId;
+    }
 
-	public Date getUpdatedOnDate() {
-		return this.updatedOnDate;
-	}
+    public void setRegistrationId(String registrationId) {
+        this.registrationId = registrationId;
+    }
 
-	public void setUpdatedOnDate(Date updatedOnDate) {
-		this.updatedOnDate = updatedOnDate;
-	}
+    public Date getUpdatedOnDate() {
+        return this.updatedOnDate;
+    }
+
+    public void setUpdatedOnDate(Date updatedOnDate) {
+        this.updatedOnDate = updatedOnDate;
+    }
 
 }

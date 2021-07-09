@@ -20,14 +20,11 @@ package org.apache.fineract.portfolio.shareaccounts.domain;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
-
-import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.fineract.infrastructure.core.domain.AbstractPersistableCustom;
 import org.apache.fineract.organisation.monetary.domain.MonetaryCurrency;
 import org.apache.fineract.organisation.monetary.domain.Money;
@@ -38,7 +35,7 @@ import org.apache.fineract.portfolio.charge.domain.ChargeTimeType;
 
 @Entity
 @Table(name = "m_share_account_charge")
-public class ShareAccountCharge extends AbstractPersistableCustom<Long> {
+public class ShareAccountCharge extends AbstractPersistableCustom {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "account_id", referencedColumnName = "id", nullable = false)
@@ -101,7 +98,7 @@ public class ShareAccountCharge extends AbstractPersistableCustom<Long> {
 
         this.shareAccount = shareAccount;
         this.charge = chargeDefinition;
-        this.chargeTime = (chargeTime == null) ? chargeDefinition.getChargeTimeType() : chargeTime.getValue();
+        this.chargeTime = chargeTime == null ? chargeDefinition.getChargeTimeType() : chargeTime.getValue();
 
         this.chargeCalculation = chargeDefinition.getChargeCalculation();
         if (chargeCalculation != null) {
@@ -121,7 +118,7 @@ public class ShareAccountCharge extends AbstractPersistableCustom<Long> {
     }
 
     private void populateDerivedFields(final BigDecimal transactionAmount, final BigDecimal chargeAmount) {
-        this.amountOrPercentage = chargeAmount ;
+        this.amountOrPercentage = chargeAmount;
         if (this.chargeCalculation.equals(ChargeCalculationType.FLAT.getValue())) {
             this.percentage = null;
             this.amount = BigDecimal.ZERO;
@@ -148,7 +145,7 @@ public class ShareAccountCharge extends AbstractPersistableCustom<Long> {
     }
 
     public void resetToOriginal(final MonetaryCurrency currency) {
-        this.amount = BigDecimal.ZERO ;
+        this.amount = BigDecimal.ZERO;
         this.amountPaid = BigDecimal.ZERO;
         this.amountWaived = BigDecimal.ZERO;
         this.amountWrittenOff = BigDecimal.ZERO;
@@ -204,11 +201,11 @@ public class ShareAccountCharge extends AbstractPersistableCustom<Long> {
     }
 
     public void update(final BigDecimal transactionAmount, final BigDecimal amount) {
-       populateDerivedFields(transactionAmount, amount);
+        populateDerivedFields(transactionAmount, amount);
     }
 
     private boolean isGreaterThanZero(final BigDecimal value) {
-        return value.compareTo(BigDecimal.ZERO) == 1;
+        return value.compareTo(BigDecimal.ZERO) > 0;
     }
 
     private boolean determineIfFullyPaid() {
@@ -241,7 +238,7 @@ public class ShareAccountCharge extends AbstractPersistableCustom<Long> {
         BigDecimal percentageOf = BigDecimal.ZERO;
         if (isGreaterThanZero(value)) {
             final MathContext mc = new MathContext(8, MoneyHelper.getRoundingMode());
-            final BigDecimal multiplicand = percentage.divide(BigDecimal.valueOf(100l), mc);
+            final BigDecimal multiplicand = percentage.divide(BigDecimal.valueOf(100L), mc);
             percentageOf = value.multiply(multiplicand, mc);
         }
         return percentageOf;
@@ -335,7 +332,9 @@ public class ShareAccountCharge extends AbstractPersistableCustom<Long> {
     }
 
     public boolean hasCurrencyCodeOf(final String matchingCurrencyCode) {
-        if (this.currencyCode() == null || matchingCurrencyCode == null) { return false; }
+        if (this.currencyCode() == null || matchingCurrencyCode == null) {
+            return false;
+        }
         return this.currencyCode().equalsIgnoreCase(matchingCurrencyCode);
     }
 
@@ -344,7 +343,7 @@ public class ShareAccountCharge extends AbstractPersistableCustom<Long> {
         if (ChargeCalculationType.fromInt(this.chargeCalculation).isFlat()) {
             amountPaybale = this.amount;
         } else if (ChargeCalculationType.fromInt(this.chargeCalculation).isPercentageOfAmount()) {
-            amountPaybale = transactionAmount.multiply(this.percentage).divide(BigDecimal.valueOf(100l));
+            amountPaybale = transactionAmount.multiply(this.percentage).divide(BigDecimal.valueOf(100L));
         }
         this.amountOutstanding = amountPaybale;
         return amountPaybale;
@@ -377,14 +376,14 @@ public class ShareAccountCharge extends AbstractPersistableCustom<Long> {
     public BigDecimal deriveChargeAmount(BigDecimal transactionAmount, final MonetaryCurrency currency) {
         BigDecimal toReturnAmount = amountOrPercentage;
         if (ChargeCalculationType.fromInt(this.chargeCalculation) == ChargeCalculationType.PERCENT_OF_AMOUNT) {
-            toReturnAmount = Money.of(currency, percentageOf(transactionAmount, this.percentage)).getAmount() ;
+            toReturnAmount = Money.of(currency, percentageOf(transactionAmount, this.percentage)).getAmount();
             this.amountPercentageAppliedTo = transactionAmount;
-            this.amount = Money.of(currency, percentageOf(this.amountPercentageAppliedTo, this.percentage)).getAmount() ;
+            this.amount = Money.of(currency, percentageOf(this.amountPercentageAppliedTo, this.percentage)).getAmount();
             this.amountPaid = null;
             this.amountOutstanding = calculateOutstanding();
             this.amountWaived = null;
             this.amountWrittenOff = null;
-        }else {
+        } else {
             this.amount = this.amountOrPercentage;
             this.amountOutstanding = calculateOutstanding();
             this.amountWaived = null;
@@ -396,9 +395,9 @@ public class ShareAccountCharge extends AbstractPersistableCustom<Long> {
     public BigDecimal updateChargeDetailsForAdditionalSharesRequest(final BigDecimal transactionAmount, final MonetaryCurrency currency) {
         BigDecimal toReturnAmount = amountOrPercentage;
         if (ChargeCalculationType.fromInt(this.chargeCalculation) == ChargeCalculationType.PERCENT_OF_AMOUNT) {
-            toReturnAmount = Money.of(currency, percentageOf(transactionAmount, this.percentage)).getAmount() ;
+            toReturnAmount = Money.of(currency, percentageOf(transactionAmount, this.percentage)).getAmount();
             this.amountPercentageAppliedTo = this.amountPercentageAppliedTo.add(transactionAmount);
-            this.amount = Money.of(currency, percentageOf(this.amountPercentageAppliedTo, this.percentage)).getAmount() ;
+            this.amount = Money.of(currency, percentageOf(this.amountPercentageAppliedTo, this.percentage)).getAmount();
             this.amountOutstanding = calculateOutstanding();
             this.amountWaived = null;
             this.amountWrittenOff = null;
@@ -412,19 +411,6 @@ public class ShareAccountCharge extends AbstractPersistableCustom<Long> {
     }
 
     public void setActive(boolean active) {
-        this.active = active ;
-    }
-    
-    @Override
-    public boolean equals(final Object obj) {
-        if (obj == null) { return false; }
-        if (obj == this) { return true; }
-        if (obj.getClass() != getClass()) { return false; }
-        final ShareAccountCharge rhs = (ShareAccountCharge) obj;
-        return new EqualsBuilder().appendSuper(super.equals(obj)) //
-                .append(getId(), rhs.getId()) //
-                .append(this.charge.getId(), rhs.charge.getId()) //
-                .append(this.amount, rhs.amount) //
-                .isEquals();
+        this.active = active;
     }
 }

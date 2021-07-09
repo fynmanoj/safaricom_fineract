@@ -18,14 +18,13 @@
  */
 package org.apache.fineract.organisation.workingdays.data;
 
-import org.apache.fineract.infrastructure.core.data.EnumOptionData;
-
 import java.util.Collection;
+import org.apache.fineract.infrastructure.core.data.EnumOptionData;
 
 public class WorkingDaysData {
 
     private final Long id;
-    
+
     private final String recurrence;
 
     private final EnumOptionData repaymentRescheduleType;
@@ -38,7 +37,8 @@ public class WorkingDaysData {
     @SuppressWarnings("unused")
     private final Collection<EnumOptionData> repaymentRescheduleOptions;
 
-    public WorkingDaysData(Long id, String recurrence, EnumOptionData repaymentRescheduleType, Boolean extendTermForDailyRepayments, Boolean extendTermForRepaymentsOnHolidays) {
+    public WorkingDaysData(Long id, String recurrence, EnumOptionData repaymentRescheduleType, Boolean extendTermForDailyRepayments,
+            Boolean extendTermForRepaymentsOnHolidays) {
         this.id = id;
         this.recurrence = recurrence;
         this.repaymentRescheduleType = repaymentRescheduleType;
@@ -48,7 +48,8 @@ public class WorkingDaysData {
     }
 
     public WorkingDaysData(Long id, String recurrence, EnumOptionData repaymentRescheduleType,
-            Collection<EnumOptionData> repaymentRescheduleOptions, Boolean extendTermForDailyRepayments, Boolean extendTermForRepaymentsOnHolidays) {
+            Collection<EnumOptionData> repaymentRescheduleOptions, Boolean extendTermForDailyRepayments,
+            Boolean extendTermForRepaymentsOnHolidays) {
         this.id = id;
         this.recurrence = recurrence;
         this.repaymentRescheduleType = repaymentRescheduleType;
@@ -56,7 +57,7 @@ public class WorkingDaysData {
         this.extendTermForDailyRepayments = extendTermForDailyRepayments;
         this.extendTermForRepaymentsOnHolidays = extendTermForRepaymentsOnHolidays;
     }
-    
+
     public WorkingDaysData(WorkingDaysData data, Collection<EnumOptionData> repaymentRescheduleOptions) {
         this.id = data.id;
         this.recurrence = data.recurrence;

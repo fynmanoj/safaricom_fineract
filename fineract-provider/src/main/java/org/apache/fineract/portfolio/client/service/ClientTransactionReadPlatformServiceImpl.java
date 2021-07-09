@@ -21,8 +21,8 @@ package org.apache.fineract.portfolio.client.service;
 import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.Collection;
-
 import org.apache.fineract.infrastructure.core.data.EnumOptionData;
 import org.apache.fineract.infrastructure.core.domain.JdbcSupport;
 import org.apache.fineract.infrastructure.core.service.Page;
@@ -36,7 +36,6 @@ import org.apache.fineract.portfolio.client.domain.ClientTransactionType;
 import org.apache.fineract.portfolio.client.exception.ClientTransactionNotFoundException;
 import org.apache.fineract.portfolio.paymentdetail.data.PaymentDetailData;
 import org.apache.fineract.portfolio.paymenttype.data.PaymentTypeData;
-import org.joda.time.LocalDate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -61,7 +60,7 @@ public class ClientTransactionReadPlatformServiceImpl implements ClientTransacti
 
         private final String schemaSql;
 
-        public ClientTransactionMapper() {
+        ClientTransactionMapper() {
 
             final StringBuilder sqlBuilder = new StringBuilder(400);
             sqlBuilder.append("tr.id as transactionId, tr.transaction_type_enum as transactionType,  ");
@@ -175,7 +174,7 @@ public class ClientTransactionReadPlatformServiceImpl implements ClientTransacti
             final String sql = "select " + this.clientTransactionMapper.schema() + " where c.id = ? and tr.id= ?";
             return this.jdbcTemplate.queryForObject(sql, this.clientTransactionMapper, new Object[] { clientId, transactionId });
         } catch (final EmptyResultDataAccessException e) {
-            throw new ClientTransactionNotFoundException(clientId, transactionId);
+            throw new ClientTransactionNotFoundException(clientId, transactionId, e);
         }
     }
 

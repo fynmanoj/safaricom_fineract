@@ -21,9 +21,7 @@ package org.apache.fineract.portfolio.client.service;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
-
 import org.apache.fineract.infrastructure.codes.data.CodeValueData;
-import org.apache.fineract.infrastructure.core.data.EnumOptionData;
 import org.apache.fineract.infrastructure.core.domain.JdbcSupport;
 import org.apache.fineract.infrastructure.core.service.RoutingDataSource;
 import org.apache.fineract.infrastructure.security.service.PlatformSecurityContext;
@@ -78,19 +76,19 @@ public class ClientIdentifierReadPlatformServiceImpl implements ClientIdentifier
 
             sql += " and ci.id = ?";
 
-            final ClientIdentifierData clientIdentifierData = this.jdbcTemplate.queryForObject(sql, rm, new Object[] { clientId,
-                    hierarchySearchString, clientIdentifierId });
+            final ClientIdentifierData clientIdentifierData = this.jdbcTemplate.queryForObject(sql, rm,
+                    new Object[] { clientId, hierarchySearchString, clientIdentifierId });
 
             return clientIdentifierData;
         } catch (final EmptyResultDataAccessException e) {
-            throw new ClientIdentifierNotFoundException(clientIdentifierId);
+            throw new ClientIdentifierNotFoundException(clientIdentifierId, e);
         }
 
     }
 
     private static final class ClientIdentityMapper implements RowMapper<ClientIdentifierData> {
 
-        public ClientIdentityMapper() {}
+        ClientIdentityMapper() {}
 
         public String schema() {
             return "ci.id as id, ci.client_id as clientId, ci.document_type_id as documentTypeId, ci.status as status, ci.document_key as documentKey,"

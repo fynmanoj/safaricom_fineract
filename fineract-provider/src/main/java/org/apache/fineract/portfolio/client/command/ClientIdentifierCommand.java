@@ -20,11 +20,9 @@ package org.apache.fineract.portfolio.client.command;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.apache.fineract.infrastructure.core.data.ApiParameterError;
 import org.apache.fineract.infrastructure.core.data.DataValidatorBuilder;
 import org.apache.fineract.infrastructure.core.exception.PlatformApiDataValidationException;
-import org.apache.fineract.portfolio.client.domain.ClientIdentifierStatus;
 
 /**
  * Immutable command for creating or updating details of a client identifier.
@@ -34,9 +32,10 @@ public class ClientIdentifierCommand {
     private final Long documentTypeId;
     private final String documentKey;
     private final String description;
-	private final String status;
+    private final String status;
 
-    public ClientIdentifierCommand(final Long documentTypeId, final String documentKey, final String statusString, final String description) {
+    public ClientIdentifierCommand(final Long documentTypeId, final String documentKey, final String statusString,
+            final String description) {
         this.documentTypeId = documentTypeId;
         this.documentKey = documentKey;
         this.status = statusString;
@@ -63,8 +62,10 @@ public class ClientIdentifierCommand {
         baseDataValidator.reset().parameter("documentTypeId").value(this.documentTypeId).notNull().integerGreaterThanZero();
         baseDataValidator.reset().parameter("documentKey").value(this.documentKey).notBlank();
 
-        if (!dataValidationErrors.isEmpty()) { throw new PlatformApiDataValidationException("validation.msg.validation.errors.exist",
-                "Validation errors exist.", dataValidationErrors); }
+        if (!dataValidationErrors.isEmpty()) {
+            throw new PlatformApiDataValidationException("validation.msg.validation.errors.exist", "Validation errors exist.",
+                    dataValidationErrors);
+        }
     }
 
     public void validateForUpdate() {
@@ -81,7 +82,9 @@ public class ClientIdentifierCommand {
 
         baseDataValidator.reset().anyOfNotNull(this.documentTypeId, this.documentKey);
 
-        if (!dataValidationErrors.isEmpty()) { throw new PlatformApiDataValidationException("validation.msg.validation.errors.exist",
-                "Validation errors exist.", dataValidationErrors); }
+        if (!dataValidationErrors.isEmpty()) {
+            throw new PlatformApiDataValidationException("validation.msg.validation.errors.exist", "Validation errors exist.",
+                    dataValidationErrors);
+        }
     }
 }

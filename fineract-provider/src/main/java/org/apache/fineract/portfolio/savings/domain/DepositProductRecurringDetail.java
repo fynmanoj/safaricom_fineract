@@ -20,19 +20,17 @@ package org.apache.fineract.portfolio.savings.domain;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
-
 import org.apache.fineract.infrastructure.core.api.JsonCommand;
 import org.apache.fineract.infrastructure.core.domain.AbstractPersistableCustom;
 
 @Entity
 @Table(name = "m_deposit_product_recurring_detail")
-public class DepositProductRecurringDetail extends AbstractPersistableCustom<Long> {
+public class DepositProductRecurringDetail extends AbstractPersistableCustom {
 
     @Embedded
     private DepositRecurringDetail recurringDetail;
@@ -42,7 +40,7 @@ public class DepositProductRecurringDetail extends AbstractPersistableCustom<Lon
     private RecurringDepositProduct product;
 
     protected DepositProductRecurringDetail() {
-        super();
+
     }
 
     public static DepositProductRecurringDetail createNew(DepositRecurringDetail recurringDetail, SavingsProduct product) {

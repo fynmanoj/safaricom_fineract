@@ -28,7 +28,12 @@ import static org.apache.fineract.portfolio.interestratechart.InterestRateChartA
 import static org.apache.fineract.portfolio.interestratechart.InterestRateChartApiConstants.nameParamName;
 import static org.apache.fineract.portfolio.interestratechart.InterestRateChartApiConstants.productIdParamName;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -36,37 +41,29 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.fineract.infrastructure.core.data.ApiParameterError;
 import org.apache.fineract.infrastructure.core.data.DataValidatorBuilder;
 import org.apache.fineract.infrastructure.core.exception.InvalidJsonException;
 import org.apache.fineract.infrastructure.core.exception.PlatformApiDataValidationException;
 import org.apache.fineract.infrastructure.core.serialization.FromJsonHelper;
 import org.apache.fineract.portfolio.interestratechart.InterestRateChartApiConstants;
-import org.joda.time.LocalDate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.reflect.TypeToken;
 
 @Component
 public class InterestRateChartDataValidator {
 
     private final FromJsonHelper fromApiJsonHelper;
     private final InterestRateChartSlabDataValidator chartSlabDataValidator;
-	private static final Set<String> INTERESTRATE_CHART_CREATE_REQUEST_DATA_PARAMETERS = new HashSet<>(Arrays.asList(
-			InterestRateChartApiConstants.localeParamName, InterestRateChartApiConstants.dateFormatParamName,
-			nameParamName, descriptionParamName, fromDateParamName, endDateParamName, productIdParamName, chartSlabs,
-			isPrimaryGroupingByAmountParamName));
+    private static final Set<String> INTERESTRATE_CHART_CREATE_REQUEST_DATA_PARAMETERS = new HashSet<>(Arrays.asList(
+            InterestRateChartApiConstants.localeParamName, InterestRateChartApiConstants.dateFormatParamName, nameParamName,
+            descriptionParamName, fromDateParamName, endDateParamName, productIdParamName, chartSlabs, isPrimaryGroupingByAmountParamName));
 
-	private static final Set<String> INTERESTRATE_CHART_UPDATE_REQUEST_DATA_PARAMETERS = new HashSet<>(Arrays.asList(
-			InterestRateChartApiConstants.localeParamName, InterestRateChartApiConstants.dateFormatParamName,
-			idParamName, nameParamName, descriptionParamName, fromDateParamName, endDateParamName, chartSlabs,
-			InterestRateChartApiConstants.deleteParamName, isPrimaryGroupingByAmountParamName));
+    private static final Set<String> INTERESTRATE_CHART_UPDATE_REQUEST_DATA_PARAMETERS = new HashSet<>(
+            Arrays.asList(InterestRateChartApiConstants.localeParamName, InterestRateChartApiConstants.dateFormatParamName, idParamName,
+                    nameParamName, descriptionParamName, fromDateParamName, endDateParamName, chartSlabs,
+                    InterestRateChartApiConstants.deleteParamName, isPrimaryGroupingByAmountParamName));
 
     @Autowired
     public InterestRateChartDataValidator(final FromJsonHelper fromApiJsonHelper,
@@ -76,7 +73,9 @@ public class InterestRateChartDataValidator {
     }
 
     public void validateForCreate(final String json) {
-        if (StringUtils.isBlank(json)) { throw new InvalidJsonException(); }
+        if (StringUtils.isBlank(json)) {
+            throw new InvalidJsonException();
+        }
 
         final List<ApiParameterError> dataValidationErrors = new ArrayList<>();
         final DataValidatorBuilder baseDataValidator = new DataValidatorBuilder(dataValidationErrors)
@@ -110,7 +109,7 @@ public class InterestRateChartDataValidator {
             toDate = this.fromApiJsonHelper.extractLocalDateNamed(endDateParamName, element);
             baseDataValidator.reset().parameter(endDateParamName).value(toDate).notNull();
         }
-        
+
         Boolean isPrimaryGroupingByAmount = this.fromApiJsonHelper.extractBooleanNamed(isPrimaryGroupingByAmountParamName, element);
         if (isPrimaryGroupingByAmount == null) {
             isPrimaryGroupingByAmount = false;
@@ -122,12 +121,17 @@ public class InterestRateChartDataValidator {
             }
         }
 
-        // validate chart Slabs
+        // validate chart Slabs - mandatory when creating
+        final JsonArray array = this.fromApiJsonHelper.extractJsonArrayNamed(chartSlabs, element);
+        baseDataValidator.reset().parameter(chartSlabs).value(array).notNull().jsonArrayNotEmpty();
+
         validateChartSlabs(element, baseDataValidator, isPrimaryGroupingByAmount);
     }
 
     public void validateUpdate(final String json) {
-        if (StringUtils.isBlank(json)) { throw new InvalidJsonException(); }
+        if (StringUtils.isBlank(json)) {
+            throw new InvalidJsonException();
+        }
 
         final List<ApiParameterError> dataValidationErrors = new ArrayList<>();
         final DataValidatorBuilder baseDataValidator = new DataValidatorBuilder(dataValidationErrors)
@@ -168,7 +172,7 @@ public class InterestRateChartDataValidator {
             toDate = this.fromApiJsonHelper.extractLocalDateNamed(endDateParamName, element);
             baseDataValidator.reset().parameter(endDateParamName).value(toDate).notNull();
         }
-        
+
         Boolean isPrimaryGroupingByAmount = this.fromApiJsonHelper.extractBooleanNamed(isPrimaryGroupingByAmountParamName, element);
         if (isPrimaryGroupingByAmount == null) {
             isPrimaryGroupingByAmount = false;
@@ -185,10 +189,12 @@ public class InterestRateChartDataValidator {
     }
 
     private void throwExceptionIfValidationWarningsExist(final List<ApiParameterError> dataValidationErrors) {
-        if (!dataValidationErrors.isEmpty()) { throw new PlatformApiDataValidationException(dataValidationErrors); }
+        if (!dataValidationErrors.isEmpty()) {
+            throw new PlatformApiDataValidationException(dataValidationErrors);
+        }
     }
 
-    private void validateChartSlabs(JsonElement element, DataValidatorBuilder baseDataValidator,final boolean isPrimaryGroupingByAmount) {
+    private void validateChartSlabs(JsonElement element, DataValidatorBuilder baseDataValidator, final boolean isPrimaryGroupingByAmount) {
 
         if (element.isJsonObject()) {
             final JsonObject topLevelJsonElement = element.getAsJsonObject();
@@ -200,9 +206,11 @@ public class InterestRateChartDataValidator {
                     if (this.fromApiJsonHelper.parameterExists(idParamName, interstRateChartElement)) {
                         final Long id = this.fromApiJsonHelper.extractLongNamed(idParamName, interstRateChartElement);
                         baseDataValidator.reset().parameter(idParamName).value(id).notNull().integerGreaterThanZero();
-                        this.chartSlabDataValidator.validateChartSlabsUpdate(interstRateChartElement, baseDataValidator, locale, isPrimaryGroupingByAmount);
+                        this.chartSlabDataValidator.validateChartSlabsUpdate(interstRateChartElement, baseDataValidator, locale,
+                                isPrimaryGroupingByAmount);
                     } else {
-                        this.chartSlabDataValidator.validateChartSlabsCreate(interstRateChartElement, baseDataValidator, locale, isPrimaryGroupingByAmount);
+                        this.chartSlabDataValidator.validateChartSlabsCreate(interstRateChartElement, baseDataValidator, locale,
+                                isPrimaryGroupingByAmount);
                     }
                 }
             }

@@ -18,6 +18,10 @@
  */
 package org.apache.fineract.infrastructure.configuration.service;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Date;
+import java.util.List;
 import org.apache.fineract.infrastructure.configuration.data.GlobalConfigurationData;
 import org.apache.fineract.infrastructure.configuration.data.GlobalConfigurationPropertyData;
 import org.apache.fineract.infrastructure.core.service.RoutingDataSource;
@@ -27,11 +31,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Service;
-
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Date;
-import java.util.List;
 
 @Service
 public class ConfigurationReadPlatformServiceImpl implements ConfigurationReadPlatformService {
@@ -57,18 +56,17 @@ public class ConfigurationReadPlatformServiceImpl implements ConfigurationReadPl
 
         if (survey) {
             sql += " JOIN x_registered_table on x_registered_table.registered_table_name = c.name ";
-            sql += " WHERE x_registered_table.category =" + DataTableApiConstant.CATEGORY_PPI;
+            sql += " WHERE x_registered_table.category = ?";
 
-        } 
+        }
 
         sql += "  order by c.id";
-        final List<GlobalConfigurationPropertyData> globalConfiguration = this.jdbcTemplate.query(sql, this.rm, new Object[] {});
+        final List<GlobalConfigurationPropertyData> globalConfiguration = this.jdbcTemplate.query(sql, this.rm,
+                survey ? new Object[] { DataTableApiConstant.CATEGORY_PPI } : new Object[] {});
 
         return new GlobalConfigurationData(globalConfiguration);
     }
-    
-  
-    
+
     @Override
     public GlobalConfigurationPropertyData retrieveGlobalConfiguration(String name) {
 
@@ -76,8 +74,7 @@ public class ConfigurationReadPlatformServiceImpl implements ConfigurationReadPl
 
         final String sql = "SELECT c.id, c.name, c.enabled, c.value, c.date_value, c.description, c.is_trap_door FROM "
                 + "c_configuration c where c.name=? order by c.id";
-        final GlobalConfigurationPropertyData globalConfiguration = this.jdbcTemplate.queryForObject(sql, this.rm,
-                new Object[] { name });
+        final GlobalConfigurationPropertyData globalConfiguration = this.jdbcTemplate.queryForObject(sql, this.rm, new Object[] { name });
 
         return globalConfiguration;
     }
@@ -95,7 +92,6 @@ public class ConfigurationReadPlatformServiceImpl implements ConfigurationReadPl
         return globalConfiguration;
     }
 
-  
     private static final class GlobalConfigurationRowMapper implements RowMapper<GlobalConfigurationPropertyData> {
 
         @Override

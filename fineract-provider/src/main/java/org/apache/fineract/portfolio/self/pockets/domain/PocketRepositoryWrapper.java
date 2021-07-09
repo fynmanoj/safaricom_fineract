@@ -25,27 +25,28 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class PocketRepositoryWrapper {
-	private final PocketRepository pocketRepository;
 
-	@Autowired
-	public PocketRepositoryWrapper(final PocketRepository pocketRepository) {
-		this.pocketRepository = pocketRepository;
-	}
+    private final PocketRepository pocketRepository;
 
-	public void saveAndFlush(final Pocket pocket) {
-		this.pocketRepository.saveAndFlush(pocket);
-	}
+    @Autowired
+    public PocketRepositoryWrapper(final PocketRepository pocketRepository) {
+        this.pocketRepository = pocketRepository;
+    }
 
-	public Long findByAppUserId(final Long appUserId) {
-		return this.pocketRepository.findByAppUserId(appUserId);
-	}
+    public void saveAndFlush(final Pocket pocket) {
+        this.pocketRepository.saveAndFlush(pocket);
+    }
 
-	public Long findByAppUserIdWithNotFoundDetection(final Long appUserId) {
-		final Long pocketId = this.pocketRepository.findByAppUserId(appUserId);
-		if (pocketId == null) {
-			throw new PocketNotFoundException();
-		}
-		return pocketId;
-	}
+    public Long findByAppUserId(final Long appUserId) {
+        return this.pocketRepository.findByAppUserId(appUserId);
+    }
+
+    public Long findByAppUserIdWithNotFoundDetection(final Long appUserId) {
+        final Long pocketId = this.pocketRepository.findByAppUserId(appUserId);
+        if (pocketId == null) {
+            throw new PocketNotFoundException();
+        }
+        return pocketId;
+    }
 
 }

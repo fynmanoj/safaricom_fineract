@@ -18,23 +18,30 @@
  */
 package org.apache.fineract.template.domain;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
-
-import javax.persistence.*;
-
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.OneToMany;
+import javax.persistence.OrderBy;
+import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.fineract.infrastructure.core.api.JsonCommand;
 import org.apache.fineract.infrastructure.core.domain.AbstractPersistableCustom;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-
 @Entity
-@Table(name = "m_template", uniqueConstraints = {@UniqueConstraint(columnNames = {"name"}, name = "unq_name")})
-public class Template extends AbstractPersistableCustom<Long> {
+@Table(name = "m_template", uniqueConstraints = { @UniqueConstraint(columnNames = { "name" }, name = "unq_name") })
+public class Template extends AbstractPersistableCustom {
 
     @Column(name = "name", nullable = false, unique = true)
     private String name;
@@ -52,14 +59,12 @@ public class Template extends AbstractPersistableCustom<Long> {
 
     @OrderBy(value = "mapperorder")
     @OneToMany(targetEntity = TemplateMapper.class, cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    @JoinTable(name="m_template_m_templatemappers",
-        joinColumns={@JoinColumn(name="m_template_id", referencedColumnName="id")},
-        inverseJoinColumns={@JoinColumn(name="mappers_id", referencedColumnName="id", unique=true)}
-    )
+    @JoinTable(name = "m_template_m_templatemappers", joinColumns = {
+            @JoinColumn(name = "m_template_id", referencedColumnName = "id") }, inverseJoinColumns = {
+                    @JoinColumn(name = "mappers_id", referencedColumnName = "id", unique = true) })
     private List<TemplateMapper> mappers;
 
-    public Template(final String name, final String text,
-            final TemplateEntity entity, final TemplateType type,
+    public Template(final String name, final String text, final TemplateEntity entity, final TemplateType type,
             final List<TemplateMapper> mappers) {
         this.name = StringUtils.defaultIfEmpty(name, null);
         this.entity = entity;
@@ -68,24 +73,21 @@ public class Template extends AbstractPersistableCustom<Long> {
         this.mappers = mappers;
     }
 
-    protected Template() {
-    }
+    protected Template() {}
 
     public static Template fromJson(final JsonCommand command) {
         final String name = command.stringValueOfParameterNamed("name");
         final String text = command.stringValueOfParameterNamed("text");
-        final TemplateEntity entity = TemplateEntity.values()[command
-                .integerValueSansLocaleOfParameterNamed("entity")];
-        final int templateTypeId = command
-                .integerValueSansLocaleOfParameterNamed("type");
+        final TemplateEntity entity = TemplateEntity.values()[command.integerValueSansLocaleOfParameterNamed("entity")];
+        final int templateTypeId = command.integerValueSansLocaleOfParameterNamed("type");
         TemplateType type = null;
         switch (templateTypeId) {
-            case 0 :
+            case 0:
                 type = TemplateType.DOCUMENT;
-                break;
-            case 2 :
+            break;
+            case 2:
                 type = TemplateType.SMS;
-                break;
+            break;
         }
 
         final JsonArray array = command.arrayOfParameterNamed("mappers");
@@ -93,10 +95,9 @@ public class Template extends AbstractPersistableCustom<Long> {
         final List<TemplateMapper> mappersList = new ArrayList<>();
 
         for (final JsonElement element : array) {
-            mappersList.add(new TemplateMapper(element.getAsJsonObject()
-                    .get("mappersorder").getAsInt(), element.getAsJsonObject()
-                    .get("mapperskey").getAsString(), element.getAsJsonObject()
-                    .get("mappersvalue").getAsString()));
+            mappersList.add(new TemplateMapper(element.getAsJsonObject().get("mappersorder").getAsInt(),
+                    element.getAsJsonObject().get("mapperskey").getAsString(),
+                    element.getAsJsonObject().get("mappersvalue").getAsString()));
         }
 
         return new Template(name, text, entity, type, mappersList);

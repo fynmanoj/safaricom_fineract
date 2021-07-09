@@ -46,14 +46,14 @@ public enum ConditionType {
         return type;
     }
 
-    private ConditionType(final Integer value, final String code) {
+    ConditionType(final Integer value, final String code) {
         this.value = value;
         this.code = code;
     }
 
     @Override
     public String toString() {
-        return name().toString().replaceAll("_", " ");
+        return name().toString().replace("_", " ");
     }
 
     public Integer getValue() {

@@ -18,15 +18,14 @@
  */
 package org.apache.fineract.portfolio.collectionsheet.data;
 
+import java.time.LocalDate;
 import java.util.Collection;
-
 import org.apache.fineract.portfolio.paymenttype.data.PaymentTypeData;
-import org.joda.time.LocalDate;
 
 /**
  * Immutable data object for collection sheet.
  */
-public class IndividualCollectionSheetData {
+public final class IndividualCollectionSheetData {
 
     @SuppressWarnings("unused")
     private final LocalDate dueDate;

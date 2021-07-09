@@ -18,10 +18,10 @@
  */
 package org.apache.fineract.mix.api;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
@@ -30,8 +30,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
-
-import io.swagger.annotations.Api;
 import org.apache.fineract.commands.domain.CommandWrapper;
 import org.apache.fineract.commands.service.CommandWrapperBuilder;
 import org.apache.fineract.commands.service.PortfolioCommandSourceWritePlatformService;
@@ -49,10 +47,11 @@ import org.springframework.stereotype.Component;
 @Path("/mixmapping")
 @Component
 @Scope("singleton")
-@Api(value = "Mix Mapping")
+
+@Tag(name = "Mix Mapping", description = "")
 public class MixTaxonomyMappingApiResource {
 
-    private final Set<String> RESPONSE_DATA_PARAMETERS = new HashSet<>(Arrays.asList("identifier", "config"));
+    private final Set<String> responseDataParameters = new HashSet<>(Arrays.asList("identifier", "config"));
 
     private final PlatformSecurityContext context;
     private final ToApiJsonSerializer<MixTaxonomyMappingData> toApiJsonSerializer;
@@ -81,7 +80,7 @@ public class MixTaxonomyMappingApiResource {
         this.context.authenticatedUser();
         final MixTaxonomyMappingData mappingData = this.readTaxonomyMappingService.retrieveTaxonomyMapping();
         final ApiRequestJsonSerializationSettings settings = this.apiRequestParameterHelper.process(uriInfo.getQueryParameters());
-        return this.toApiJsonSerializer.serialize(settings, mappingData, this.RESPONSE_DATA_PARAMETERS);
+        return this.toApiJsonSerializer.serialize(settings, mappingData, this.responseDataParameters);
     }
 
     @PUT

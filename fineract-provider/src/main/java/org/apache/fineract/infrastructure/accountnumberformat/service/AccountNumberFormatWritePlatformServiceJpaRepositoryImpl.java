@@ -20,10 +20,8 @@ package org.apache.fineract.infrastructure.accountnumberformat.service;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-
 import javax.persistence.PersistenceException;
-
-import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.fineract.infrastructure.accountnumberformat.data.AccountNumberFormatDataValidator;
 import org.apache.fineract.infrastructure.accountnumberformat.domain.AccountNumberFormat;
 import org.apache.fineract.infrastructure.accountnumberformat.domain.AccountNumberFormatEnumerations.AccountNumberPrefixType;
@@ -37,13 +35,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.orm.jpa.JpaSystemException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AccountNumberFormatWritePlatformServiceJpaRepositoryImpl implements AccountNumberFormatWritePlatformService {
 
-    private final static Logger logger = LoggerFactory.getLogger(AccountNumberFormatWritePlatformServiceJpaRepositoryImpl.class);
+    private static final Logger LOG = LoggerFactory.getLogger(AccountNumberFormatWritePlatformServiceJpaRepositoryImpl.class);
     private final AccountNumberFormatRepositoryWrapper accountNumberFormatRepository;
     private final AccountNumberFormatDataValidator accountNumberFormatDataValidator;
 
@@ -76,13 +75,13 @@ public class AccountNumberFormatWritePlatformServiceJpaRepositoryImpl implements
             return new CommandProcessingResultBuilder() //
                     .withEntityId(accountNumberFormat.getId()) //
                     .build();
-        } catch (final DataIntegrityViolationException dve) {
+        } catch (final JpaSystemException | DataIntegrityViolationException dve) {
             handleDataIntegrityIssues(command, dve.getMostSpecificCause(), dve);
             return CommandProcessingResult.empty();
-        }catch (final PersistenceException ee) {
-        	Throwable throwable = ExceptionUtils.getRootCause(ee.getCause()) ;
-        	handleDataIntegrityIssues(command, throwable, ee);
-        	return CommandProcessingResult.empty();
+        } catch (final PersistenceException ee) {
+            Throwable throwable = ExceptionUtils.getRootCause(ee.getCause());
+            handleDataIntegrityIssues(command, throwable, ee);
+            return CommandProcessingResult.empty();
         }
     }
 
@@ -116,13 +115,13 @@ public class AccountNumberFormatWritePlatformServiceJpaRepositoryImpl implements
                     .withEntityId(accountNumberFormatId) //
                     .with(actualChanges) //
                     .build();
-        } catch (final DataIntegrityViolationException dve) {
+        } catch (final JpaSystemException | DataIntegrityViolationException dve) {
             handleDataIntegrityIssues(command, dve.getMostSpecificCause(), dve);
             return CommandProcessingResult.empty();
         } catch (final PersistenceException ee) {
-        	Throwable throwable = ExceptionUtils.getRootCause(ee.getCause()) ;
-        	handleDataIntegrityIssues(command, throwable, ee);
-        	return CommandProcessingResult.empty();
+            Throwable throwable = ExceptionUtils.getRootCause(ee.getCause());
+            handleDataIntegrityIssues(command, throwable, ee);
+            return CommandProcessingResult.empty();
         }
     }
 
@@ -137,10 +136,8 @@ public class AccountNumberFormatWritePlatformServiceJpaRepositoryImpl implements
                 .build();
     }
 
-        
     /*
-     * Guaranteed to throw an exception no matter what the data integrity issue
-     * is.
+     * Guaranteed to throw an exception no matter what the data integrity issue is.
      */
     private void handleDataIntegrityIssues(final JsonCommand command, final Throwable realCause, final Exception dve) {
         if (realCause.getMessage().contains(AccountNumberFormatConstants.ACCOUNT_TYPE_UNIQUE_CONSTRAINT_NAME)) {
@@ -151,7 +148,7 @@ public class AccountNumberFormatWritePlatformServiceJpaRepositoryImpl implements
                     "Account Format preferences for Account type `" + entityAccountType.getCode() + "` already exists", "externalId",
                     entityAccountType.getValue(), entityAccountType.getCode());
         }
-        logger.error(dve.getMessage(), dve);
+        LOG.error("Error occured.", dve);
         throw new PlatformDataIntegrityException("error.msg.account.number.format.unknown.data.integrity.issue",
                 "Unknown data integrity issue with resource.");
     }

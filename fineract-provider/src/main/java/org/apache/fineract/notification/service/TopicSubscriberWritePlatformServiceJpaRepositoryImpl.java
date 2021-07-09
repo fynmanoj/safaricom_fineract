@@ -26,17 +26,17 @@ import org.springframework.stereotype.Service;
 @Service
 public class TopicSubscriberWritePlatformServiceJpaRepositoryImpl implements TopicSubscriberWritePlatformService {
 
-private final TopicSubscriberRepository topicSubscriberRepository;
-	
-	@Autowired
-	public TopicSubscriberWritePlatformServiceJpaRepositoryImpl(TopicSubscriberRepository topicSubscriberRepository) {
-		this.topicSubscriberRepository = topicSubscriberRepository;
-	}
-	
-	@Override
-	public Long create(TopicSubscriber topicSubscriber) {
-		topicSubscriberRepository.save(topicSubscriber);
-		return topicSubscriber.getId();
-	}
+    private final TopicSubscriberRepository topicSubscriberRepository;
+
+    @Autowired
+    public TopicSubscriberWritePlatformServiceJpaRepositoryImpl(TopicSubscriberRepository topicSubscriberRepository) {
+        this.topicSubscriberRepository = topicSubscriberRepository;
+    }
+
+    @Override
+    public Long create(TopicSubscriber topicSubscriber) {
+        topicSubscriberRepository.save(topicSubscriber);
+        return topicSubscriber.getId();
+    }
 
 }

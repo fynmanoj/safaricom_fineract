@@ -18,15 +18,17 @@
  */
 package org.apache.fineract.infrastructure.campaigns.sms.serialization;
 
+import com.google.gson.JsonElement;
+import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.fineract.infrastructure.campaigns.sms.constants.SmsCampaignTriggerType;
 import org.apache.fineract.infrastructure.campaigns.sms.domain.SmsCampaign;
 import org.apache.fineract.infrastructure.core.data.ApiParameterError;
@@ -38,12 +40,8 @@ import org.apache.fineract.infrastructure.gcm.domain.DeviceRegistration;
 import org.apache.fineract.infrastructure.gcm.domain.DeviceRegistrationRepositoryWrapper;
 import org.apache.fineract.portfolio.calendar.domain.CalendarFrequencyType;
 import org.apache.fineract.portfolio.client.domain.Client;
-import org.joda.time.LocalDate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import com.google.gson.JsonElement;
-import com.google.gson.reflect.TypeToken;
 
 @Component
 public class SmsCampaignValidator {
@@ -76,24 +74,20 @@ public class SmsCampaignValidator {
     private final FromJsonHelper fromApiJsonHelper;
     private final DeviceRegistrationRepositoryWrapper deviceRegistrationRepository;
 
-    protected static final Set<String> supportedParams = new HashSet<>(Arrays.asList(campaignName, campaignType,
-            localeParamName,
+    protected static final Set<String> supportedParams = new HashSet<>(Arrays.asList(campaignName, campaignType, localeParamName,
             dateFormatParamName, runReportId, paramValue, message, recurrenceStartDate, activationDateParamName, submittedOnDateParamName,
             closureDateParamName, recurrenceParamName, providerId, triggerType, frequencyParamName, intervalParamName,
             repeatsOnDayParamName, triggerEntityType, triggerActionType, dateTimeFormat, isNotificationParamName));
 
-    protected static final Set<String> supportedParamsForUpdate = new HashSet<>(Arrays.asList(campaignName, campaignType,
-            localeParamName,
+    protected static final Set<String> supportedParamsForUpdate = new HashSet<>(Arrays.asList(campaignName, campaignType, localeParamName,
             dateFormatParamName, runReportId, paramValue, message, recurrenceStartDate, activationDateParamName, recurrenceParamName,
             providerId, triggerType, triggerEntityType, triggerActionType, dateTimeFormat, isNotificationParamName));
 
-    protected static final Set<String> ACTIVATION_REQUEST_DATA_PARAMETERS = new HashSet<>(Arrays.asList(localeParamName,
-            dateFormatParamName,
-            activationDateParamName));
+    protected static final Set<String> ACTIVATION_REQUEST_DATA_PARAMETERS = new HashSet<>(
+            Arrays.asList(localeParamName, dateFormatParamName, activationDateParamName));
 
-    protected static final Set<String> CLOSE_REQUEST_DATA_PARAMETERS = new HashSet<>(Arrays.asList(localeParamName,
-            dateFormatParamName,
-            closureDateParamName));
+    protected static final Set<String> CLOSE_REQUEST_DATA_PARAMETERS = new HashSet<>(
+            Arrays.asList(localeParamName, dateFormatParamName, closureDateParamName));
 
     protected static final Set<String> PREVIEW_REQUEST_DATA_PARAMETERS = new HashSet<>(Arrays.asList(paramValue, message));
 
@@ -104,7 +98,9 @@ public class SmsCampaignValidator {
     }
 
     public void validateCreate(String json) {
-        if (StringUtils.isBlank(json)) { throw new InvalidJsonException(); }
+        if (StringUtils.isBlank(json)) {
+            throw new InvalidJsonException();
+        }
 
         final Type typeOfMap = new TypeToken<Map<String, Object>>() {}.getType();
         this.fromApiJsonHelper.checkForUnsupportedParameters(typeOfMap, json, SmsCampaignValidator.supportedParams);
@@ -146,7 +142,7 @@ public class SmsCampaignValidator {
 
         final Long runReportId = this.fromApiJsonHelper.extractLongNamed(SmsCampaignValidator.runReportId, element);
         baseDataValidator.reset().parameter(SmsCampaignValidator.runReportId).value(runReportId).notNull().integerGreaterThanZero();
-        
+
         final String message = this.fromApiJsonHelper.extractStringNamed(SmsCampaignValidator.message, element);
         baseDataValidator.reset().parameter(SmsCampaignValidator.message).value(message).notBlank().notExceedingLengthOf(480);
 
@@ -166,7 +162,7 @@ public class SmsCampaignValidator {
                     element);
             baseDataValidator.reset().parameter(SmsCampaignValidator.submittedOnDateParamName).value(submittedOnDate).notNull();
         }
-        
+
         if (this.fromApiJsonHelper.parameterExists(SmsCampaignValidator.isNotificationParamName, element)) {
             final Boolean isNotification = this.fromApiJsonHelper.extractBooleanNamed(SmsCampaignValidator.isNotificationParamName,
                     element);
@@ -177,7 +173,9 @@ public class SmsCampaignValidator {
     }
 
     public void validateForUpdate(String json) {
-        if (StringUtils.isBlank(json)) { throw new InvalidJsonException(); }
+        if (StringUtils.isBlank(json)) {
+            throw new InvalidJsonException();
+        }
         final Type typeOfMap = new TypeToken<Map<String, Object>>() {}.getType();
         this.fromApiJsonHelper.checkForUnsupportedParameters(typeOfMap, json, SmsCampaignValidator.supportedParamsForUpdate);
         final JsonElement element = this.fromApiJsonHelper.parse(json);
@@ -209,7 +207,7 @@ public class SmsCampaignValidator {
             }
         }
 
-        if(this.fromApiJsonHelper.parameterExists(SmsCampaignValidator.runReportId, element)) {
+        if (this.fromApiJsonHelper.parameterExists(SmsCampaignValidator.runReportId, element)) {
             final Long runReportId = this.fromApiJsonHelper.extractLongNamed(SmsCampaignValidator.runReportId, element);
             baseDataValidator.reset().parameter(SmsCampaignValidator.runReportId).value(runReportId).notNull().integerGreaterThanZero();
         }
@@ -237,7 +235,9 @@ public class SmsCampaignValidator {
     }
 
     public void validatePreviewMessage(String json) {
-        if (StringUtils.isBlank(json)) { throw new InvalidJsonException(); }
+        if (StringUtils.isBlank(json)) {
+            throw new InvalidJsonException();
+        }
         final Type typeOfMap = new TypeToken<Map<String, Object>>() {}.getType();
         this.fromApiJsonHelper.checkForUnsupportedParameters(typeOfMap, json, SmsCampaignValidator.PREVIEW_REQUEST_DATA_PARAMETERS);
 
@@ -263,7 +263,9 @@ public class SmsCampaignValidator {
     }
 
     public void validateClosedDate(String json) {
-        if (StringUtils.isBlank(json)) { throw new InvalidJsonException(); }
+        if (StringUtils.isBlank(json)) {
+            throw new InvalidJsonException();
+        }
 
         final Type typeOfMap = new TypeToken<Map<String, Object>>() {}.getType();
         this.fromApiJsonHelper.checkForUnsupportedParameters(typeOfMap, json, SmsCampaignValidator.CLOSE_REQUEST_DATA_PARAMETERS);
@@ -281,7 +283,9 @@ public class SmsCampaignValidator {
     }
 
     public void validateActivation(String json) {
-        if (StringUtils.isBlank(json)) { throw new InvalidJsonException(); }
+        if (StringUtils.isBlank(json)) {
+            throw new InvalidJsonException();
+        }
 
         final Type typeOfMap = new TypeToken<Map<String, Object>>() {}.getType();
         this.fromApiJsonHelper.checkForUnsupportedParameters(typeOfMap, json, SmsCampaignValidator.ACTIVATION_REQUEST_DATA_PARAMETERS);
@@ -292,15 +296,17 @@ public class SmsCampaignValidator {
 
         final JsonElement element = this.fromApiJsonHelper.parse(json);
 
-        final LocalDate activationDate = this.fromApiJsonHelper
-                .extractLocalDateNamed(SmsCampaignValidator.activationDateParamName, element);
+        final LocalDate activationDate = this.fromApiJsonHelper.extractLocalDateNamed(SmsCampaignValidator.activationDateParamName,
+                element);
         baseDataValidator.reset().parameter(SmsCampaignValidator.activationDateParamName).value(activationDate).notNull();
 
         throwExceptionIfValidationWarningsExist(dataValidationErrors);
     }
 
-    public void ValidateClosure(String json) {
-        if (StringUtils.isBlank(json)) { throw new InvalidJsonException(); }
+    public void validateClosure(String json) {
+        if (StringUtils.isBlank(json)) {
+            throw new InvalidJsonException();
+        }
 
         final Type typeOfMap = new TypeToken<Map<String, Object>>() {}.getType();
         this.fromApiJsonHelper.checkForUnsupportedParameters(typeOfMap, json, SmsCampaignValidator.CLOSE_REQUEST_DATA_PARAMETERS);
@@ -318,19 +324,20 @@ public class SmsCampaignValidator {
     }
 
     private void throwExceptionIfValidationWarningsExist(final List<ApiParameterError> dataValidationErrors) {
-        if (!dataValidationErrors.isEmpty()) { throw new PlatformApiDataValidationException(dataValidationErrors); }
+        if (!dataValidationErrors.isEmpty()) {
+            throw new PlatformApiDataValidationException(dataValidationErrors);
+        }
     }
-    
-	public boolean isValidNotificationOrSms(Client client, SmsCampaign smsCampaign, Object mobileNo) {
-		if (smsCampaign.isNotification()) {
-			if (client != null) {
-				DeviceRegistration deviceRegistration = this.deviceRegistrationRepository
-						.findDeviceRegistrationByClientId(client.getId());
-				return (deviceRegistration != null);
-			}
-			return false;
-		}
-		return (mobileNo != null);
-	}
-    
+
+    public boolean isValidNotificationOrSms(Client client, SmsCampaign smsCampaign, Object mobileNo) {
+        if (smsCampaign.isNotification()) {
+            if (client != null) {
+                DeviceRegistration deviceRegistration = this.deviceRegistrationRepository.findDeviceRegistrationByClientId(client.getId());
+                return deviceRegistration != null;
+            }
+            return false;
+        }
+        return mobileNo != null;
+    }
+
 }

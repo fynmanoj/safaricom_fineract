@@ -18,16 +18,15 @@
  */
 package org.apache.fineract.infrastructure.core.domain;
 
-
 /**
- * Holds DB server connection details.
- *
+ * Holds Tenant's DB server connection connection details.
  */
 public class FineractPlatformTenantConnection {
-    
+
     private final Long connectionId;
     private final String schemaServer;
     private final String schemaServerPort;
+    private final String schemaConnectionParameters;
     private final String schemaUsername;
     private final String schemaPassword;
     private final String schemaName;
@@ -47,16 +46,20 @@ public class FineractPlatformTenantConnection {
     private final int maxRetriesOnDeadlock;
     private final int maxIntervalBetweenRetries;
     private final boolean testOnBorrow;
-    
-    public FineractPlatformTenantConnection(final Long connectionId,final String schemaName, String schemaServer,final String schemaServerPort,final String schemaUsername,final String schemaPassword,
-            final boolean autoUpdateEnabled,final int initialSize,final long validationInterval,final boolean removeAbandoned,final int removeAbandonedTimeout,
-            final boolean logAbandoned,final int abandonWhenPercentageFull,final int maxActive,final int minIdle,final int maxIdle,final int suspectTimeout,
-            final int timeBetweenEvictionRunsMillis,final int minEvictableIdleTimeMillis,final int maxRetriesOnDeadlock,final int maxIntervalBetweenRetries,final boolean tesOnBorrow) {
-       
+
+    public FineractPlatformTenantConnection(final Long connectionId, final String schemaName, String schemaServer,
+            final String schemaServerPort, final String schemaConnectionParameters, final String schemaUsername,
+            final String schemaPassword, final boolean autoUpdateEnabled, final int initialSize, final long validationInterval,
+            final boolean removeAbandoned, final int removeAbandonedTimeout, final boolean logAbandoned,
+            final int abandonWhenPercentageFull, final int maxActive, final int minIdle, final int maxIdle, final int suspectTimeout,
+            final int timeBetweenEvictionRunsMillis, final int minEvictableIdleTimeMillis, final int maxRetriesOnDeadlock,
+            final int maxIntervalBetweenRetries, final boolean tesOnBorrow) {
+
         this.connectionId = connectionId;
-        this.schemaName =schemaName;
+        this.schemaName = schemaName;
         this.schemaServer = schemaServer;
         this.schemaServerPort = schemaServerPort;
+        this.schemaConnectionParameters = schemaConnectionParameters;
         this.schemaUsername = schemaUsername;
         this.schemaPassword = schemaPassword;
         this.autoUpdateEnabled = autoUpdateEnabled;
@@ -74,164 +77,85 @@ public class FineractPlatformTenantConnection {
         this.minEvictableIdleTimeMillis = minEvictableIdleTimeMillis;
         this.maxRetriesOnDeadlock = maxRetriesOnDeadlock;
         this.maxIntervalBetweenRetries = maxIntervalBetweenRetries;
-        this.testOnBorrow=tesOnBorrow;
+        this.testOnBorrow = tesOnBorrow;
     }
 
-    //The Connection Protocol should be built based on jdbc.properties. We can't hard code this here and also, constructing protocol is not this class
-    //responsibility
-    /*public String databaseURL() {
-        final String url = new StringBuilder("jdbc:mysql:thin://").append(this.schemaServer).append(':').append(this.schemaServerPort)
-                .append('/').append(this.schemaName).toString();
-        return url;
-    }*/
-    
-    /**
-     * @return the schemaServer
-     */
     public String getSchemaServer() {
         return this.schemaServer;
     }
 
-    
-    /**
-     * @return the schemaServerPort
-     */
     public String getSchemaServerPort() {
         return this.schemaServerPort;
     }
 
-    
-    /**
-     * @return the schemaUsername
-     */
+    public String getSchemaConnectionParameters() {
+        return this.schemaConnectionParameters;
+    }
+
     public String getSchemaUsername() {
         return this.schemaUsername;
     }
 
-    
-    /**
-     * @return the schemaPassword
-     */
     public String getSchemaPassword() {
         return this.schemaPassword;
     }
 
-    
-    /**
-     * @return the autoUpdateEnabled
-     */
     public boolean isAutoUpdateEnabled() {
         return this.autoUpdateEnabled;
     }
 
-    
-    /**
-     * @return the initialSize
-     */
     public int getInitialSize() {
         return this.initialSize;
     }
 
-    
-    /**
-     * @return the validationInterval
-     */
     public long getValidationInterval() {
         return this.validationInterval;
     }
 
-    
-    /**
-     * @return the removeAbandoned
-     */
     public boolean isRemoveAbandoned() {
         return this.removeAbandoned;
     }
 
-    
-    /**
-     * @return the removeAbandonedTimeout
-     */
     public int getRemoveAbandonedTimeout() {
         return this.removeAbandonedTimeout;
     }
 
-    
-    /**
-     * @return the logAbandoned
-     */
     public boolean isLogAbandoned() {
         return this.logAbandoned;
     }
 
-    
-    /**
-     * @return the abandonWhenPercentageFull
-     */
     public int getAbandonWhenPercentageFull() {
         return this.abandonWhenPercentageFull;
     }
 
-    
-    /**
-     * @return the maxActive
-     */
     public int getMaxActive() {
         return this.maxActive;
     }
 
-    
-    /**
-     * @return the minIdle
-     */
     public int getMinIdle() {
         return this.minIdle;
     }
 
-    
-    /**
-     * @return the maxIdle
-     */
     public int getMaxIdle() {
         return this.maxIdle;
     }
 
-    
-    /**
-     * @return the suspectTimeout
-     */
     public int getSuspectTimeout() {
         return this.suspectTimeout;
     }
 
-    
-    /**
-     * @return the timeBetweenEvictionRunsMillis
-     */
     public int getTimeBetweenEvictionRunsMillis() {
         return this.timeBetweenEvictionRunsMillis;
     }
 
-    
-    /**
-     * @return the minEvictableIdleTimeMillis
-     */
     public int getMinEvictableIdleTimeMillis() {
         return this.minEvictableIdleTimeMillis;
     }
 
-    
-    /**
-     * @return the maxRetriesOnDeadlock
-     */
     public int getMaxRetriesOnDeadlock() {
         return this.maxRetriesOnDeadlock;
     }
 
-    
-    /**
-     * @return the maxIntervalBetweenRetries
-     */
     public int getMaxIntervalBetweenRetries() {
         return this.maxIntervalBetweenRetries;
     }
@@ -247,8 +171,14 @@ public class FineractPlatformTenantConnection {
     public String getSchemaName() {
         return schemaName;
     }
+
     @Override
     public String toString() {
-        return this.schemaName+":"+this.schemaServer+":"+this.schemaServerPort;
+        StringBuilder sb = new StringBuilder(this.schemaName).append(":").append(this.schemaServer).append(":")
+                .append(this.schemaServerPort);
+        if (this.schemaConnectionParameters != null && !this.schemaConnectionParameters.isEmpty()) {
+            sb.append('?').append(this.schemaConnectionParameters);
+        }
+        return sb.toString();
     }
 }

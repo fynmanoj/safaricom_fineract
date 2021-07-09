@@ -26,24 +26,22 @@ import static org.apache.fineract.portfolio.interestratechart.InterestRateChartA
 import static org.apache.fineract.portfolio.interestratechart.InterestRateChartApiConstants.nameParamName;
 import static org.apache.fineract.portfolio.interestratechart.InterestRateChartSlabApiConstants.currencyCodeParamName;
 
+import com.google.gson.JsonElement;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
 import org.apache.fineract.infrastructure.core.api.JsonCommand;
 import org.apache.fineract.infrastructure.core.data.ApiParameterError;
 import org.apache.fineract.infrastructure.core.data.DataValidatorBuilder;
 import org.apache.fineract.infrastructure.core.exception.PlatformApiDataValidationException;
 import org.apache.fineract.infrastructure.core.serialization.FromJsonHelper;
-import org.apache.fineract.portfolio.interestratechart.data.InterestRateChartRepositoryWrapper;
 import org.apache.fineract.portfolio.interestratechart.domain.InterestRateChart;
 import org.apache.fineract.portfolio.interestratechart.domain.InterestRateChartFields;
+import org.apache.fineract.portfolio.interestratechart.domain.InterestRateChartRepositoryWrapper;
 import org.apache.fineract.portfolio.interestratechart.domain.InterestRateChartSlab;
-import org.joda.time.LocalDate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import com.google.gson.JsonElement;
 
 @Service
 public class InterestRateChartAssembler {
@@ -62,8 +60,7 @@ public class InterestRateChartAssembler {
     }
 
     /**
-     * Assembles a new {@link InterestRateChart} from JSON Slabs passed in
-     * request
+     * Assembles a new {@link InterestRateChart} from JSON Slabs passed in request
      */
     public InterestRateChart assembleFrom(final JsonCommand command) {
         final List<ApiParameterError> dataValidationErrors = new ArrayList<>();
@@ -77,10 +74,13 @@ public class InterestRateChartAssembler {
     }
 
     private void throwExceptionIfValidationWarningsExist(final List<ApiParameterError> dataValidationErrors) {
-        if (!dataValidationErrors.isEmpty()) { throw new PlatformApiDataValidationException(dataValidationErrors); }
+        if (!dataValidationErrors.isEmpty()) {
+            throw new PlatformApiDataValidationException(dataValidationErrors);
+        }
     }
 
-    public InterestRateChart assembleFrom(final JsonElement element, final String currencyCode, final DataValidatorBuilder baseDataValidator) {
+    public InterestRateChart assembleFrom(final JsonElement element, final String currencyCode,
+            final DataValidatorBuilder baseDataValidator) {
 
         final String name = this.fromApiJsonHelper.extractStringNamed(nameParamName, element);
         final String description = this.fromApiJsonHelper.extractStringNamed(descriptionParamName, element);

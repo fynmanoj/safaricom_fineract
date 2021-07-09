@@ -20,7 +20,6 @@ package org.apache.fineract.accounting.financialactivityaccount.data;
 
 import java.util.List;
 import java.util.Map;
-
 import org.apache.fineract.accounting.glaccount.data.GLAccountData;
 
 public class FinancialActivityAccountData {
@@ -39,7 +38,8 @@ public class FinancialActivityAccountData {
         this.financialActivityOptions = null;
     }
 
-    public FinancialActivityAccountData(final Long id, final FinancialActivityData financialActivityData, final GLAccountData glAccountData) {
+    public FinancialActivityAccountData(final Long id, final FinancialActivityData financialActivityData,
+            final GLAccountData glAccountData) {
         this.id = id;
         this.glAccountData = glAccountData;
         this.financialActivityData = financialActivityData;

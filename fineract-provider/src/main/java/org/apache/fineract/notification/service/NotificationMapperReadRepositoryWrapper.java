@@ -18,12 +18,10 @@
  */
 package org.apache.fineract.notification.service;
 
+import java.util.List;
 import org.apache.fineract.notification.domain.NotificationMapper;
 
-import java.util.List;
-
 public interface NotificationMapperReadRepositoryWrapper {
-
 
     NotificationMapper findById(Long id);
 

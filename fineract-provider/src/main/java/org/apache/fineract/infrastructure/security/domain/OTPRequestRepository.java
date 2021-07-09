@@ -19,7 +19,6 @@
 package org.apache.fineract.infrastructure.security.domain;
 
 import java.util.concurrent.ConcurrentHashMap;
-
 import org.apache.fineract.infrastructure.security.data.OTPRequest;
 import org.apache.fineract.useradministration.domain.AppUser;
 import org.springframework.context.annotation.Profile;
@@ -28,20 +27,20 @@ import org.springframework.util.Assert;
 
 @Repository
 @Profile("twofactor")
+@SuppressWarnings({ "MemberName" })
 public class OTPRequestRepository {
 
     private final ConcurrentHashMap<Long, OTPRequest> OTPrequests = new ConcurrentHashMap<>();
 
-
     public OTPRequest getOTPRequestForUser(AppUser user) {
-        Assert.notNull(user);
+        Assert.notNull(user, "User must not be null");
 
         return this.OTPrequests.get(user.getId());
     }
 
     public void addOTPRequest(AppUser user, OTPRequest request) {
-        Assert.notNull(user);
-        Assert.notNull(request);
+        Assert.notNull(user, "User must not be null");
+        Assert.notNull(request, "Request must not be null");
         this.OTPrequests.put(user.getId(), request);
     }
 

@@ -19,7 +19,6 @@
 package org.apache.fineract.infrastructure.configuration.domain;
 
 import java.util.Date;
-
 import org.apache.fineract.infrastructure.cache.domain.CacheType;
 
 public interface ConfigurationDomainService {
@@ -56,32 +55,32 @@ public interface ConfigurationDomainService {
 
     Integer retrieveFinancialYearBeginningMonth();
 
-    public Integer retrieveMinAllowedClientsInGroup();
+    Integer retrieveMinAllowedClientsInGroup();
 
-    public Integer retrieveMaxAllowedClientsInGroup();
+    Integer retrieveMaxAllowedClientsInGroup();
 
     boolean isMeetingMandatoryForJLGLoans();
 
     int getRoundingMode();
 
     boolean isBackdatePenaltiesEnabled();
-    
+
     boolean isOrganisationstartDateEnabled();
-    
+
     Date retrieveOrganisationStartDate();
-    
+
     boolean isPaymnetypeApplicableforDisbursementCharge();
 
     boolean isInterestChargedFromDateSameAsDisbursementDate();
 
     boolean isSkippingMeetingOnFirstDayOfMonthEnabled();
-    
+
     Long retreivePeroidInNumberOfDaysForSkipMeetingDate();
-    
+
     boolean isChangeEmiIfRepaymentDateSameAsDisbursementDateEnabled();
-    
+
     boolean isDailyTPTLimitEnabled();
-    
+
     Long getDailyTPTLimit();
 
     void removeGlobalConfigurationPropertyDataFromCache(String propertyName);
@@ -93,6 +92,12 @@ public interface ConfigurationDomainService {
     Integer retrieveOTPCharacterLength();
 
     Integer retrieveOTPLiveTime();
-    
+
     Integer retrieveScheduledJobNumberOfThreads();
+
+    boolean isSubRatesEnabled();
+
+    boolean isFirstRepaymentDateAfterRescheduleAllowedOnHoliday();
+
+    boolean isInterestToBeAppropriatedEquallyWhenGreaterThanEMI();
 }

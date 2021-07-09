@@ -18,40 +18,34 @@
  */
 package org.apache.fineract.portfolio.common.service;
 
-import org.apache.fineract.portfolio.common.BusinessEventNotificationConstants.BUSINESS_ENTITY;
-import org.apache.fineract.portfolio.common.BusinessEventNotificationConstants.BUSINESS_EVENTS;
-
 import java.util.Map;
+import org.apache.fineract.portfolio.common.BusinessEventNotificationConstants.BusinessEntity;
+import org.apache.fineract.portfolio.common.BusinessEventNotificationConstants.BusinessEvents;
 
 /**
- * Implemented class is responsible for notifying the business event to
- * registered listeners.
- * 
+ * Implemented class is responsible for notifying the business event to registered listeners.
+ *
  */
 public interface BusinessEventNotifierService {
 
     /**
-     * Method should be called to notify listeners before Business event
-     * execution for any pre-processing of event
+     * Method should be called to notify listeners before Business event execution for any pre-processing of event
      */
-    public void notifyBusinessEventToBeExecuted(BUSINESS_EVENTS businessEvent, Map<BUSINESS_ENTITY, Object> businessEventEntity);
+    void notifyBusinessEventToBeExecuted(BusinessEvents businessEvent, Map<BusinessEntity, Object> businessEventEntity);
 
     /**
-     * Method should be called to notify listeners after Business event
-     * execution for any post-processing of event
+     * Method should be called to notify listeners after Business event execution for any post-processing of event
      */
-    public void notifyBusinessEventWasExecuted(BUSINESS_EVENTS businessEvent, Map<BUSINESS_ENTITY, Object> businessEventEntity);
+    void notifyBusinessEventWasExecuted(BusinessEvents businessEvent, Map<BusinessEntity, Object> businessEventEntity);
 
     /**
-     * Method is to register a class as listener for pre-processing of any
-     * Business event
+     * Method is to register a class as listener for pre-processing of any Business event
      */
-    public void addBusinessEventPreListners(BUSINESS_EVENTS businessEvent, BusinessEventListner businessEventListner);
+    void addBusinessEventPreListeners(BusinessEvents businessEvent, BusinessEventListener businessEventListener);
 
     /**
-     * Method is to register a class as listener for post-processing of any
-     * Business event
+     * Method is to register a class as listener for post-processing of any Business event
      */
-    public void addBusinessEventPostListners(BUSINESS_EVENTS businessEvent, BusinessEventListner businessEventListner);
+    void addBusinessEventPostListeners(BusinessEvents businessEvent, BusinessEventListener businessEventListener);
 
 }

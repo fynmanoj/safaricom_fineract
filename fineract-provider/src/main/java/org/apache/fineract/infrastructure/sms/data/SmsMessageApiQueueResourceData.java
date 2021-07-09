@@ -18,13 +18,11 @@
  */
 package org.apache.fineract.infrastructure.sms.data;
 
+import com.google.gson.Gson;
 import java.util.Collection;
 
-import com.google.gson.Gson;
-
 /**
- * Immutable data object representing the API request body sent in the POST
- * request to the "/queue" resource
+ * Immutable data object representing the API request body sent in the POST request to the "/queue" resource
  **/
 public class SmsMessageApiQueueResourceData {
 
@@ -116,6 +114,7 @@ public class SmsMessageApiQueueResourceData {
 
     /**
      * Returns the JSOPN representation of the current object.
+     *
      * @return the JSON representation of the current object
      */
     public String toJsonString() {

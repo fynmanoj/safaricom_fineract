@@ -25,7 +25,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.apache.fineract.accounting.common.AccountingEnumerations;
 import org.apache.fineract.accounting.glaccount.data.GLAccountDataForLookup;
 import org.apache.fineract.accounting.glaccount.service.GLAccountReadPlatformService;
@@ -65,15 +64,14 @@ public class AccountingRuleReadPlatformServiceImpl implements AccountingRuleRead
         private final GLAccountReadPlatformService glAccountReadPlatformService;
         private final boolean isAssociationParametersExists;
 
-        public AccountingRuleDataExtractor(final JdbcTemplate jdbcTemplate,
-                final GLAccountReadPlatformService glAccountReadPlatformService, final boolean isAssociationParametersExists) {
+        AccountingRuleDataExtractor(final JdbcTemplate jdbcTemplate, final GLAccountReadPlatformService glAccountReadPlatformService,
+                final boolean isAssociationParametersExists) {
             this.jdbcTemplate = jdbcTemplate;
             this.glAccountReadPlatformService = glAccountReadPlatformService;
             this.isAssociationParametersExists = isAssociationParametersExists;
             final StringBuilder sqlBuilder = new StringBuilder(400);
-            sqlBuilder
-                    .append(" rule.id as id,rule.name as name, rule.office_id as officeId,office.name as officeName,")
-                    .append(" rule.description as description, rule.system_defined as systemDefined, rule.allow_multiple_debits as allowMultipleDebitEntries, rule.allow_multiple_credits as allowMultipleCreditEntries, ")
+            sqlBuilder.append(" rule.id as id,rule.name as name, rule.office_id as officeId,office.name as officeName,").append(
+                    " rule.description as description, rule.system_defined as systemDefined, rule.allow_multiple_debits as allowMultipleDebitEntries, rule.allow_multiple_credits as allowMultipleCreditEntries, ")
                     .append("debitAccount.id AS debitAccountId, debitAccount.name as debitAccountName, debitAccount.gl_code as debitAccountGLCode, ")
                     .append("creditAccount.id AS creditAccountId, creditAccount.name as creditAccountName, creditAccount.gl_code as creditAccountGLCode")
                     .append(" from m_office AS office, acc_accounting_rule AS rule ")
@@ -117,8 +115,9 @@ public class AccountingRuleReadPlatformServiceImpl implements AccountingRuleRead
                     if (accountToCreditId == null) {
                         creditTags = !this.isAssociationParametersExists ? getCreditOrDebitTags(id, JournalEntryType.CREDIT.getValue())
                                 : null;
-                        creditAccounts = this.isAssociationParametersExists ? this.glAccountReadPlatformService.retrieveAccountsByTagId(id,
-                                JournalEntryType.CREDIT.getValue()) : null;
+                        creditAccounts = this.isAssociationParametersExists
+                                ? this.glAccountReadPlatformService.retrieveAccountsByTagId(id, JournalEntryType.CREDIT.getValue())
+                                : null;
                     } else {
                         creditTags = null;
                         final GLAccountDataForLookup creditAccount = new GLAccountDataForLookup(accountToCreditId, creditAccountName,
@@ -128,8 +127,9 @@ public class AccountingRuleReadPlatformServiceImpl implements AccountingRuleRead
                     if (accountToDebitId == null) {
                         debitTags = !this.isAssociationParametersExists ? getCreditOrDebitTags(id, JournalEntryType.DEBIT.getValue())
                                 : null;
-                        debitAccounts = this.isAssociationParametersExists ? this.glAccountReadPlatformService.retrieveAccountsByTagId(id,
-                                JournalEntryType.DEBIT.getValue()) : null;
+                        debitAccounts = this.isAssociationParametersExists
+                                ? this.glAccountReadPlatformService.retrieveAccountsByTagId(id, JournalEntryType.DEBIT.getValue())
+                                : null;
                     } else {
                         debitTags = null;
                         final GLAccountDataForLookup debitAccount = new GLAccountDataForLookup(accountToDebitId, debitAccountName,
@@ -179,10 +179,12 @@ public class AccountingRuleReadPlatformServiceImpl implements AccountingRuleRead
             final Map<Long, AccountingRuleData> extractedData = this.jdbcTemplate.query(sql, resultSetExtractor,
                     new Object[] { accountingRuleId });
             final AccountingRuleData accountingRuleData = extractedData.get(accountingRuleId);
-            if (accountingRuleData == null) { throw new AccountingRuleNotFoundException(accountingRuleId); }
+            if (accountingRuleData == null) {
+                throw new AccountingRuleNotFoundException(accountingRuleId);
+            }
             return accountingRuleData;
         } catch (final EmptyResultDataAccessException e) {
-            throw new AccountingRuleNotFoundException(accountingRuleId);
+            throw new AccountingRuleNotFoundException(accountingRuleId, e);
         }
     }
 

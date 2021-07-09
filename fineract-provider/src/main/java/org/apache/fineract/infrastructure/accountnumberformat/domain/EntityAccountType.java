@@ -22,13 +22,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 public enum EntityAccountType {
-    CLIENT(1, "accountType.client"), LOAN(2, "accountType.loan"), SAVINGS(3, "accountType.savings"), CENTER(4, "accountType.center"), 
-    GROUP(5, "accountType.group"), SHARES(6, "accountType.shares");
+
+    CLIENT(1, "accountType.client"), LOAN(2, "accountType.loan"), SAVINGS(3, "accountType.savings"), CENTER(4,
+            "accountType.center"), GROUP(5, "accountType.group"), SHARES(6, "accountType.shares");
 
     private final Integer value;
     private final String code;
 
-    private EntityAccountType(final Integer value, final String code) {
+    EntityAccountType(final Integer value, final String code) {
         this.value = value;
         this.code = code;
     }
@@ -90,13 +91,13 @@ public enum EntityAccountType {
     public boolean isSavingsAccount() {
         return this.value.equals(EntityAccountType.SAVINGS.getValue());
     }
-    
-    public Boolean isCenterAccount(){
-    	return this.value.equals(EntityAccountType.CENTER.getValue());
+
+    public Boolean isCenterAccount() {
+        return this.value.equals(EntityAccountType.CENTER.getValue());
     }
-    
-    public Boolean isGroupAccount(){
-    	return this.value.equals(EntityAccountType.GROUP.getValue());
+
+    public Boolean isGroupAccount() {
+        return this.value.equals(EntityAccountType.GROUP.getValue());
     }
 
 }
