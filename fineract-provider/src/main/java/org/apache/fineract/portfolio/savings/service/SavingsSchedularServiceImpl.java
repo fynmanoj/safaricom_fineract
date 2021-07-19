@@ -19,7 +19,16 @@
 package org.apache.fineract.portfolio.savings.service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import org.apache.fineract.infrastructure.configuration.domain.ConfigurationDomainService;
+import org.apache.fineract.infrastructure.core.domain.FineractPlatformTenant;
 import org.apache.fineract.infrastructure.core.service.DateUtils;
 import org.apache.fineract.infrastructure.core.service.ThreadLocalContextUtil;
 import org.apache.fineract.infrastructure.jobs.annotation.CronTarget;
@@ -28,6 +37,7 @@ import org.apache.fineract.infrastructure.jobs.service.JobName;
 import org.apache.fineract.portfolio.savings.domain.SavingsAccount;
 import org.apache.fineract.portfolio.savings.domain.SavingsAccountAssembler;
 import org.apache.fineract.portfolio.savings.domain.SavingsAccountRepositoryWrapper;
+import org.apache.fineract.portfolio.savings.domain.SavingsAccountStatusType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,7 +48,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class SavingsSchedularServiceImpl implements SavingsSchedularService {
 
-    private static final Logger LOG = LoggerFactory.getLogger(SavingsSchedularServiceImpl.class);
+    private final Logger logger = LoggerFactory.getLogger(SavingsSchedularServiceImpl.class);
 
     private final SavingsAccountAssembler savingAccountAssembler;
     private final SavingsAccountWritePlatformService savingsAccountWritePlatformService;
@@ -64,7 +74,7 @@ public class SavingsSchedularServiceImpl implements SavingsSchedularService {
         int page = 0;
         Integer initialSize = 500;
         Integer totalPageSize = 0;
-        final StringBuffer sb = new StringBuffer();
+        final StringBuilder sb = new StringBuilder();
 
         Integer nThreads = this.configurationDomainService.retrieveScheduledJobNumberOfThreads();
 
@@ -74,22 +84,13 @@ public class SavingsSchedularServiceImpl implements SavingsSchedularService {
 
         final FineractPlatformTenant tenant = ThreadLocalContextUtil.getTenant();
         do {
-            PageRequest pageRequest = new PageRequest(page, initialSize);
+            // final ArrayList<Sort.Order> orders = new ArrayList<>();
+            // orders.add(new Sort.Order(Sort.Direction.ASC.name()));
+            // final Sort sort = new Sort(orders);
+            PageRequest pageRequest = PageRequest.of(page, initialSize);
             Page<SavingsAccount> savingsAccounts = this.savingsAccountRepository.findByStatus(SavingsAccountStatusType.ACTIVE.getValue(),
                     pageRequest);
 
-            for (SavingsAccount savingsAccount : savingsAccounts.getContent()) {
-                try {
-                    this.savingAccountAssembler.assignSavingAccountHelpers(savingsAccount);
-                    boolean postInterestAsOn = false;
-                    LocalDate transactionDate = null;
-                    this.savingsAccountWritePlatformService.postInterest(savingsAccount, postInterestAsOn, transactionDate);
-                } catch (Exception e) {
-                    LOG.error("Failed to post interest for Savings with id {}", savingsAccount.getId(), e);
-                    errors.add(e);
-                }
-            }
-            page++;
             totalPageSize = savingsAccounts.getTotalPages();
 
             Runnable piTask = () -> {
@@ -106,13 +107,13 @@ public class SavingsSchedularServiceImpl implements SavingsSchedularService {
         executor.shutdown();
 
         if (sb.length() > 0) {
-            throw new JobExecutionException(sb.toString());
+            throw new JobExecutionException(Collections.singletonList(new Exception(sb.toString())));
         }
     }
 
-    private StringBuffer postInterestForAccountsPage(FineractPlatformTenant tenant, SavingsAccountAssembler saAssembler,
+    private StringBuilder postInterestForAccountsPage(FineractPlatformTenant tenant, SavingsAccountAssembler saAssembler,
             SavingsAccountWritePlatformService saWritePlatformService, Page<SavingsAccount> savingsAccounts) {
-        StringBuffer sbPage = new StringBuffer();
+        StringBuilder sbPage = new StringBuilder();
         ThreadLocalContextUtil.setTenant(tenant);
         for (SavingsAccount savingsAccount : savingsAccounts.getContent()) {
             try {
@@ -121,8 +122,8 @@ public class SavingsSchedularServiceImpl implements SavingsSchedularService {
                 LocalDate transactionDate = null;
 
                 if (this.logger.isDebugEnabled()) {
-                    String logString = "###  " + LocalDateTime.now() + " | Page: " + savingsAccounts.getNumber() + " | Account: "
-                            + savingsAccount.getAccountNumber();
+                    String logString = "###  " + LocalDateTime.now(ZoneId.systemDefault()) + " | Page: " + savingsAccounts.getNumber()
+                            + " | Account: " + savingsAccount.getAccountNumber();
                     this.logger.debug(logString);
                 }
 
@@ -167,45 +168,6 @@ public class SavingsSchedularServiceImpl implements SavingsSchedularService {
             for (Long savingsId : savingsPendingEscheat) {
                 this.savingsAccountWritePlatformService.escheat(savingsId);
             }
-        }
-    }
-
-}
-
-class CallerBlocksPolicy implements RejectedExecutionHandler {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(CallerBlocksPolicy.class);
-
-    private final long maxWait;
-
-    /**
-     * Construct instance based on the provided maximum wait time.
-     *
-     * @param maxWait
-     *            The maximum time to wait for a queue slot to be available, in milliseconds.
-     */
-    public CallerBlocksPolicy(long maxWait) {
-        this.maxWait = maxWait;
-    }
-
-    @Override
-    public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
-        if (!executor.isShutdown()) {
-            try {
-                BlockingQueue<Runnable> queue = executor.getQueue();
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Attempting to queue task execution for " + this.maxWait + " milliseconds");
-                }
-                if (!queue.offer(r, this.maxWait, TimeUnit.HOURS)) {
-                    throw new RejectedExecutionException("Max wait time expired to queue task");
-                }
-                LOGGER.debug("Task execution queued");
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                throw new RejectedExecutionException("Interrupted", e);
-            }
-        } else {
-            throw new RejectedExecutionException("Executor has been shut down");
         }
     }
 
