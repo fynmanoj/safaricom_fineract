@@ -63,6 +63,7 @@ import org.springframework.stereotype.Service;
  * ,{@link MethodInvokingJobDetailFactoryBean} and {@link CronTriggerFactoryBean}
  */
 @Service
+@ConditionalOnProperty("job.register.service.enabled")
 public class JobRegisterServiceImpl implements JobRegisterService, ApplicationListener<ContextClosedEvent> {
 
     private static final Logger LOG = LoggerFactory.getLogger(JobRegisterServiceImpl.class);
