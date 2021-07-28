@@ -18,4 +18,4 @@
 --
 
 INSERT INTO `c_configuration` (`id`, `name`, `value`, `enabled`, `description`)
-VALUES (NULL, 'scheduled-job-number-of-threads', '100', '1', "Number of threads to be used for certain Scheduled Jobs. For now it only applies to: Savings Account Interest Posting.");
+VALUES (NULL, 'scheduled-job-number-of-threads', '5', '1', "Number of threads to be used for certain Scheduled Jobs. For now it only applies to: Savings Account Interest Posting.");
