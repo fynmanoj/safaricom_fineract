@@ -97,6 +97,8 @@ public class SavingsSchedularServiceImpl implements SavingsSchedularService {
             	StringBuffer sbThr = postInterestForAccountsPage(tenant, this.savingAccountAssembler, this.savingsAccountWritePlatformService, savingsAccounts);
             	if ((sb.length() + sbThr.length())<65000) {
             		sb.append(sbThr);
+            	} else {
+            		logger.error("Additional postInterestForAccounts errors not logged in history: " + sbThr.toString());
             	}
             };
 
