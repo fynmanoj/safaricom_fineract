@@ -94,8 +94,10 @@ public class SavingsSchedularServiceImpl implements SavingsSchedularService {
             totalPageSize = savingsAccounts.getTotalPages();
 
             Runnable piTask = () -> {
-                sb.append(postInterestForAccountsPage(tenant, this.savingAccountAssembler, this.savingsAccountWritePlatformService,
-                        savingsAccounts));
+            	StringBuffer sbThr = postInterestForAccountsPage(tenant, this.savingAccountAssembler, this.savingsAccountWritePlatformService, savingsAccounts);
+            	if ((sb.length() + sbThr.length())<65000) {
+            		sb.append(sbThr);
+            	}
             };
 
             executor.execute(piTask);

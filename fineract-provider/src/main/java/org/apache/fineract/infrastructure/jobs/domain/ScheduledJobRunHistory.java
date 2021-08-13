@@ -70,9 +70,10 @@ public class ScheduledJobRunHistory extends AbstractPersistableCustom {
         this.startTime = startTime;
         this.endTime = endTime;
         this.status = status;
-        this.errorMessage = errorMessage;
+        
+        this.errorMessage =  (errorMessage.length() > 65500) ? errorMessage.substring(0,65500) : errorMessage ;
         this.triggerType = triggerType;
-        this.errorLog = errorLog;
+        this.errorLog = (errorLog.length() > 65500) ? errorLog.substring(0,65500) : errorLog ;
     }
 
 }
