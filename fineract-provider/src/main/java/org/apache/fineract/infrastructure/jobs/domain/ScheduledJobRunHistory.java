@@ -26,6 +26,8 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+
+import org.apache.commons.lang.StringUtils;
 import org.apache.fineract.infrastructure.core.domain.AbstractPersistableCustom;
 
 @Entity
@@ -71,9 +73,9 @@ public class ScheduledJobRunHistory extends AbstractPersistableCustom {
         this.endTime = endTime;
         this.status = status;
         
-        this.errorMessage =  (errorMessage.length() > 65500) ? errorMessage.substring(0,65500) : errorMessage ;
+        this.errorMessage =  (errorMessage !=null && errorMessage.length() > 65500) ? errorMessage.substring(0,65500) : errorMessage ;
         this.triggerType = triggerType;
-        this.errorLog = (errorLog.length() > 65500) ? errorLog.substring(0,65500) : errorLog ;
+        this.errorLog = (errorLog !=null && errorLog.length() > 65500) ? errorLog.substring(0,65500) : errorLog ;
     }
 
 }
