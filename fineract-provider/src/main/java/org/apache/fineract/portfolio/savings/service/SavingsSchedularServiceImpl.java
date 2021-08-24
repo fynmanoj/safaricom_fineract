@@ -134,9 +134,7 @@ public class SavingsSchedularServiceImpl implements SavingsSchedularService {
 
                 saWritePlatformService.postInterest(savingsAccount, postInterestAsOn, transactionDate);
             } catch (Exception e) {
-                if (this.logger.isDebugEnabled()) {
-                    this.logger.error("PostInterest failed.", e);
-                }
+                this.logger.error("PostInterest failed.", e);
 
                 Throwable realCause = e;
                 if (e.getCause() != null) {
