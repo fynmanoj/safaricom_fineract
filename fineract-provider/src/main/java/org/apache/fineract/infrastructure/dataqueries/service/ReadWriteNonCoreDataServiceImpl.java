@@ -26,6 +26,9 @@ import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -77,7 +80,9 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.jdbc.support.rowset.SqlRowSetMetaData;
 import org.springframework.orm.jpa.JpaSystemException;
@@ -384,9 +389,31 @@ public class ReadWriteNonCoreDataServiceImpl implements ReadWriteNonCoreDataServ
 
             final String sql = getAddSql(columnHeaders, dataTableName, getFKField(appTable), appTableId, dataParams);
 
-            this.jdbcTemplate.update(sql);
+            GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
 
-            return commandProcessingResult; //
+            PreparedStatementCreator prepStatementCreator = new PreparedStatementCreator() {
+
+                @Override
+                public PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
+                    PreparedStatement ps = connection.prepareStatement(sql, new String[] { "id" });
+                    return ps;
+                }
+            };
+
+            this.jdbcTemplate.update(prepStatementCreator, keyHolder);
+
+            long id = keyHolder.getKey().longValue();
+
+            CommandProcessingResult result = new CommandProcessingResultBuilder() //
+                    .withEntityId(id) //
+                    .withOfficeId(commandProcessingResult.getOfficeId()) //
+                    .withGroupId(commandProcessingResult.getGroupId()) //
+                    .withClientId(commandProcessingResult.getClientId()) //
+                    .withSavingsId(commandProcessingResult.getSavingsId()) //
+                    .withLoanId(commandProcessingResult.getLoanId()) //
+                    .build();
+
+            return result; //
 
         } catch (final DataAccessException dve) {
             final Throwable cause = dve.getCause();
