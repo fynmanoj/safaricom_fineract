@@ -46,7 +46,7 @@ public class CreateDatatableEntryCommandHandler implements NewCommandSourceHandl
 
         return new CommandProcessingResultBuilder() //
                 .withCommandId(command.commandId()) //
-                .withEntityId(command.entityId()) //
+                .withEntityId(commandProcessingResult.resourceId()) //
                 .withOfficeId(commandProcessingResult.getOfficeId()) //
                 .withGroupId(commandProcessingResult.getGroupId()) //
                 .withClientId(commandProcessingResult.getClientId()) //
