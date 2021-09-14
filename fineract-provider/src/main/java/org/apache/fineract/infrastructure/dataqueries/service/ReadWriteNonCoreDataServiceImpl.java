@@ -78,6 +78,7 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.jdbc.support.rowset.SqlRowSetMetaData;
 import org.springframework.orm.jpa.JpaSystemException;
@@ -384,9 +385,21 @@ public class ReadWriteNonCoreDataServiceImpl implements ReadWriteNonCoreDataServ
 
             final String sql = getAddSql(columnHeaders, dataTableName, getFKField(appTable), appTableId, dataParams);
 
-            this.jdbcTemplate.update(sql);
+            GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
+            this.jdbcTemplate.update(sql, keyHolder);
+            
+            long id = keyHolder.getKey().longValue();
 
-            return commandProcessingResult; //
+            CommandProcessingResult result = new CommandProcessingResultBuilder() //
+                    .withEntityId(id) //
+                    .withOfficeId(commandProcessingResult.getOfficeId()) //
+                    .withGroupId(commandProcessingResult.getGroupId()) //
+                    .withClientId(commandProcessingResult.getClientId()) //
+                    .withSavingsId(commandProcessingResult.getSavingsId()) //
+                    .withLoanId(commandProcessingResult.getLoanId()) //
+                    .build();
+            
+            return result; //
 
         } catch (final DataAccessException dve) {
             final Throwable cause = dve.getCause();
